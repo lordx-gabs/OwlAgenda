@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "542538337985",
+    "firebase_url": "https://owl-agenda-default-rtdb.firebaseio.com",
+    "project_id": "owl-agenda",
+    "storage_bucket": "owl-agenda.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:542538337985:android:b74926024c90ae4bdace40",
+        "android_client_info": {
+          "package_name": "com.example.owlagenda"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhQyxqiI_O2VizCIihSlNNwUCCHagzyyY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
