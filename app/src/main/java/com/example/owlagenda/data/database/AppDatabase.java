@@ -11,6 +11,7 @@ import com.example.owlagenda.data.models.Usuario;
 
 @Database(entities = {Usuario.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
+
     public abstract UsuarioDao userDao();
     private static volatile AppDatabase INSTANCE;
 

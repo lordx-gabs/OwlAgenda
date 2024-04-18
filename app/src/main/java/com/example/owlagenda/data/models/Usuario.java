@@ -4,10 +4,12 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 @Entity(tableName = "usuario")
-public class Usuario {
+public class Usuario implements Serializable {
     @PrimaryKey(autoGenerate = true)
-    private String id;
+    private Integer id;
 
     @ColumnInfo(name = "nome")
     private String nome;
@@ -21,23 +23,23 @@ public class Usuario {
     @ColumnInfo(name = "email")
     private String email;
 
-    public Usuario(String id, String nome, String sobrenome, String email) {
+    public Usuario(Integer id, String nome, String sobrenome, String email, String senha) {
         this.id = id;
         this.nome = nome;
         this.sobrenome = sobrenome;
         this.email = email;
+        this.senha = senha;
     }
 
-    public Usuario(String id, String nome) {
-        this.id = id;
-        this.nome = nome;
+    public Usuario() {
+
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

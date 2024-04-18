@@ -50,11 +50,17 @@ android {
             isUniversalApk = false
         }
     }
+    buildFeatures {
+        viewBinding = true
+    }
 
 }
 
 dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
+    implementation(libs.annotation)
+    implementation(libs.lifecycle.livedata.ktx)
+    implementation(libs.lifecycle.viewmodel.ktx)
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation(project(":opencv"))
     implementation ("com.google.api-client:google-api-client:2.0.0")

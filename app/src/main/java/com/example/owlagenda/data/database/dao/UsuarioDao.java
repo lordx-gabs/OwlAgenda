@@ -1,7 +1,5 @@
 package com.example.owlagenda.data.database.dao;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -27,6 +25,6 @@ public interface UsuarioDao {
     List<Usuario> listarTodosUsuarios();
 
     @Query("SELECT * FROM usuario WHERE email = :email AND senha = :senha")
-    LiveData<Usuario> buscarPorEmailESenha(String email, String senha);
+    Usuario buscarPorEmailESenha(String email, String senha);
 }
 
