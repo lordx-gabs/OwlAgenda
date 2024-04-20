@@ -21,6 +21,9 @@ public interface UsuarioDao {
     @Delete
     void delete(Usuario user);
 
+    @Query("SELECT * FROM usuario WHERE id = :id")
+    Usuario usuarioPorId(Integer id);
+
     @Query("SELECT * FROM usuario")
     List<Usuario> listarTodosUsuarios();
 

@@ -8,6 +8,7 @@ import java.io.Serializable;
 
 @Entity(tableName = "usuario")
 public class Usuario implements Serializable {
+
     @PrimaryKey(autoGenerate = true)
     private Integer id;
 
@@ -23,8 +24,7 @@ public class Usuario implements Serializable {
     @ColumnInfo(name = "email")
     private String email;
 
-    public Usuario(Integer id, String nome, String sobrenome, String email, String senha) {
-        this.id = id;
+    public Usuario(String nome, String sobrenome, String email, String senha) {
         this.nome = nome;
         this.sobrenome = sobrenome;
         this.email = email;
@@ -32,7 +32,6 @@ public class Usuario implements Serializable {
     }
 
     public Usuario() {
-
     }
 
     public Integer getId() {

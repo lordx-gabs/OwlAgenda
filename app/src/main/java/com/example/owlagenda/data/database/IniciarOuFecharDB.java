@@ -11,7 +11,7 @@ public class IniciarOuFecharDB extends Application {
         appDatabase = AppDatabase.getDatabase(this);
     }
 
-    public void fecharDB() {
+    public static void fecharDB() {
         if (appDatabase != null) {
             appDatabase.close();
         }
