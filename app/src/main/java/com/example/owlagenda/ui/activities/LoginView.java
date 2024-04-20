@@ -1,32 +1,22 @@
 package com.example.owlagenda.ui.activities;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.data.database.IniciarOuFecharDB;
-import com.example.owlagenda.data.database.dao.UsuarioDao;
-import com.example.owlagenda.data.models.Usuario;
 import com.example.owlagenda.ui.viewmodels.LoginViewModel;
 import com.example.owlagenda.util.VerificaConexao;
 import com.google.firebase.database.DatabaseException;
@@ -58,7 +48,7 @@ public class LoginView extends AppCompatActivity {
             if (!email.getText().toString().isEmpty() && !senha.getText().toString().isEmpty()) {
                 try {
                     loginViewModel.buscaPorEmailSenha(email.getText().toString(), senha.getText().toString())
-                            .observe(LoginView.this, new Observer<Boolean>() {
+                            .observe(LoginView.this, new Observer<>() {
                                 @Override
                                 public void onChanged(Boolean aBoolean) {
                                     if (aBoolean) {

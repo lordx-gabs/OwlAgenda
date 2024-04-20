@@ -20,12 +20,10 @@ public class VerificaConexao {
                     capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                     capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
         } else {
-            @SuppressWarnings("deprecation")
             Network activeNetwork = connMgr.getActiveNetwork();
             if (activeNetwork == null) {
                 return false;
             }
-            @SuppressWarnings("deprecation")
             android.net.NetworkInfo networkInfo = connMgr.getNetworkInfo(activeNetwork);
             return networkInfo != null && networkInfo.isConnected();
         }
