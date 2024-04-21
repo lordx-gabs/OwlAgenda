@@ -22,7 +22,7 @@ public interface UsuarioDao {
     void delete(Usuario user);
 
     @Query("SELECT * FROM usuario WHERE id = :id")
-    Usuario usuarioPorId(Integer id);
+    Usuario usuarioPorId(String id);
 
     @Query("SELECT * FROM usuario")
     List<Usuario> listarTodosUsuarios();

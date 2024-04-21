@@ -1,5 +1,6 @@
 package com.example.owlagenda.data.models;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -9,8 +10,8 @@ import java.io.Serializable;
 @Entity(tableName = "usuario")
 public class Usuario implements Serializable {
 
-    @PrimaryKey(autoGenerate = true)
-    private Integer id;
+    @PrimaryKey
+    private @NonNull String id;
 
     @ColumnInfo(name = "nome")
     private String nome;
@@ -34,11 +35,11 @@ public class Usuario implements Serializable {
     public Usuario() {
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 

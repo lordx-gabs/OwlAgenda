@@ -22,28 +22,29 @@
 
     <EditText
         android:id="@+id/et_email"
-        android:layout_width="334dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="9dp"
-        android:layout_marginEnd="6dp"
-        android:layout_marginBottom="1dp"
+        android:layout_width="368dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="2dp"
+        android:layout_marginBottom="20dp"
         android:ems="10"
         android:inputType="textEmailAddress"
         app:layout_constraintBottom_toTopOf="@+id/et_senha"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView2" />
+        app:layout_constraintStart_toEndOf="@+id/textView2"
+        app:layout_constraintTop_toBottomOf="@+id/tv_bem_vindo" />
 
     <EditText
         android:id="@+id/et_senha"
-        android:layout_width="335dp"
-        android:layout_height="45dp"
-        android:layout_marginEnd="6dp"
-        android:layout_marginBottom="44dp"
+        android:layout_width="364dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="2dp"
         android:ems="10"
         android:inputType="textPassword"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView3" />
+        app:layout_constraintStart_toEndOf="@+id/textView3"
+        app:layout_constraintTop_toBottomOf="@+id/et_email" />
 
     <TextView
         android:id="@+id/tv_bem_vindo"
@@ -62,37 +63,34 @@
         android:id="@+id/textView2"
         android:layout_width="38dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="96dp"
-        android:layout_marginEnd="2dp"
-        android:layout_marginBottom="4dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="372dp"
+        android:layout_marginBottom="46dp"
         android:text="Email:"
         app:layout_constraintBottom_toTopOf="@+id/textView3"
         app:layout_constraintEnd_toStartOf="@+id/et_email"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView3"
-        android:layout_width="51dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="28dp"
-        android:layout_marginEnd="2dp"
-        android:layout_marginBottom="290dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="35dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="22dp"
         android:text="Senha:"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/cb_lembraruser"
         app:layout_constraintEnd_toStartOf="@+id/et_senha"
-        app:layout_constraintHorizontal_bias="0.444"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintTop_toBottomOf="@+id/et_email" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="219dp"
-        android:layout_height="50dp"
-        android:layout_marginBottom="182dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="120dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -112,4 +110,16 @@
             android:onClick="telaCadastro"
             android:text="Cadastrar-se" />
     </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/cb_lembraruser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="301dp"
+        android:layout_marginBottom="35dp"
+        android:text="Lembrar-se"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

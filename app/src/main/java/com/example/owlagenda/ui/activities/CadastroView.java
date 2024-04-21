@@ -48,9 +48,6 @@ public class CadastroView extends AppCompatActivity {
         cadastroViewModel.cadastraBD(user).observe(this, sucesso -> {
             if (sucesso) {
                 Toast.makeText(this, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show();
-                Intent proximaTela = new Intent(CadastroView.this, MainActivity.class);
-                proximaTela.putExtra("usuario", user);
-                startActivity(proximaTela);
                 finish();
             } else {
                 Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();

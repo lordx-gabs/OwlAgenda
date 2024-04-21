@@ -68,6 +68,7 @@ dependencies {
     implementation ("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
     implementation("com.google.firebase:firebase-database")
     implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
+    implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

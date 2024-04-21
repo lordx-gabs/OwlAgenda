@@ -61,6 +61,7 @@ public class SincronizaBDViewModel extends ViewModel {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                user.setSenha(null);
                 if (dataSnapshot.exists()) {
                     // O usuário já existe, então vamos atualizar os dados
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
@@ -68,9 +69,7 @@ public class SincronizaBDViewModel extends ViewModel {
                         databaseReference.child(userId).setValue(user);
                     }
                 } else {
-                    // O usuário não existe, você pode inseri-lo aqui se desejar
-                    String userId = databaseReference.push().getKey();
-                    databaseReference.child(userId).setValue(user);
+                    databaseReference.child(user.getId()).setValue(user);
                 }
                 estadoDaSincronizacao.setValue(true);
             }

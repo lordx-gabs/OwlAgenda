@@ -10,11 +10,8 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.owlagenda.R;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +24,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
     }
-    public void eita() {
-        executorService.execute(() -> {
 
-        });
-    }
+
 
 }
