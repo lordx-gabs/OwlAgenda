@@ -25,12 +25,8 @@ public class Usuario implements Serializable {
     @ColumnInfo(name = "email")
     private String email;
 
-    public Usuario(String nome, String sobrenome, String email, String senha) {
-        this.nome = nome;
-        this.sobrenome = sobrenome;
-        this.email = email;
-        this.senha = senha;
-    }
+    @ColumnInfo(name = "url_foto_perfil")
+    private String url_foto_perfil;
 
     public Usuario() {
     }
@@ -74,4 +70,13 @@ public class Usuario implements Serializable {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public String getUrl_foto_perfil() {
+        return url_foto_perfil;
+    }
+
+    public void setUrl_foto_perfil(String url_foto_perfil) {
+        this.url_foto_perfil = url_foto_perfil;
+    }
+
 }

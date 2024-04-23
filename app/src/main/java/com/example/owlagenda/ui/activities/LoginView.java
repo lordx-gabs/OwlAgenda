@@ -1,6 +1,7 @@
 package com.example.owlagenda.ui.activities;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -10,6 +11,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -20,6 +24,14 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.viewmodels.LoginViewModel;
 import com.example.owlagenda.util.VerificaConexao;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 
@@ -30,7 +42,9 @@ public class LoginView extends AppCompatActivity {
     private static final String PREF_NAME = "MyPrefs";
     private static final String KEY_USER_LOGIN = "user_login";
     private static final String KEY_USER_SENHA = "user_senha";
-    private static final String KEY_USER_LEMBRE_ME = "user_lembre_me";
+    private static final int RC_SIGN_IN = 1399; // Você pode usar qualquer número aqui
+    private GoogleSignInClient mGoogleSignInClient;
+    private SignInButton btnGoogle;
     private EditText email, senha;
     private CheckBox cb_lembrar;
 
@@ -44,38 +58,52 @@ public class LoginView extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        
+
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         sharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
-        // Verifica se o usuário já está autenticado
         mAuth = FirebaseAuth.getInstance();
-        boolean escolhaLembreMe = sharedPreferences.getBoolean(KEY_USER_LEMBRE_ME, false);
-        if (mAuth.getCurrentUser() != null && escolhaLembreMe) {
+
+        // Configure sign-in to request the user’s basic profile like name and email
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.id_google))
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+
+        // Verifica se o usuário já está autenticado
+        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
             // Usuário está autenticado
             this.proximaTela();
+            finish();
         } else {
             try {
                 String email = sharedPreferences.getString(KEY_USER_LOGIN, ""), senha = sharedPreferences.getString(KEY_USER_SENHA, "");
-                if (!email.isEmpty() && !senha.isEmpty() && escolhaLembreMe) {
-                    loginViewModel.autenticaUser(email, senha).observe(this, new Observer<Boolean>() {
-                        @Override
-                        public void onChanged(Boolean aBoolean) {
-                            if (aBoolean) {
-                                proximaTela();
-                            }
+                if (!email.isEmpty() && !senha.isEmpty()) {
+                    loginViewModel.autenticaUserEmailSenha(email, senha).observe(this, aBoolean -> {
+                        if (aBoolean) {
+                            proximaTela();
+                            finish();
                         }
                     });
                 }
             } catch (FirebaseAuthException e) {
-                Toast.makeText(this, "Erro na autenticação.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Erro na autenticação, por favor faça login novamente.", Toast.LENGTH_SHORT).show();
             }
         }
 
         cb_lembrar = findViewById(R.id.cb_lembraruser);
         email = findViewById(R.id.et_email);
         senha = findViewById(R.id.et_senha);
+        btnGoogle = findViewById(R.id.btn_google_login);
+
+        btnGoogle.setColorScheme(SignInButton.COLOR_DARK);
+        btnGoogle.setBackgroundColor(SignInButton.COLOR_DARK);
+
+        btnGoogle.setOnClickListener(v -> logarComGoogle());
+
     }
 
     public void proximaTela() {
@@ -90,16 +118,20 @@ public class LoginView extends AppCompatActivity {
 
             if (!emailUser.isEmpty() && !senhaUser.isEmpty()) {
                 try {
-                    loginViewModel.autenticaUser(email.getText().toString(), senha.getText().toString()).observe(this, new Observer<Boolean>() {
-                        @Override
-                        public void onChanged(Boolean aBoolean) {
-                            if (aBoolean) {
-                                mantemLogadoUsuario(emailUser, senhaUser);
-
+                    loginViewModel.autenticaUserEmailSenha(emailUser, senhaUser).observe(this, aBoolean -> {
+                        if (aBoolean) {
+                            if(mAuth.getCurrentUser().isEmailVerified()) {
+                                if (cb_lembrar.isChecked()) {
+                                    mantemLogadoUsuario(emailUser, senhaUser);
+                                }
                                 proximaTela();
+                                finish();
                             } else {
-                                Toast.makeText(LoginView.this, "Email ou senha incorreta.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginView.this, "Usuário ainda não verificado", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(LoginView.this, EnviaEmailVerificacao.class));
                             }
+                        } else {
+                            Toast.makeText(LoginView.this, "Email ou senha incorreta.", Toast.LENGTH_SHORT).show();
                         }
                     });
                 } catch (FirebaseAuthException exception) {
@@ -113,18 +145,51 @@ public class LoginView extends AppCompatActivity {
         }
     }
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                //authenticating user with firebase using received token id
+                // Faça algo com o ID Token, como autenticar o usuário usando Firebase Auth
+
+                loginViewModel.autenticaUserGoogle(account.getIdToken(), account).observe(this, aBoolean -> {
+                    if(aBoolean) {
+                        Toast.makeText(LoginView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginView.this, MainActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(LoginView.this, "Falha no login.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } catch (ApiException e) {
+                // Ocorreu um erro ao tentar fazer login com o Google
+                Toast.makeText(this, "Erro ao tentar fazer login com o Google" , Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     public void telaCadastro(View view) {
-        Intent telaCadastro = new Intent(this, CadastroView.class);
-        startActivity(telaCadastro);
+        startActivity(new Intent(this, CadastroView.class));
     }
 
     private void mantemLogadoUsuario(String email, String senha) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(KEY_USER_LEMBRE_ME, cb_lembrar.isChecked());
         editor.putString(KEY_USER_LOGIN, email);
         editor.putString(KEY_USER_SENHA, senha);
 
         editor.apply();
     }
 
+    private void logarComGoogle() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
 }

@@ -27,7 +27,10 @@
     "variantName": "debug",
     "isDebuggableEnabled": true,
     "validAbiList": [
-      "armeabi-v7a"
+      "armeabi-v7a",
+      "arm64-v8a",
+      "x86",
+      "x86_64"
     ],
     "buildTargetSet": [
       "opencv_jni_shared"
@@ -143,7 +146,6 @@
         "rootBuildGradleFolder": "C:\\Users\\biels\\AndroidStudioProjects\\OwlAgenda",
         "sdkFolder": "C:\\Users\\biels\\AppData\\Local\\Android\\Sdk",
         "isBuildOnlyTargetAbiEnabled": true,
-        "ideBuildTargetAbi": "armeabi-v7a,armeabi",
         "isCmakeBuildCohabitationEnabled": false,
         "isPrefabEnabled": false
       },

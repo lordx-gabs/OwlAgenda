@@ -13,7 +13,12 @@
           "package_name": "com.example.owlagenda"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "542538337985-m4h6ftueoibfr6kipllam98f66qkp2bv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBhQyxqiI_O2VizCIihSlNNwUCCHagzyyY"
@@ -21,7 +26,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "542538337985-m4h6ftueoibfr6kipllam98f66qkp2bv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

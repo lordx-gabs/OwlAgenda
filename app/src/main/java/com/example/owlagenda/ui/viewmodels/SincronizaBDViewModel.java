@@ -26,7 +26,7 @@ public class SincronizaBDViewModel extends ViewModel {
     private static UsuarioDao userDao;
 
 
-    public static void syncDBWithRoom(Usuario user) {
+    public static void sincronizaUserComRoom(Usuario user) {
         userDao = IniciarOuFecharDB.appDatabase.userDao();
         try {
             if (user != null) {
@@ -39,7 +39,7 @@ public class SincronizaBDViewModel extends ViewModel {
             ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
             scheduledExecutorService.schedule(() -> {
                 // O código dentro deste bloco será executado após 5 segundos
-                syncDBWithRoom(user);
+                sincronizaUserComRoom(user);
             }, 5, TimeUnit.SECONDS);
             try {
                 scheduledExecutorService.awaitTermination(10, TimeUnit.SECONDS);
@@ -54,7 +54,7 @@ public class SincronizaBDViewModel extends ViewModel {
 
     }
 
-    public static void syncRoomWithDB(Usuario user) {
+    public static void sincronizaUserComFirebase(Usuario user) {
         databaseReference = FirebaseDatabase.getInstance().getReference("Usuario");
         // Verifica se o usuário já existe no banco de dados
         Query query = databaseReference.orderByChild("email").equalTo(user.getEmail());
@@ -82,7 +82,7 @@ public class SincronizaBDViewModel extends ViewModel {
                 ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
                 scheduledExecutorService.schedule(() -> {
                     // O código dentro deste bloco será executado após 5 segundos
-                    syncRoomWithDB(user);
+                    sincronizaUserComFirebase(user);
                 }, 5, TimeUnit.SECONDS);
                 try {
                     scheduledExecutorService.awaitTermination(10, TimeUnit.SECONDS);

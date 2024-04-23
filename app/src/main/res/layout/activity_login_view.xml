@@ -22,8 +22,8 @@
 
     <EditText
         android:id="@+id/et_email"
-        android:layout_width="368dp"
-        android:layout_height="46dp"
+        android:layout_width="370dp"
+        android:layout_height="51dp"
         android:layout_marginTop="30dp"
         android:layout_marginEnd="2dp"
         android:layout_marginBottom="20dp"
@@ -85,6 +85,17 @@
         app:layout_constraintEnd_toStartOf="@+id/et_senha"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_email" />
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/btn_google_login"
+        android:layout_width="308dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="43dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
 
     <LinearLayout
         android:id="@+id/linearLayout"

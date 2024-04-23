@@ -2,7 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.owlagenda">
+
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
 
     <application
         android:name=".data.database.IniciarOuFecharDB"
@@ -15,6 +20,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OwlAgenda"
         tools:targetApi="31">
+        <service
+            android:name=".util.services.EmailVerificacaoService"
+            android:foregroundServiceType="dataSync"
+            android:enabled="true"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activities.EnviaEmailVerificacao"
+            android:exported="false"
+            android:theme="@style/Theme.OwlAgenda" />
         <activity
             android:name=".ui.activities.CadastroView"
             android:exported="false" />
