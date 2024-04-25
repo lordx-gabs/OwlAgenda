@@ -16,6 +16,9 @@
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
+    <string name="facebook_app_id">1003952164434358</string>
+    <string name="facebook_client_token">3177e131dbe796e93c6a363d47774018</string>
+    <string name="fb_login_protocol_scheme">fb1003952164434358</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

@@ -25,8 +25,17 @@ public class Usuario implements Serializable {
     @ColumnInfo(name = "email")
     private String email;
 
+    @ColumnInfo(name = "data_de_aniversario")
+    private String data_aniversario;
+
+    @ColumnInfo(name = "sexo")
+    private String sexo;
+
     @ColumnInfo(name = "url_foto_perfil")
     private String url_foto_perfil;
+
+    @ColumnInfo(name = "numero_telefone")
+    private int numeroTelefone;
 
     public Usuario() {
     }
@@ -79,4 +88,27 @@ public class Usuario implements Serializable {
         this.url_foto_perfil = url_foto_perfil;
     }
 
+    public String getData_aniversario() {
+        return data_aniversario;
+    }
+
+    public void setData_aniversario(String data_aniversario) {
+        this.data_aniversario = data_aniversario;
+    }
+
+    public String getSexo() {
+        return sexo;
+    }
+
+    public void setSexo(String sexo) {
+        this.sexo = sexo;
+    }
+
+    public int getNumeroTelefone() {
+        return numeroTelefone;
+    }
+
+    public void setNumeroTelefone(int numeroTelefone) {
+        this.numeroTelefone = numeroTelefone;
+    }
 }

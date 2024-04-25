@@ -10,16 +10,13 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.example.owlagenda.R;
 import com.example.owlagenda.util.Notificacao;
-import com.google.api.client.googleapis.notifications.NotificationUtils;
 
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-public class EmailVerificacaoService extends Service {
+public class ContadorService extends Service {
     private static final int NOTIFICATION_ID = 1;
-    private static final String TAG = "EmailVerificacaoService";
     private static final long DURACAO_CONTAGEM = 5 * 60 * 1000; // 5 minutos em milissegundos
     private static final long INTERVALO_ATUALIZACAO = 1000; // Intervalo de atualização em milissegundos
     private long tempoRestanteMillis;
@@ -30,20 +27,21 @@ public class EmailVerificacaoService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        this.tempoRestanteMillis = DURACAO_CONTAGEM;
-        this.handler = new Handler();
+        // Inicialização do serviço
+        this.tempoRestanteMillis = DURACAO_CONTAGEM; // Define o tempo total da contagem regressiva
+        this.handler = new Handler(); // Cria um Handler para gerenciar a atualização do contador
         this.runnable = new Runnable() {
             @Override
             public void run() {
                 if (tempoRestanteMillis > 0) {
-                    atualizaContador();
-                    // Contagem regressiva ainda rolando
+                    atualizaContador(); // Método para atualizar o contador
+                    // Contagem regressiva ainda rolando, agenda a próxima execução
                     handler.postDelayed(this, INTERVALO_ATUALIZACAO);
-                    tempoRestanteMillis -= INTERVALO_ATUALIZACAO;
+                    tempoRestanteMillis -= INTERVALO_ATUALIZACAO; // Atualiza o tempo restante
                 } else {
-                    // Contagem regressiva concluída
+                    // Contagem regressiva concluída, encerra a execução
                     handler.removeCallbacks(runnable);
-                    onFinish();
+                    onFinish(); // Lógica para quando a contagem regressiva terminar
                 }
             }
         };
@@ -52,56 +50,49 @@ public class EmailVerificacaoService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return null; // Não precisa de binder, pois não será utilizado
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = buildNotification();
-        startForeground(NOTIFICATION_ID, notification);
-        comecarContagem();
+        Notification notification = Notificacao.criarNotificacao(this, "Owl Agenda",
+                "Está em execução...", NotificationCompat.PRIORITY_MIN); // Cria a notificação de serviço
+        startForeground(NOTIFICATION_ID, notification); // Inicia o serviço em primeiro plano com a notificação
+        comecarContagem(); // Inicia a contagem regressiva
         return START_STICKY; // O serviço será reiniciado se for encerrado pelo sistema
     }
 
     public void atualizaContador() {
+        // Calcula os minutos e segundos restantes
         long minutos = TimeUnit.MILLISECONDS.toMinutes(tempoRestanteMillis);
         long segundos = TimeUnit.MILLISECONDS.toSeconds(tempoRestanteMillis) -
                 TimeUnit.MINUTES.toSeconds(minutos);
+        // Formata o tempo restante em minutos e segundos
         String tempoFormatado = String.format(Locale.getDefault(), "%02d:%02d", minutos, segundos);
-        enviarAtualizacaoContador("Tempo restante: " + tempoFormatado);
+        enviarAtualizacaoContador("Tempo restante: " + tempoFormatado); // Envia a atualização do contador
     }
 
     public void comecarContagem() {
         // Inicia a contagem.
-        contagemAtiva = true;
-        handler.postDelayed(runnable, INTERVALO_ATUALIZACAO);
+        contagemAtiva = true; // Define a contagem como ativa
+        handler.postDelayed(runnable, INTERVALO_ATUALIZACAO); // Inicia o Runnable para atualizar o contador
     }
 
     private void onFinish() {
         // Lógica para quando a contagem regressiva terminar
-        contagemAtiva = false;
-        enviarAtualizacaoContador(null);
+        contagemAtiva = false; // Define a contagem como inativa
+        enviarAtualizacaoContador(null); // Envia uma notificação de que a contagem terminou
 
         stopSelf(); // Encerra o serviço após a contagem regressiva
     }
 
     private void enviarAtualizacaoContador(String contador) {
+        // Envia uma mensagem de broadcast com o contador atual e o estado da contagem
         Intent intent = new Intent("atualizacao_contador");
         intent.putExtra("contador_atual", contador);
         intent.putExtra("estado_contagem", contagemAtiva);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-    private Notification buildNotification() {
-        // Construa sua notificação aqui
-        // Exemplo: criar uma notificação simples
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Notificacao.CHANNEL_ID)
-                .setContentTitle("Seu Serviço")
-                .setContentText("Está em execução...")
-                .setSmallIcon(R.drawable.ic_launcher_background);
-
-        return builder.build();
-    }
 
 }
-

@@ -1,38 +1,37 @@
 package com.example.owlagenda.ui.viewmodels;
 
-import android.util.Log;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.owlagenda.data.database.IniciarOuFecharDB;
-import com.example.owlagenda.data.database.dao.UsuarioDao;
 import com.example.owlagenda.data.models.Usuario;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.SignInMethodQueryResult;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class CadastroViewModel extends ViewModel {
     private FirebaseAuth mAuth;
-    private static DatabaseReference databaseReference;
+    private DatabaseReference databaseReference;
+    private StorageReference reference;
+    // Inicializa o Firebase Storage
+    private FirebaseStorage storage;
+    private StorageReference imagemReference;
 
     public CadastroViewModel() {
         mAuth = FirebaseAuth.getInstance();
+        // Captura o caminho da imagem selecionada e referencia esse caminho no Storage
+        storage = FirebaseStorage.getInstance();
+        reference = storage.getReference();
     }
 
     public LiveData<Boolean> cadastraBD(Usuario user) {
@@ -87,13 +86,40 @@ public class CadastroViewModel extends ViewModel {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 try {
-                    throw new Exception("Erro ao executar tarefa, por favor tente novamente, mais tarde.");
+                    new Exception("Erro ao executar tarefa, por favor tente novamente, mais tarde.");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
         });
         return resultLiveData;
+    }
+
+    // Guarda a imagem no Storage e captura sua URL, caso dê sucesso,
+    // retorna a url, caso dê erro, retorna null
+    public LiveData<String> guardaImagemStorage(Uri caminhoImagem) {
+        MutableLiveData<String> caminhoFotoUrlStorage = new MutableLiveData<>();
+
+        if (caminhoImagem != null) {
+            imagemReference = reference.child("fotosdeperfil/" + caminhoImagem.getLastPathSegment());
+            imagemReference.putFile(caminhoImagem).addOnSuccessListener(taskSnapshot -> {
+                // Captura a URL do arquivo no Storage
+                imagemReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                    // Falha na captura da url do arquivo no Storage
+                    caminhoFotoUrlStorage.setValue(uri.toString());
+                }).addOnFailureListener(e -> caminhoFotoUrlStorage.setValue(null));
+                // Falha ao enviar a foto de perfil.
+            }).addOnFailureListener(e -> caminhoFotoUrlStorage.setValue(null));
+        } else {
+            // Caso o usuario não passar uma imagem, pegamos a url da imagem padrão do app
+            imagemReference = reference.child("fotosdeperfil/Foto_Perfil_Padrao.jpeg");
+            imagemReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                caminhoFotoUrlStorage.setValue(uri.toString());
+            }).addOnFailureListener(e -> {
+                caminhoFotoUrlStorage.setValue(null);
+            });
+        }
+        return caminhoFotoUrlStorage;
     }
 
 }

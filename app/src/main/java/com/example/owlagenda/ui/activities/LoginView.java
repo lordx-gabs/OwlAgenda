@@ -1,39 +1,37 @@
 package com.example.owlagenda.ui.activities;
 
+import android.app.NotificationManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.viewmodels.LoginViewModel;
+import com.example.owlagenda.util.Notificacao;
 import com.example.owlagenda.util.VerificaConexao;
+import com.example.owlagenda.util.services.ContadorService;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.OAuthProvider;
 
 public class LoginView extends AppCompatActivity {
     private FirebaseAuth mAuth;
@@ -45,25 +43,25 @@ public class LoginView extends AppCompatActivity {
     private static final int RC_SIGN_IN = 1399; // Você pode usar qualquer número aqui
     private GoogleSignInClient mGoogleSignInClient;
     private SignInButton btnGoogle;
+    private Button btnTwitter;
     private EditText email, senha;
     private CheckBox cb_lembrar;
+    OAuthProvider.Builder provider = OAuthProvider.newBuilder("twitter.com");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login_view);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        Notificacao.criarCanalDeNotificacao(getApplicationContext());
 
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         sharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
         mAuth = FirebaseAuth.getInstance();
+
+        provider.addCustomParameter("lang", "br");
 
         // Configure sign-in to request the user’s basic profile like name and email
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -97,18 +95,34 @@ public class LoginView extends AppCompatActivity {
         cb_lembrar = findViewById(R.id.cb_lembraruser);
         email = findViewById(R.id.et_email);
         senha = findViewById(R.id.et_senha);
-        btnGoogle = findViewById(R.id.btn_google_login);
 
-        btnGoogle.setColorScheme(SignInButton.COLOR_DARK);
-        btnGoogle.setBackgroundColor(SignInButton.COLOR_DARK);
+        btnTwitter = findViewById(R.id.btn_twitter);
+
+        btnGoogle = findViewById(R.id.btn_google_login);
 
         btnGoogle.setOnClickListener(v -> logarComGoogle());
 
-    }
+        btnTwitter.setOnClickListener(v -> mAuth
+                .startActivityForSignInWithProvider(LoginView.this, provider.build())
+                .addOnSuccessListener(authResult -> {
+                            loginViewModel.autenticaUserTwitter(authResult).observe(LoginView.this, aBoolean -> {
+                                if (aBoolean) {
+                                    Toast.makeText(LoginView.this, "Bem vindo ao Owl", Toast.LENGTH_SHORT).show();
+                                    proximaTela();
+                                    finish();
+                                } else {
+                                    Toast.makeText(LoginView.this, "Erro no login.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            // User is signed in.
+                            // IdP data available in
+                            // authResult.getAdditionalUserInfo().getProfile().
+                        })
+                .addOnFailureListener(e -> {
+                        Toast.makeText(LoginView.this, "Falha na comunicação com o X", Toast.LENGTH_SHORT).show();
+                })
+        );
 
-    public void proximaTela() {
-        this.startActivity(new Intent(this, MainActivity.class));
-        this.finish();
     }
 
     public void verificaUsuario(View view) {
@@ -120,7 +134,10 @@ public class LoginView extends AppCompatActivity {
                 try {
                     loginViewModel.autenticaUserEmailSenha(emailUser, senhaUser).observe(this, aBoolean -> {
                         if (aBoolean) {
-                            if(mAuth.getCurrentUser().isEmailVerified()) {
+                            if (mAuth.getCurrentUser().isEmailVerified()) {
+                                if (isServicoRodando()) {
+                                    stopService(new Intent(this, ContadorService.class));
+                                }
                                 if (cb_lembrar.isChecked()) {
                                     mantemLogadoUsuario(emailUser, senhaUser);
                                 }
@@ -160,7 +177,7 @@ public class LoginView extends AppCompatActivity {
                 // Faça algo com o ID Token, como autenticar o usuário usando Firebase Auth
 
                 loginViewModel.autenticaUserGoogle(account.getIdToken(), account).observe(this, aBoolean -> {
-                    if(aBoolean) {
+                    if (aBoolean) {
                         Toast.makeText(LoginView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(LoginView.this, MainActivity.class));
                         finish();
@@ -171,13 +188,18 @@ public class LoginView extends AppCompatActivity {
 
             } catch (ApiException e) {
                 // Ocorreu um erro ao tentar fazer login com o Google
-                Toast.makeText(this, "Erro ao tentar fazer login com o Google" , Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Erro ao tentar fazer login com o Google", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     public void telaCadastro(View view) {
         startActivity(new Intent(this, CadastroView.class));
+    }
+
+    public void proximaTela() {
+        this.startActivity(new Intent(this, MainActivity.class));
+        this.finish();
     }
 
     private void mantemLogadoUsuario(String email, String senha) {
@@ -191,5 +213,16 @@ public class LoginView extends AppCompatActivity {
     private void logarComGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    // Método para verificar se um serviço está em execução
+    //rever pois pode ter mais notificações que n tem a vercom o serviço
+    private boolean isServicoRodando() {
+        NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager != null) {
+            // Para versões do Android a partir do Marshmallow (API nível 23)
+            return notificationManager.getActiveNotifications().length > 0;
+        }
+        return false;
     }
 }
