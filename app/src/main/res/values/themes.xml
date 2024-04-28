@@ -1,9 +1,48 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.OwlAgenda" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+    <!-- Tema claro do app -->
+    <style name="Theme.Light.OwlAgenda" parent="Theme.MaterialComponents.Light">
+        <!-- cor primario do app -->
+        <item name="colorPrimary">@android:color/white</item>
+        <!-- cor do botão -->
+        <item name="colorButtonNormal">#DDA0DD</item>
+        <!-- Define a cor do texto na barra de título -->
+        <item name="android:textColorPrimary">@color/black</item>
+        <!-- Define a cor da barra de status como branca -->
+        <item name="android:statusBarColor">@color/white</item>
+        <!-- Define os itens da barra de status como visivel -->
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Define a cor da barra de navegação -->
+        <item name="android:navigationBarColor">@android:color/white</item>
+
     </style>
 
-    <style name="Theme.OwlAgenda" parent="Base.Theme.OwlAgenda" />
+    <!-- Tema escuro do app -->
+    <style name="Theme.Dark.OwlAgenda" parent="Theme.MaterialComponents">
+
+
+    </style>
+
+    <style name="Theme.Dark.OwlAgenda.NoActionBar" parent="Theme.MaterialComponents.NoActionBar">
+        <!-- Define a cor da barra de status como branca -->
+        <item name="android:statusBarColor">@color/black</item>
+        <!-- Define os itens da barra de status como visivel -->
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.Light.OwlAgenda.NoActionbar" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- cor primario do app -->
+        <item name="colorPrimary">@android:color/white</item>
+        <!-- cor do botão -->
+        <item name="colorButtonNormal">#DDA0DD</item>
+        <!-- Define a cor do texto na barra de título -->
+        <item name="android:textColorPrimary">@color/black</item>
+        <!-- Define a cor da barra de status como branca -->
+        <item name="android:statusBarColor">@color/white</item>
+        <!-- Define os itens da barra de status como visivel -->
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Define a cor da barra de navegação -->
+        <item name="android:navigationBarColor">@android:color/white</item>
+    </style>
+
 </resources>

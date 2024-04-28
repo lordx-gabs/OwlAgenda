@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">OwlAgenda</string>
+    <string name="app_name">Owl Agenda</string>
     <string name="title_activity_login_teste">LoginTeste</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
