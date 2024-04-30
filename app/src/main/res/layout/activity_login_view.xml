@@ -1,47 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+            <!-- Conteúdo da barra de ferramentas -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin"
+                app:layout_scrollFlags="scroll|enterAlways" />
+
+            <TextView
+                android:id="@+id/textView16"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_margin="10dp"
+                android:fontFamily="@font/akaya_telivigala"
+                android:text="Owl Agenda"
+
+                android:textAlignment="viewStart"
+                android:textSize="24sp" />
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Conteúdo rolável -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+<androidx.constraintlayout.widget.ConstraintLayout
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.activities.LoginView"
-    android:fitsSystemWindows="true">
+    tools:context=".ui.activities.LoginView" >
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="357dp"
-        android:layout_height="259dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="30dp"
-        android:layout_marginBottom="60dp"
-        app:layout_constraintBottom_toTopOf="@+id/textView15"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_bem_vindo"
-        app:srcCompat="@drawable/wallpaper_your_name" />
-
-    <TextView
-        android:id="@+id/tv_bem_vindo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="322dp"
+        android:layout_height="152dp"
         android:layout_marginTop="16dp"
-        android:text="Owl Agenda"
-        android:textSize="20sp"
-        android:textStyle="bold"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintBottom_toTopOf="@+id/textView14"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.413"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/btn_google_login"
-        android:layout_width="321dp"
-        android:layout_height="45dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/btn_twitter"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/wallpaper_your_name" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -52,6 +70,7 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.button.MaterialButton
@@ -59,10 +78,10 @@
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_marginEnd="16dp"
-            app:backgroundTint="@color/botao_cor"
             android:onClick="verificaUsuario"
             android:text="Login"
-            app:cornerRadius="16dp"/>
+            app:backgroundTint="@color/botao_cor"
+            app:cornerRadius="16dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_cadastro"
@@ -72,17 +91,17 @@
             android:onClick="telaCadastro"
             android:text="Cadastrar-se"
             app:backgroundTint="@color/botao_cor"
-            app:cornerRadius="16dp"/>
+            app:cornerRadius="16dp" />
     </LinearLayout>
 
     <CheckBox
         android:id="@+id/cb_lembraruser"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="24dp"
         android:text="Lembrar-me"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/btn_google_login"
+        app:layout_constraintBottom_toTopOf="@+id/btn_google"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.006"
         app:layout_constraintStart_toStartOf="parent" />
@@ -90,13 +109,13 @@
     <Button
         android:id="@+id/btn_twitter"
         android:layout_width="316dp"
-        android:layout_height="45dp"
+        android:layout_height="50dp"
         android:layout_marginBottom="16dp"
         android:backgroundTint="#000000"
         android:text="Continuar com o X"
         android:textColor="#FFFFFF"
         app:cornerRadius="3dp"
-        app:icon="@drawable/logo_X"
+        app:icon="@drawable/logo_x"
         app:iconTint="#000000"
         app:iconTintMode="add"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
@@ -111,8 +130,7 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/cb_lembraruser"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout10">
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:id="@+id/textView3"
@@ -123,7 +141,7 @@
             android:text="Senha:" />
 
         <EditText
-            android:id="@+id/et_senha"
+            android:id="@+id/et_confirma_senha"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginEnd="4dp"
@@ -143,8 +161,8 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout9"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView15">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:id="@+id/textView2"
@@ -173,13 +191,45 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="27dp"
+        android:layout_marginBottom="24dp"
         android:fontFamily="@font/akaya_telivigala"
         android:text="Faça seu login no Owl e tenha acesso a todos seus beneficios."
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout10"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:fontFamily="@font/akaya_telivigala"
+        android:text="Bem-vindo ao Owl"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/textView15"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btn_google"
+        android:layout_width="316dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="#FFFFFF"
+        android:text="Continuar com o Google"
+        android:textColor="#808080"
+        app:cornerRadius="3dp"
+        app:icon="@drawable/logo_google"
+        app:iconTint="@android:color/transparent"
+        app:iconTintMode="add"
+        app:layout_constraintBottom_toTopOf="@+id/btn_twitter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

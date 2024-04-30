@@ -2,4 +2,5 @@
      <!-- Cor de fundo -->
     <stroke android:color="@color/black" android:width="1dp"/> <!-- Cor e largura da borda -->
     <corners android:radius="18dp"/> <!-- Raio da borda -->
+    <solid android:color="@color/white"></solid>
 </shape>

@@ -6,13 +6,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -29,6 +29,10 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.Usuario;
 import com.example.owlagenda.ui.viewmodels.CadastroViewModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -42,9 +46,9 @@ public class CadastroView extends AppCompatActivity {
     private Uri caminhoImagem;
     private Calendar calendario;
     private DatePickerDialog date;
-    private Spinner escolhaSexo;
-    private String[] opcoesSexo = {"Selecione seu sexo", "Masculino", "Feminino", "Outros"};
-    private int posicaoSexo = 0;
+    private AutoCompleteTextView escolhaSexo;
+    private String[] opcoesSexo = {"Masculino", "Feminino", "Outros"};
+    private String sexoText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,27 +77,17 @@ public class CadastroView extends AppCompatActivity {
         etNome = findViewById(R.id.et_nome);
         etSobre = findViewById(R.id.et_sobrenome);
         etEmail = findViewById(R.id.et_email);
-        etSenha = findViewById(R.id.et_senha);
-        escolhaSexo = findViewById(R.id.spinner_escolha_sexo);
+        etSenha = findViewById(R.id.et_confirma_senha);
+        escolhaSexo = findViewById(R.id.auto_complete_text_view);
         etDataNascimento = findViewById(R.id.et_data_nascimento);
         etNumero = findViewById(R.id.et_telefone);
         imagemUsuario = findViewById(R.id.foto_usuario);
 
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, opcoesSexo);
+        // Inicializa o adapter que sera utlizado no Spinner
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,  android.R.layout.simple_dropdown_item_1line, opcoesSexo);
         escolhaSexo.setAdapter(adapter);
 
-        escolhaSexo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                posicaoSexo = position;
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
+        escolhaSexo.setOnItemClickListener((parent, view, position, id) -> sexoText = opcoesSexo[position]);
 
         date = new DatePickerDialog(CadastroView.this, new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -107,7 +101,6 @@ public class CadastroView extends AppCompatActivity {
         }, calendario.get(Calendar.YEAR), calendario.get(Calendar.MONTH), calendario.get(Calendar.DAY_OF_MONTH));
 
         etDataNascimento.setOnClickListener(v -> date.show());
-
 
     }
 
@@ -123,8 +116,9 @@ public class CadastroView extends AppCompatActivity {
         if (!etDataNascimento.getText().toString().isEmpty()) {
             dataNascimento = etDataNascimento.getText().toString();
         }
-        if (posicaoSexo > 0) {
-            sexo = opcoesSexo[posicaoSexo];
+        if (sexoText != null) {
+            sexo = sexoText;
+
         }
         if (!etNumero.getText().toString().isEmpty()) {
             numero = Integer.parseInt(etNumero.getText().toString());
@@ -179,13 +173,41 @@ public class CadastroView extends AppCompatActivity {
 
     // Método chamado quando o usuário clica para escolher a imagem
     public void escolherImagem(View v) {
-        if (ContextCompat.checkSelfPermission(CadastroView.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(CadastroView.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, this.PICK_IMAGE_REQUEST);
+        // Verifica se a permissão para ler o armazenamento externo já foi concedida
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            // Se a permissão ainda não foi concedida, solicita a permissão ao usuário
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PICK_IMAGE_REQUEST);
         } else {
-            Intent intent = new Intent(Intent.ACTION_PICK); // cria uma intent que cria uma view pra o usuario selecionar a imagem
-            intent.setType("image/*"); // filtar os arquivos
-            startActivityForResult(intent, PICK_IMAGE_REQUEST); // começa uma activity que espera um resultado
+            // Se a permissão foi concedida, cria uma Intent para selecionar a imagem da galeria
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            startActivityForResult(intent, PICK_IMAGE_REQUEST);
         }
+    }
+
+    public void clipsClick(View v) {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_login, null);
+        bottomSheetDialog.setContentView(view);
+        bottomSheetDialog.show();
+
+        MaterialButton btnAlterarImagem = view.findViewById(R.id.alterar_imagem),
+                btnExcluirImagem = view.findViewById(R.id.excluir_imagem);
+
+        btnAlterarImagem.setOnClickListener(v1 -> this.escolherImagem(getCurrentFocus()));
+
+        btnExcluirImagem.setOnClickListener(v12 -> {
+            imagemUsuario.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.avatar_1));
+            caminhoImagem = null;
+        });
+    }
+
+    // Método para cortar a imagem em formato redondo
+    private void abrirRecorteImagem(Uri imagemUri) {
+        CropImage.activity(imagemUri)
+                .setGuidelines(CropImageView.Guidelines.ON)
+                .setAspectRatio(1, 1) // Define a proporção de corte para um círculo
+                .start(this);
     }
 
     // Método chamado após o usuário escolher a imagem na galeria
@@ -195,9 +217,19 @@ public class CadastroView extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             Uri uriImagemSelecionada = data.getData();
             if (uriImagemSelecionada != null) {
-                // Captura o caminho da imagem selecionada
-                imagemUsuario.setImageURI(uriImagemSelecionada);
-                caminhoImagem = uriImagemSelecionada;
+                // Captura o caminho da imagem selecionada e recorta em formato redono
+                Uri imagemUri = data.getData();
+                abrirRecorteImagem(imagemUri);
+            }
+        } else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                Uri imagemRecortadaUri = result.getUri();
+                caminhoImagem = imagemRecortadaUri;
+                imagemUsuario.setImageURI(imagemRecortadaUri); // Define a imagem recortada no ImageView
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                // Lidar com erro durante o recorte
+                Toast.makeText(this, "Erro ao recortar a imagem, tente novamente.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -207,12 +239,15 @@ public class CadastroView extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PICK_IMAGE_REQUEST) {
-            if (grantResults.length == 0) {
+            // Verifica se a permissão foi concedida
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permissão concedida, chama o método para escolher a imagem
+                escolherImagem(getCurrentFocus());
+            } else {
                 // Permissão negada, informa ao usuário sobre a necessidade da permissão
                 Toast.makeText(this, "Permissão necessária para acessar o armazenamento.", Toast.LENGTH_SHORT).show();
-            } else {
-                escolherImagem(getCurrentFocus());
             }
         }
     }
+
 }
