@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ContadorService extends Service {
     private static final int NOTIFICATION_ID = 1;
-    private static final long DURACAO_CONTAGEM = 5 * 60 * 1000; // 5 minutos em milissegundos
+    private static final long DURACAO_CONTAGEM = 90000; // 1 minuto e 30 segundos em milissegundos
     private static final long INTERVALO_ATUALIZACAO = 1000; // Intervalo de atualização em milissegundos
     private long tempoRestanteMillis;
     private Handler handler;

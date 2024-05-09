@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.activities;
+package com.example.owlagenda.ui.login;
 
 import android.app.NotificationManager;
 import android.content.Context;
@@ -6,10 +6,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -18,7 +21,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.ui.viewmodels.LoginViewModel;
+import com.example.owlagenda.ui.activities.EsqueciSenhaView;
+import com.example.owlagenda.ui.telaprincipal.TelaPrincipalActivity;
+import com.example.owlagenda.ui.cadastro.CadastroView;
+import com.example.owlagenda.ui.emailverificacao.EnviaEmailVerificacao;
 import com.example.owlagenda.util.Notificacao;
 import com.example.owlagenda.util.VerificaConexao;
 import com.example.owlagenda.util.services.ContadorService;
@@ -28,9 +34,13 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.OAuthProvider;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LoginView extends AppCompatActivity {
     private FirebaseAuth mAuth; // Instância de autenticação do Firebase
@@ -45,6 +55,7 @@ public class LoginView extends AppCompatActivity {
     private Button btnTwitter; // Botão de login com Twitter
     private EditText email, senha; // Campos de entrada para email e senha
     private CheckBox cb_lembrar; // CheckBox para lembrar o usuário
+    private TextView tvEsqueciSenha; // TextView para exibir link para recuperação de senha
     OAuthProvider.Builder provider = OAuthProvider.newBuilder("twitter.com"); // Provedor de autenticação do Twitter
 
     @Override
@@ -96,8 +107,9 @@ public class LoginView extends AppCompatActivity {
 
         // Inicializa os componentes da interface
         cb_lembrar = findViewById(R.id.cb_lembraruser);
-        email = findViewById(R.id.et_email);
-        senha = findViewById(R.id.et_confirma_senha);
+        email = findViewById(R.id.et_email_login);
+        senha = findViewById(R.id.et_senha_login);
+        tvEsqueciSenha = findViewById(R.id.tv_esqueci_senha);
 
         btnTwitter = findViewById(R.id.btn_twitter);
         btnGoogle = findViewById(R.id.btn_google);
@@ -124,6 +136,34 @@ public class LoginView extends AppCompatActivity {
                     Toast.makeText(LoginView.this, "Falha no login com o X", Toast.LENGTH_SHORT).show();
                 })
         );
+
+        tvEsqueciSenha.setOnClickListener(v -> {
+            startActivity(new Intent(LoginView.this, EsqueciSenhaView.class));
+        });
+
+        email.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                TextInputLayout oi = findViewById(R.id.et_email_layout_login);
+                if(eEmailValido(s.toString())) {
+                    int cor = getColor(R.color.botao_cor);
+                    oi.setBoxStrokeColor(cor);
+                } else {
+                    int cor = getColor(R.color.cor_primaria);
+                    oi.setBoxStrokeColor(cor);
+                }
+            }
+        });
     }
 
     // Método chamado ao clicar no botão "Entrar"
@@ -168,6 +208,13 @@ public class LoginView extends AppCompatActivity {
         }
     }
 
+    public boolean eEmailValido(String email) {
+        String regex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+
     // Método chamado ao retornar o resultado de uma atividade (ex: login com Google)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -183,7 +230,7 @@ public class LoginView extends AppCompatActivity {
                 loginViewModel.autenticaUserGoogle(account.getIdToken(), account).observe(this, aBoolean -> {
                     if (aBoolean) {
                         Toast.makeText(LoginView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginView.this, MainActivity.class));
+                        startActivity(new Intent(LoginView.this, TelaPrincipalActivity.class));
                         finish();
                     } else {
                         Toast.makeText(LoginView.this, "Falha no login.", Toast.LENGTH_SHORT).show();
@@ -208,7 +255,7 @@ public class LoginView extends AppCompatActivity {
     // Método chamado para avançar para a próxima tela após a autenticação bem-sucedida do usuário
     public void proximaTela() {
         // Cria uma nova Intent para abrir a MainActivity
-        this.startActivity(new Intent(this, MainActivity.class));
+        this.startActivity(new Intent(this, TelaPrincipalActivity.class));
         // Finaliza a LoginView atual
         this.finish();
     }
@@ -240,7 +287,7 @@ public class LoginView extends AppCompatActivity {
             StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
 
             // ID ou Tag da notificação associada ao seu serviço
-            int seuServicoNotificationId = 1; // Defina o ID da sua notificação
+            int seuServicoNotificationId = 1;
 
             // Verifique se existe alguma notificação ativa associada ao seu serviço
             for (StatusBarNotification notification : notifications) {

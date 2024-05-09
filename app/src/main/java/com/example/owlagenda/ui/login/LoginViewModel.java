@@ -1,10 +1,11 @@
-package com.example.owlagenda.ui.viewmodels;
+package com.example.owlagenda.ui.login;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.owlagenda.data.models.Usuario;
+import com.example.owlagenda.ui.viewmodels.SincronizaBDViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;

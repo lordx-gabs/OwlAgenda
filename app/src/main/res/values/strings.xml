@@ -19,6 +19,8 @@
     <string name="facebook_app_id">1003952164434358</string>
     <string name="facebook_client_token">3177e131dbe796e93c6a363d47774018</string>
     <string name="fb_login_protocol_scheme">fb1003952164434358</string>
+    <string name="navigation_drawer_open">Abrir menu</string>
+    <string name="navigation_drawer_close">Fechar menu</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
@@ -56,4 +58,15 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+    <string name="title_activity_tela_principal">TelaPrincipal</string>
+    <string name="nav_header_title">Olá senhor(a) </string>
+    <string name="nav_header_subtitle">testeOwl@agenda.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_configurações">Configurações</string>
+    <string name="action_suporte">Suporte</string>
+
+    <string name="menu_inicio">Início</string>
+    <string name="menu_calendario">Calendário</string>
+    <string name="menu_perfil">Perfil</string>
+    <string name="action_settings">Settings</string>
 </resources>

@@ -4,7 +4,7 @@
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="roundedImageView">
+    <style name="circleImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>

@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.activities;
+package com.example.owlagenda.ui.emailverificacao;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,7 +16,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.ui.viewmodels.EmailVerificacaoViewModel;
 import com.example.owlagenda.util.services.ContadorService;
 
 public class EnviaEmailVerificacao extends AppCompatActivity {

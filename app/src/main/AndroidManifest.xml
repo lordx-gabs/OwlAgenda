@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.owlagenda">
+    package="com.example.owlagenda" >
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
 
     <application
         android:name=".data.database.IniciarOuFecharDB"
@@ -20,32 +23,42 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar"
-        tools:targetApi="31">
+        tools:targetApi="31" >
+        <activity
+            android:name=".ui.telaprincipal.TelaPrincipalActivity"
+            android:exported="false"
+            android:label="@string/title_activity_tela_principal"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar" />
+        <activity
+            android:name=".ui.activities.EsqueciSenhaView"
+            android:exported="false" />
+
         <service
             android:name=".util.services.ContadorService"
-            android:foregroundServiceType="dataSync"
             android:enabled="true"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activities.EnviaEmailVerificacao"
             android:exported="false"
-            />
+            android:foregroundServiceType="dataSync" />
+
         <activity
-            android:name=".ui.activities.CadastroView"
+            android:name=".ui.emailverificacao.EnviaEmailVerificacao"
             android:exported="false" />
         <activity
-            android:name=".ui.activities.LoginView"
+            android:name=".ui.cadastro.CadastroView"
+            android:exported="false" />
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Material3.Light.NoActionBar" />
+        <activity
+            android:name=".ui.login.LoginView"
             android:exported="true"
-            android:launchMode="singleTop"
-            >
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.activities.MainActivity"
-            android:theme="@style/Base.Theme.OwlAgenda" />
 
         <meta-data
             android:name="preloaded_fonts"

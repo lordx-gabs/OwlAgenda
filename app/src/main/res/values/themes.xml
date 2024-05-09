@@ -26,5 +26,14 @@
 
     </style>
 
+    <style name="NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppBarOverlay" parent="Theme.Material3.Dark.NoActionBar" />
+
+    <style name="PopupOverlay" parent="Theme.Material3.Light" />
+
 
 </resources>

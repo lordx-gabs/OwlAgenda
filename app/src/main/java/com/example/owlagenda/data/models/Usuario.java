@@ -35,7 +35,7 @@ public class Usuario implements Serializable {
     private String url_foto_perfil;
 
     @ColumnInfo(name = "numero_telefone")
-    private int numeroTelefone;
+    private long numeroTelefone;
 
     public Usuario() {
     }
@@ -104,11 +104,11 @@ public class Usuario implements Serializable {
         this.sexo = sexo;
     }
 
-    public int getNumeroTelefone() {
+    public long getNumeroTelefone() {
         return numeroTelefone;
     }
 
-    public void setNumeroTelefone(int numeroTelefone) {
+    public void setNumeroTelefone(long numeroTelefone) {
         this.numeroTelefone = numeroTelefone;
     }
 }

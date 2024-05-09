@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.viewmodels;
+package com.example.owlagenda.ui.emailverificacao;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
