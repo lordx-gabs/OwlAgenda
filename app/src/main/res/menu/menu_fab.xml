@@ -6,7 +6,4 @@
     <item
         android:id="@+id/action_option2"
         android:title="Adicionar escola" />
-    <item
-        android:id="@+id/action_option3"
-        android:title="Falar com o CoruBot" />
 </menu>

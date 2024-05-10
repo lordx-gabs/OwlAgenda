@@ -1,5 +1,3 @@
-import com.android.build.api.dsl.Packaging
-
 plugins {
     alias(libs.plugins.androidApplication)
     id("com.google.gms.google-services")
@@ -63,6 +61,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation(libs.legacy.support.v4)
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation(project(":opencv"))
     implementation("com.google.android.gms:play-services-auth:21.1.1")

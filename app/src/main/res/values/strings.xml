@@ -69,4 +69,5 @@
     <string name="menu_calendario">Calendário</string>
     <string name="menu_perfil">Perfil</string>
     <string name="action_settings">Settings</string>
+    <string name="corubot">Corubot</string>
 </resources>

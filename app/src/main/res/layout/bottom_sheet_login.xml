@@ -10,23 +10,47 @@
         android:layout_height="wrap_content"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/alterar_imagem"
+        android:id="@+id/tirar_foto"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="10sp"
+        android:backgroundTint="@color/botao_cor"
+        android:text="Tirar foto"
+        android:textSize="16sp"
+        />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        app:dividerThickness="1dp"
+        app:dividerInsetStart="8dp"
+        app:dividerInsetEnd="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_alterar_imagem"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_margin="10sp"
         android:backgroundTint="@color/botao_cor"
         android:text="Alterar imagem"
         android:textSize="16sp"
-        app:cornerRadius="20dp" />
+        />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        app:dividerThickness="1dp"
+        app:dividerInsetStart="8dp"
+        app:dividerInsetEnd="8dp" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/excluir_imagem"
+        android:id="@+id/btn_excluir_imagem"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_margin="10sp"
         android:text="Excluir imagem"
         android:backgroundTint="@color/botao_cor"
         android:textSize="16sp"
-        app:cornerRadius="20dp" />
+        />
 
 </LinearLayout>

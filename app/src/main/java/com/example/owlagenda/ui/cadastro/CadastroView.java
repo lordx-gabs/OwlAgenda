@@ -91,15 +91,28 @@ public class CadastroView extends AppCompatActivity {
         etConfirmaSenha = findViewById(R.id.et_confirma_senha);
 
         // Inicializa o adapter que sera utlizado no Spinner
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,  android.R.layout.simple_dropdown_item_1line, opcoesSexo);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, opcoesSexo);
         escolhaSexo.setAdapter(adapter);
 
         escolhaSexo.setOnItemClickListener((parent, view, position, id) -> sexoText = opcoesSexo[position]);
 
+        /* Cria uma instância do componente de calendário.
+        MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker();
+
+        // Define as propriedades do componente de calendário.
+                builder.setTitleText("Selecione uma data");
+                builder.setSelection(MaterialDatePicker.todayInUtcMilliseconds());
+
+        // Cria o componente de calendário.
+                MaterialDatePicker<Long> datePicker = builder.build();
+
+        // Adiciona o componente de calendário à interface de usuário.
+        datePicker.show(getSupportFragmentManager(), "DatePicker"); */
+
         date = new DatePickerDialog(CadastroView.this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                Calendar dataSelecionado =  Calendar.getInstance();
+                Calendar dataSelecionado = Calendar.getInstance();
                 dataSelecionado.set(year, month, dayOfMonth);
                 SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
                 etDataNascimento.setText(format.format(dataSelecionado.getTime()));
@@ -125,7 +138,7 @@ public class CadastroView extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 TextInputLayout emailLayout = findViewById(R.id.et_email_layout);
-                if(eEmailValido(s.toString())) {
+                if (eEmailValido(s.toString())) {
                     int cor = getColor(R.color.botao_cor);
                     emailLayout.setBoxStrokeColor(cor);
                 } else {
@@ -229,8 +242,8 @@ public class CadastroView extends AppCompatActivity {
         bottomSheetDialog.setContentView(view);
         bottomSheetDialog.show();
 
-        MaterialButton btnAlterarImagem = view.findViewById(R.id.alterar_imagem),
-                btnExcluirImagem = view.findViewById(R.id.excluir_imagem);
+        MaterialButton btnAlterarImagem = view.findViewById(R.id.btn_alterar_imagem),
+                btnExcluirImagem = view.findViewById(R.id.btn_excluir_imagem);
 
         btnAlterarImagem.setOnClickListener(v1 -> this.escolherImagem(getCurrentFocus()));
 

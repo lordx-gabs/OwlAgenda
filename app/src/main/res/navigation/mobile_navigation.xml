@@ -9,17 +9,68 @@
         android:id="@+id/nav_inicio"
         android:name="com.example.owlagenda.ui.home.HomeFragment"
         android:label="@string/menu_inicio"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_nav_inicio_to_nav_calendario"
+            app:destination="@id/nav_calendario" />
+        <action
+            android:id="@+id/action_nav_inicio_to_nav_perfil2"
+            app:destination="@id/nav_perfil" />
+        <action
+            android:id="@+id/action_nav_inicio_to_nav_corubot"
+            app:destination="@id/nav_corubot" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_calendario"
         android:name="com.example.owlagenda.ui.gallery.GalleryFragment"
         android:label="@string/menu_calendario"
-        tools:layout="@layout/fragment_gallery" />
+        tools:layout="@layout/fragment_gallery" >
+
+        <action
+            android:id="@+id/action_nav_calendario_to_nav_perfil"
+            app:destination="@id/nav_perfil" />
+        <action
+            android:id="@+id/action_nav_calendario_to_nav_inicio"
+            app:destination="@id/nav_inicio" />
+        <action
+            android:id="@+id/action_nav_calendario_to_nav_corubot"
+            app:destination="@id/nav_corubot" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_corubot"
+        android:name="com.example.owlagenda.ui.slideshow.SlideshowFragment"
+        android:label="@string/corubot"
+        tools:layout="@layout/fragment_corubot" >
+
+        <action
+            android:id="@+id/action_nav_corubot_to_nav_inicio"
+            app:destination="@id/nav_inicio" />
+        <action
+            android:id="@+id/action_nav_corubot_to_nav_calendario"
+            app:destination="@id/nav_calendario" />
+        <action
+            android:id="@+id/action_nav_corubot_to_nav_perfil"
+            app:destination="@id/nav_perfil" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_perfil"
         android:name="com.example.owlagenda.ui.slideshow.SlideshowFragment"
         android:label="@string/menu_perfil"
-        tools:layout="@layout/fragment_slideshow" />
+        tools:layout="@layout/fragment_slideshow" >
+
+        <action
+            android:id="@+id/action_nav_perfil_to_nav_calendario"
+            app:destination="@id/nav_calendario" />
+        <action
+            android:id="@+id/action_nav_perfil_to_nav_inicio"
+            app:destination="@id/nav_inicio" />
+        <action
+            android:id="@+id/action_nav_perfil_to_nav_corubot"
+            app:destination="@id/nav_corubot" />
+    </fragment>
+
+
 </navigation>

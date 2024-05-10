@@ -5,12 +5,17 @@
         android:icon="@drawable/ic_email" />
 
     <item
-        android:id="@+id/nav_dashboard"
+        android:id="@+id/nav_calendario"
         android:title="@string/menu_calendario"
-        android:icon="@drawable/ic_pessoa" />
+        android:icon="@drawable/ic_calendario" />
 
     <item
-        android:id="@+id/nav_notifications"
+        android:id="@+id/nav_corubot"
+        android:title="@string/corubot"
+        android:icon="@drawable/ic_corubot" />
+
+    <item
+        android:id="@+id/nav_perfil"
         android:title="@string/menu_perfil"
-        android:icon="@drawable/ic_calendario" />
+        android:icon="@drawable/ic_pessoa" />
 </menu>
