@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/tirar_foto"
+        android:id="@+id/btn_tirar_foto"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_margin="10sp"

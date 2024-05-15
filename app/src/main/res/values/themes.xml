@@ -14,7 +14,7 @@
         <item name="android:windowLightStatusBar">true</item>
         <!-- Define a cor da barra de navegação -->
         <item name="android:navigationBarColor">@android:color/white</item>
-
+        <item name="android:popupMenuStyle">@style/PopupOverlayLight</item>
     </style>
 
     <!-- Tema escuro do app -->
@@ -23,6 +23,7 @@
         <item name="android:statusBarColor">@color/black</item>
         <!-- Define os itens da barra de status como visivel -->
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:popupMenuStyle">@style/PopupOverlayDark</item>
 
     </style>
 
@@ -33,7 +34,9 @@
 
     <style name="AppBarOverlay" parent="Theme.Material3.Dark.NoActionBar" />
 
-    <style name="PopupOverlay" parent="Theme.Material3.Light" />
+    <style name="PopupOverlayLight" parent="Theme.Material3.Light" />
+
+    <style name="PopupOverlayDark" parent="Theme.Material3.Dark" />
 
 
 </resources>

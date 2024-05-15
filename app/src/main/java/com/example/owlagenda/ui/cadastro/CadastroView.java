@@ -6,22 +6,27 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -32,20 +37,25 @@ import com.example.owlagenda.data.models.Usuario;
 import com.example.owlagenda.util.FormataTelefone;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CadastroView extends AppCompatActivity {
     private CadastroViewModel cadastroViewModel;
     private static final int PICK_IMAGE_REQUEST = 1;
+    private final int REQUEST_IMAGE_CAPTURE = 5;
     private Usuario user;
     private ImageView imagemUsuario;
     private TextInputEditText etNome, etSobre, etEmail, etSenha, etDataNascimento, etNumero, etConfirmaSenha;
@@ -55,6 +65,9 @@ public class CadastroView extends AppCompatActivity {
     private AutoCompleteTextView escolhaSexo;
     private String[] opcoesSexo = {"Masculino", "Feminino", "Outros"};
     private String sexoText;
+    private LinearProgressIndicator barraCarregando;
+    private ActivityResultLauncher<Intent> activityResultPegarImagem, activityResultTirarFoto;
+    private BottomSheetDialog bottomSheetDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +85,7 @@ public class CadastroView extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
         //Iniciliza o calendario.
         calendario = Calendar.getInstance();
 
@@ -89,6 +103,7 @@ public class CadastroView extends AppCompatActivity {
         etNumero = findViewById(R.id.et_telefone);
         imagemUsuario = findViewById(R.id.foto_usuario);
         etConfirmaSenha = findViewById(R.id.et_confirma_senha);
+        barraCarregando = findViewById(R.id.barra_carregando);
 
         // Inicializa o adapter que sera utlizado no Spinner
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, opcoesSexo);
@@ -96,29 +111,23 @@ public class CadastroView extends AppCompatActivity {
 
         escolhaSexo.setOnItemClickListener((parent, view, position, id) -> sexoText = opcoesSexo[position]);
 
-        /* Cria uma instância do componente de calendário.
-        MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker();
+        date = new DatePickerDialog(CadastroView.this, (view, year, month, dayOfMonth) -> {
+            Calendar dataSelecionado = Calendar.getInstance();
+            dataSelecionado.set(year, month, dayOfMonth);
+            SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
+            etDataNascimento.setText(format.format(dataSelecionado.getTime()));
 
-        // Define as propriedades do componente de calendário.
-                builder.setTitleText("Selecione uma data");
-                builder.setSelection(MaterialDatePicker.todayInUtcMilliseconds());
-
-        // Cria o componente de calendário.
-                MaterialDatePicker<Long> datePicker = builder.build();
-
-        // Adiciona o componente de calendário à interface de usuário.
-        datePicker.show(getSupportFragmentManager(), "DatePicker"); */
-
-        date = new DatePickerDialog(CadastroView.this, new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                Calendar dataSelecionado = Calendar.getInstance();
-                dataSelecionado.set(year, month, dayOfMonth);
-                SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
-                etDataNascimento.setText(format.format(dataSelecionado.getTime()));
-
-            }
         }, calendario.get(Calendar.YEAR), calendario.get(Calendar.MONTH), calendario.get(Calendar.DAY_OF_MONTH));
+
+        // Defina a data mínima no DatePickerDialog
+        Calendar dataInicio = Calendar.getInstance();
+        dataInicio.set(1930, Calendar.JANUARY, 1);
+        date.getDatePicker().setMinDate(dataInicio.getTimeInMillis());
+
+        // Defina a data máxima no DatePickerDialog
+        Calendar dataFinal = Calendar.getInstance();
+        dataFinal.add(Calendar.YEAR, -16);
+        date.getDatePicker().setMaxDate(dataFinal.getTimeInMillis());
 
         etDataNascimento.setOnClickListener(v -> date.show());
 
@@ -127,12 +136,10 @@ public class CadastroView extends AppCompatActivity {
         etEmail.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
 
             @Override
@@ -147,33 +154,73 @@ public class CadastroView extends AppCompatActivity {
                 }
             }
         });
+
+        // Registra o callback para o resultado da chamada da galeria
+        activityResultPegarImagem = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri uriImagemSelecionada = result.getData().getData();
+                        if (uriImagemSelecionada != null) {
+                            // Captura o caminho da imagem selecionada e recorta em formato redondo
+                            recortarImagem(uriImagemSelecionada);
+                        }
+
+                    }
+                });
+
+        // Registra o callback para o resultado da chamada da câmera
+        activityResultTirarFoto = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                resul -> {
+                    if (resul.getResultCode() == RESULT_OK) {
+                        // Agora você pode trabalhar com a imagem completa usando imageUri
+                        recortarImagem(caminhoImagem);
+                    } else {
+                        Toast.makeText(this, "Erro ao tirar foto.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // Define o observador para o carregamento da barra de progresso
+        cadastroViewModel.getcarregandoOuNao().observe(this, aBoolean -> {
+            if (aBoolean) {
+                barraCarregando.setVisibility(View.VISIBLE);
+            } else {
+                barraCarregando.setVisibility(View.GONE);
+            }
+        });
+
+        // Define o observador para a mensagem de erro
+        cadastroViewModel.getmensagemErroLiveData().observe(this, s -> {
+            Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+        });
     }
 
     // Método chamado quando o botão de cadastro é clicado
     public void cadastraUsuario(View view) {
-        String nome = etNome.getText().toString();
-        String sobrenome = etSobre.getText().toString();
-        String email = etEmail.getText().toString();
-        String senha = etSenha.getText().toString();
+        String nome = Objects.requireNonNull(etNome.getText()).toString();
+        String sobrenome = Objects.requireNonNull(etSobre.getText()).toString();
+        String email = Objects.requireNonNull(etEmail.getText()).toString();
+        String senha = Objects.requireNonNull(etSenha.getText()).toString();
         String dataNascimento = null;
         String sexo = null;
         long numero = 0;
 
-        if (!etDataNascimento.getText().toString().isEmpty()) {
+        if (!Objects.requireNonNull(etDataNascimento.getText()).toString().isEmpty()) {
             dataNascimento = etDataNascimento.getText().toString();
         }
         if (sexoText != null) {
             sexo = sexoText;
 
         }
-        if (!etNumero.getText().toString().isEmpty()) {
+        if (!Objects.requireNonNull(etNumero.getText()).toString().isEmpty()) {
             String numeroApenasDigitos = etNumero.getText().toString().replaceAll("\\D", ""); // Remove todos os não dígitos
             numero = Long.parseLong(numeroApenasDigitos);
         }
 
         // Verifica se os campos obrigatorios foram preenchidos e se a senha são iguais nos dois campos
         if (!nome.isEmpty() && !sobrenome.isEmpty() && !email.isEmpty() && !senha.isEmpty()) {
-            if (senha.equals(etConfirmaSenha.getText().toString())) {
+            if (senha.equals(Objects.requireNonNull(etConfirmaSenha.getText()).toString())) {
                 user.setNome(nome);
                 user.setSobrenome(sobrenome);
                 user.setEmail(email);
@@ -182,26 +229,16 @@ public class CadastroView extends AppCompatActivity {
                 user.setSexo(sexo);
                 user.setNumeroTelefone(numero);
 
-                // Verifica se o email já está cadastrado
-                try {
-                    cadastroViewModel.verificaExisteEmail(user.getEmail()).observe(this, aBoolean -> {
-                        if (aBoolean) {
-                            Toast.makeText(CadastroView.this, "Email já cadastrado no sistema!!!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            // Se a imagem foi selecionada, faz o upload para o Firebase Storage
-                            cadastroViewModel.guardaImagemStorage(caminhoImagem).observe(this, s -> {
-                                if (s != null) {
-                                    user.setUrl_foto_perfil(s);
-                                    cadastrarBD(user);
-                                } else {
-                                    Toast.makeText(CadastroView.this, "Erro ao cadastra a foto de perfil, tente novamente.", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                    });
-                } catch (Exception e) {
-                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+                // Tenta fazer upload da imagem selecionada, caso não tiver, faz o upload da imagem padrão para o firebase storage
+                cadastroViewModel.guardaImagemStorage(caminhoImagem).observe(this, s -> {
+                    if (s != null) {
+                        user.setUrl_foto_perfil(s);
+                        cadastrarBD(user);
+                    } else {
+                        Toast.makeText(CadastroView.this, "Erro ao cadastra a foto de perfil, tente novamente.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             } else {
                 Toast.makeText(this, "As senhas precisam ser iguais.", Toast.LENGTH_SHORT).show();
             }
@@ -223,7 +260,7 @@ public class CadastroView extends AppCompatActivity {
     }
 
     // Método chamado quando o usuário clica para escolher a imagem
-    public void escolherImagem(View v) {
+    public void escolherImagem() {
         // Verifica se a permissão para ler o armazenamento externo já foi concedida
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             // Se a permissão ainda não foi concedida, solicita a permissão ao usuário
@@ -232,24 +269,72 @@ public class CadastroView extends AppCompatActivity {
             // Se a permissão foi concedida, cria uma Intent para selecionar a imagem da galeria
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
-            startActivityForResult(intent, PICK_IMAGE_REQUEST);
+            activityResultPegarImagem.launch(intent);
         }
     }
 
+    public void tirarFoto() {
+        // Verifica se a permissão para tirar fotos com a camera já foi concedida
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            // Se a permissão ainda não foi concedida, solicita a permissão ao usuário
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_IMAGE_CAPTURE);
+        } else {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            // Ensure that there's a camera activity to handle the intent
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                // Create the File where the photo should go
+                File photoFile = null;
+                try {
+                    photoFile = createImageFile();
+                } catch (IOException ex) {
+                    Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+                // Continue only if the File was successfully created
+                if (photoFile != null) {
+                    caminhoImagem = FileProvider.getUriForFile(this,
+                            "com.example.owlagenda.fileprovider",
+                            photoFile);
+
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, caminhoImagem);
+                    activityResultTirarFoto.launch(takePictureIntent);
+                }
+            }
+
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+
+        return File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+    }
+
     public void clipsClick(View v) {
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
-        View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_login, null);
+        bottomSheetDialog = new BottomSheetDialog(this);
+        // pode não rodar
+        View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_login, (ViewGroup) this.getWindow().getDecorView(), false);
         bottomSheetDialog.setContentView(view);
         bottomSheetDialog.show();
 
         MaterialButton btnAlterarImagem = view.findViewById(R.id.btn_alterar_imagem),
-                btnExcluirImagem = view.findViewById(R.id.btn_excluir_imagem);
+                btnExcluirImagem = view.findViewById(R.id.btn_excluir_imagem),
+                btnTirarFoto = view.findViewById(R.id.btn_tirar_foto);
 
-        btnAlterarImagem.setOnClickListener(v1 -> this.escolherImagem(getCurrentFocus()));
+        btnTirarFoto.setOnClickListener(v13 -> tirarFoto());
+
+        btnAlterarImagem.setOnClickListener(v1 -> this.escolherImagem());
 
         btnExcluirImagem.setOnClickListener(v12 -> {
             imagemUsuario.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.avatar_1));
             caminhoImagem = null;
+            bottomSheetDialog.dismiss(); // Fecha o BottomSheetDialog retirar a imagem.
         });
     }
 
@@ -264,6 +349,7 @@ public class CadastroView extends AppCompatActivity {
                 .withOptions(options)
                 .withAspectRatio(1, 1);
         uCrop.start(this);
+        bottomSheetDialog.dismiss(); // Fecha o BottomSheetDialog após cortar a imagem
     }
 
     // Método para validar o email
@@ -274,18 +360,13 @@ public class CadastroView extends AppCompatActivity {
         return matcher.matches();
     }
 
+
     // Método chamado após o usuário escolher a imagem na galeria
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-            Uri uriImagemSelecionada = data.getData();
-            if (uriImagemSelecionada != null) {
-                // Captura o caminho da imagem selecionada e recorta em formato redono
-                Uri imagemUri = data.getData();
-                recortarImagem(imagemUri);
-            }
-        } else if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            assert data != null;
             final Uri resultadoUri = UCrop.getOutput(data);
             if (resultadoUri != null) {
                 // Aqui você pode usar o resultadoUri, que é a imagem recortada em formato circular
@@ -294,6 +375,7 @@ public class CadastroView extends AppCompatActivity {
                 caminhoImagem = resultadoUri;
             }
         } else if (resultCode == UCrop.RESULT_ERROR) {
+            assert data != null;
             final Throwable cropError = UCrop.getError(data);
             if (cropError != null) {
                 Toast.makeText(this, "Erro ao recortar a imagem. Tente novamente.", Toast.LENGTH_SHORT).show();
@@ -309,11 +391,39 @@ public class CadastroView extends AppCompatActivity {
             // Verifica se a permissão foi concedida
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permissão concedida, chama o método para escolher a imagem
-                escolherImagem(getCurrentFocus());
+                escolherImagem();
             } else {
                 // Permissão negada, informa ao usuário sobre a necessidade da permissão
                 Toast.makeText(this, "Permissão necessária para acessar o armazenamento.", Toast.LENGTH_SHORT).show();
             }
+        }
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            // Verifica se a permissão foi concedida
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permissão concedida, chama o método para escolher a imagem
+                tirarFoto();
+            } else {
+                // Permissão negada, informa ao usuário sobre a necessidade da permissão
+                Toast.makeText(this, "Permissão necessária para tirar foto.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Salvar dados importantes, como texto de campos de texto
+        outState.putParcelable("uriImagem", caminhoImagem);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // Restaurar dados salvos
+        Uri uriImagemRestaurada = savedInstanceState.getParcelable("uriImagem");
+        if (uriImagemRestaurada != null) {
+            imagemUsuario.setImageURI(uriImagemRestaurada);
+            caminhoImagem = uriImagemRestaurada;
         }
     }
 

@@ -1,0 +1,26 @@
+<!-- Layout para as opções do menu, posicionado acima do botão FAB -->
+<LinearLayout android:id="@+id/layout_menu_options"
+    android:layout_width="wrap_content"
+    android:layout_height="125dp"
+    android:layout_above="@id/app_fab"
+    android:layout_alignParentEnd="true"
+    android:layout_margin="16dp"
+    android:orientation="vertical"
+    android:visibility="visible"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tarefa"
+        android:layout_marginBottom="8dp"
+        app:icon="@drawable/task_icon_142963" />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Escola"
+        app:icon="@drawable/ic_escola" />
+
+</LinearLayout>

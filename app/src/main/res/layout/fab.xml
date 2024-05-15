@@ -1,5 +1,5 @@
 <!-- fab_layout.xml -->
-<com.google.android.material.floatingactionbutton.FloatingActionButton xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fab"
     android:layout_width="wrap_content"
@@ -7,5 +7,6 @@
     android:layout_gravity="bottom|end"
     android:layout_marginBottom="16dp"
     android:layout_marginEnd="16dp"
-    android:src="@drawable/ic_email"
+    app:icon="@drawable/ic_mais"
+    android:text="Adicionar"
     app:fabSize="normal" />

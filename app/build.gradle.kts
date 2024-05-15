@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.androidApplication)
     id("com.google.gms.google-services")
+    alias(libs.plugins.jetbrainsKotlinAndroid)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -51,6 +53,9 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 
 }
 
@@ -62,6 +67,7 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     implementation(libs.legacy.support.v4)
+    implementation(libs.core.ktx)
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation(project(":opencv"))
     implementation("com.google.android.gms:play-services-auth:21.1.1")
@@ -74,6 +80,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:21.0.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.github.yalantis:ucrop:2.2.8")
+    implementation("com.google.ai.client.generativeai:generativeai:0.5.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
