@@ -2,5 +2,5 @@ package com.example.owlagenda.ui.telaprincipal;
 
 import androidx.lifecycle.ViewModel;
 
-public class TelaPrinciapalViewModel extends ViewModel {
+public class TelaPrincipalViewModel extends ViewModel {
 }

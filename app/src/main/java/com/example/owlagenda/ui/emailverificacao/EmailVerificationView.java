@@ -18,8 +18,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.example.owlagenda.R;
 import com.example.owlagenda.util.services.ContadorService;
 
-public class EnviaEmailVerificacao extends AppCompatActivity {
-    private EmailVerificacaoViewModel emailVerificacaoViewModel;
+public class EmailVerificationView extends AppCompatActivity {
+    private EmailVerificationViewModel emailVerificationViewModel;
     private TextView textoContagem;
     private boolean contagemEmAndamento = false;
     private Intent intent;
@@ -51,7 +51,7 @@ public class EnviaEmailVerificacao extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("atualizacao_contador"));
 
         // Inicialização do ViewModel
-        emailVerificacaoViewModel = new ViewModelProvider(this).get(EmailVerificacaoViewModel.class);
+        emailVerificationViewModel = new ViewModelProvider(this).get(EmailVerificationViewModel.class);
 
         // Inicialização dos elementos de UI
         textoContagem = findViewById(R.id.tv_contagem);
@@ -70,19 +70,19 @@ public class EnviaEmailVerificacao extends AppCompatActivity {
             textoContagem.setVisibility(View.VISIBLE);
 
             // Inicia o envio do email de verificação e observa a resposta
-            emailVerificacaoViewModel.enviarEmailVerificacao().observe(EnviaEmailVerificacao.this, aBoolean -> {
+            emailVerificationViewModel.enviarEmailVerificacao().observe(EmailVerificationView.this, aBoolean -> {
                 if (aBoolean) {
                     // Se o email for enviado com sucesso, exibe um Toast
-                    Toast.makeText(EnviaEmailVerificacao.this, "Email enviado com sucesso.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EmailVerificationView.this, "Email enviado com sucesso.", Toast.LENGTH_SHORT).show();
                 } else {
                     // Se houver erro no envio do email, exibe um Toast informando o usuário
-                    Toast.makeText(EnviaEmailVerificacao.this, "Não foi possível enviar o email de verificação. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EmailVerificationView.this, "Não foi possível enviar o email de verificação. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
                 }
             });
 
         } else {
             // Se a contagem estiver em andamento, informa o usuário para aguardar
-            Toast.makeText(EnviaEmailVerificacao.this, "Aguarde o término da contagem para enviar outro email de verificação.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(EmailVerificationView.this, "Aguarde o término da contagem para enviar outro email de verificação.", Toast.LENGTH_SHORT).show();
         }
     }
 

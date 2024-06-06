@@ -15,10 +15,16 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission
         android:name="com.google.android.gms.permission.AD_ID"
@@ -35,7 +41,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar"
         tools:targetApi="31"
-        android:configChanges="orientation|screenSize">
+        android:configChanges="orientation|screenSize"
+        >
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -48,7 +55,7 @@
         </provider>
 
         <activity
-            android:name=".ui.telaprincipal.TelaPrincipalActivity"
+            android:name=".ui.telaprincipal.TelaPrincipalView"
             android:exported="false"
             android:label="@string/title_activity_tela_principal"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar"
@@ -64,14 +71,15 @@
             android:foregroundServiceType="dataSync" />
 
         <activity
-            android:name=".ui.emailverificacao.EnviaEmailVerificacao"
+            android:name=".ui.emailverificacao.EmailVerificationView"
             android:exported="false" />
         <activity
-            android:name=".ui.cadastro.CadastroView"
-            android:exported="false" />
+            android:name=".ui.registration.RegistrationView"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
+
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
-            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.Light.NoActionBar" />
         <activity
             android:name=".ui.login.LoginView"
@@ -89,4 +97,9 @@
             android:resource="@array/preloaded_fonts" />
     </application>
 
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
 </manifest>

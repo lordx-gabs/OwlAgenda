@@ -7,9 +7,9 @@
 
     <fragment
         android:id="@+id/nav_inicio"
-        android:name="com.example.owlagenda.ui.home.HomeFragment"
+        android:name="com.example.owlagenda.ui.inicio.InicioFragment"
         android:label="@string/menu_inicio"
-        tools:layout="@layout/fragment_home">
+        tools:layout="@layout/fragment_inicio">
         <action
             android:id="@+id/action_nav_inicio_to_nav_calendario"
             app:destination="@id/nav_calendario" />
@@ -23,9 +23,9 @@
 
     <fragment
         android:id="@+id/nav_calendario"
-        android:name="com.example.owlagenda.ui.gallery.GalleryFragment"
+        android:name="com.example.owlagenda.ui.calendario.CalendarioFragment"
         android:label="@string/menu_calendario"
-        tools:layout="@layout/fragment_gallery" >
+        tools:layout="@layout/fragment_calendario" >
 
         <action
             android:id="@+id/action_nav_calendario_to_nav_perfil"
@@ -40,7 +40,7 @@
 
     <fragment
         android:id="@+id/nav_corubot"
-        android:name="com.example.owlagenda.ui.slideshow.SlideshowFragment"
+        android:name="com.example.owlagenda.ui.corubot.CorubotFragment"
         android:label="@string/corubot"
         tools:layout="@layout/fragment_corubot" >
 
@@ -57,9 +57,9 @@
 
     <fragment
         android:id="@+id/nav_perfil"
-        android:name="com.example.owlagenda.ui.slideshow.SlideshowFragment"
+        android:name="com.example.owlagenda.ui.perfil.PerfilFragment"
         android:label="@string/menu_perfil"
-        tools:layout="@layout/fragment_slideshow" >
+        tools:layout="@layout/fragment_perfil" >
 
         <action
             android:id="@+id/action_nav_perfil_to_nav_calendario"
@@ -71,6 +71,5 @@
             android:id="@+id/action_nav_perfil_to_nav_corubot"
             app:destination="@id/nav_corubot" />
     </fragment>
-
 
 </navigation>

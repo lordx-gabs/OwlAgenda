@@ -7,12 +7,12 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.owlagenda.data.database.IniciarOuFecharDB;
 import com.example.owlagenda.data.database.dao.UsuarioDao;
-import com.example.owlagenda.data.models.Usuario;
+import com.example.owlagenda.data.models.User;
 
 public class UsuarioViewModel extends ViewModel {
-    private MutableLiveData<Usuario> usuarioLiveData;
+    private MutableLiveData<User> usuarioLiveData;
     private UsuarioDao userDao;
-    private final Observer<Usuario> observer;
+    private final Observer<User> observer;
 
     public UsuarioViewModel() {
         usuarioLiveData = new MutableLiveData<>();
@@ -20,8 +20,8 @@ public class UsuarioViewModel extends ViewModel {
 
         observer = usuario -> {
             if (usuario != null) {
-                SincronizaBDViewModel.sincronizaUserComRoom(usuario);
-                SincronizaBDViewModel.sincronizaUserComFirebase(usuario);
+                SincronizaBDViewModel.synchronizeUserWithRoom(usuario);
+                SincronizaBDViewModel.synchronizeUserWithFirebase(usuario);
                 usuarioLiveData.setValue(usuario);
             }
         };
@@ -29,7 +29,7 @@ public class UsuarioViewModel extends ViewModel {
 
     }
 
-    public LiveData<Usuario> getUsuarioLiveData() {
+    public LiveData<User> getUsuarioLiveData() {
         return usuarioLiveData;
     }
 

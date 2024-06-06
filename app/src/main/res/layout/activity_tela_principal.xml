@@ -39,13 +39,4 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/mobile_navigation" />
 
-    <include
-        android:id="@+id/menu_fab"
-        layout="@layout/layout_menu_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="135dp"
-        android:layout_above="@id/app_fab"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
-        android:visibility="invisible" />
 </RelativeLayout>

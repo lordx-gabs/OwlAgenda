@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.firebase.auth.FirebaseAuth;
 
-public class EmailVerificacaoViewModel extends ViewModel {
+public class EmailVerificationViewModel extends ViewModel {
 
     private FirebaseAuth mAuth;
 
-    public EmailVerificacaoViewModel(){
+    public EmailVerificationViewModel(){
         mAuth = FirebaseAuth.getInstance();
     }
 

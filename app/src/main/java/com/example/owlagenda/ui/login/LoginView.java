@@ -6,8 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -20,13 +19,14 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.activities.EsqueciSenhaView;
-import com.example.owlagenda.ui.telaprincipal.TelaPrincipalActivity;
-import com.example.owlagenda.ui.cadastro.CadastroView;
-import com.example.owlagenda.ui.emailverificacao.EnviaEmailVerificacao;
+import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
+import com.example.owlagenda.ui.registration.RegistrationView;
+import com.example.owlagenda.ui.emailverificacao.EmailVerificationView;
 import com.example.owlagenda.util.Notificacao;
-import com.example.owlagenda.util.VerificaConexao;
+import com.example.owlagenda.util.VerificationWifi;
 import com.example.owlagenda.util.services.ContadorService;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -39,64 +39,55 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.OAuthProvider;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class LoginView extends AppCompatActivity {
-    private FirebaseAuth mAuth; // Instância de autenticação do Firebase
-    private SharedPreferences sharedPreferences; // Para armazenar dados locais
-    private LoginViewModel loginViewModel; // ViewModel para gerenciar lógica de login
-    private static final String PREF_NAME = "MyPrefs"; // Nome do arquivo de preferências
-    private static final String KEY_USER_LOGIN = "user_login"; // Chave para o login do usuário
-    private static final String KEY_USER_SENHA = "user_senha"; // Chave para a senha do usuário
-    private static final int RC_SIGN_IN = 1399; // Código de solicitação para login com Google
-    private GoogleSignInClient mGoogleSignInClient; // Cliente para login com Google
-    private Button btnGoogle; // Botão de login com Google
-    private Button btnTwitter; // Botão de login com Twitter
-    private EditText email, senha; // Campos de entrada para email e senha
-    private CheckBox cb_lembrar; // CheckBox para lembrar o usuário
-    private TextView tvEsqueciSenha; // TextView para exibir link para recuperação de senha
-    OAuthProvider.Builder provider = OAuthProvider.newBuilder("twitter.com"); // Provedor de autenticação do Twitter
+    private FirebaseAuth firebaseAuth;
+    private SharedPreferences userCredentialsPreferences;
+    private LoginViewModel loginViewModel; 
+    private static final String PREF_NAME = "MyPrefs"; 
+    private static final String KEY_USER_LOGIN = "user_login"; 
+    private static final String KEY_USER_SENHA = "user_senha"; 
+    private static final int REQUEST_CODE_SIGN_IN_GOOGLE = 1399;
+    private GoogleSignInClient mGoogleSignInClient; 
+    private Button btnGoogle; 
+    private Button btnTwitter; 
+    private EditText emailEditText, passwordEditText;
+    private CheckBox rememberMeCheckBox;
+    private TextView forgotPasswordTextView;
+    OAuthProvider.Builder providerAuthTwitter = OAuthProvider.newBuilder("twitter.com");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this); // Habilita layout edge-to-edge
-        this.setContentView(R.layout.activity_login_view); // Define o layout da atividade
-        Notificacao.criarCanalDeNotificacao(getApplicationContext()); // Cria canal de notificação
+        EdgeToEdge.enable(this);
+        this.setContentView(R.layout.activity_login_view);
+        Notificacao.criarCanalDeNotificacao(getApplicationContext());
 
-        loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class); // Inicializa ViewModel
+        loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-        sharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); // Inicializa SharedPreferences
+        userCredentialsPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
-        mAuth = FirebaseAuth.getInstance(); // Inicializa instância de autenticação do Firebase
+        firebaseAuth = FirebaseAuth.getInstance();
 
-        provider.addCustomParameter("lang", "br"); // Adiciona parâmetro customizado ao provedor de autenticação do Twitter
+        providerAuthTwitter.addCustomParameter("lang", "br");
 
-        // Configura opções de login com Google
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.id_google)) // Solicita ID Token do Google
-                .requestEmail() // Solicita email do usuário
+                .requestIdToken(BuildConfig.tokenGoogle)
+                .requestEmail()
                 .build();
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso); // Inicializa cliente de login com Google
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        // Verifica se o usuário já está autenticado
-        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
-            // Usuário está autenticado e email está verificado
-            this.proximaTela(); // Vai para a próxima tela
-            finish(); // Finaliza esta atividade
+        if (firebaseAuth.getCurrentUser() != null && firebaseAuth.getCurrentUser().isEmailVerified()) {
+            this.nextView();
+            finish();
         } else {
             try {
-                // Tenta recuperar email e senha salvos nas SharedPreferences
-                String email = sharedPreferences.getString(KEY_USER_LOGIN, "");
-                String senha = sharedPreferences.getString(KEY_USER_SENHA, "");
+                String email = userCredentialsPreferences.getString(KEY_USER_LOGIN, "");
+                String senha = userCredentialsPreferences.getString(KEY_USER_SENHA, "");
                 if (!email.isEmpty() && !senha.isEmpty()) {
-                    // Se email e senha não estão vazios, tenta autenticar o usuário
-                    loginViewModel.autenticaUserEmailSenha(email, senha).observe(this, aBoolean -> {
+                    loginViewModel.authUserWithEmailAndPassoword(email, senha).observe(this, aBoolean -> {
                         if (aBoolean) {
-                            // Se a autenticação for bem-sucedida, vai para a próxima tela
-                            proximaTela();
-                            finish(); // Finaliza esta atividade
+                            nextView();
+                            finish();
                         }
                     });
                 }
@@ -105,27 +96,23 @@ public class LoginView extends AppCompatActivity {
             }
         }
 
-        // Inicializa os componentes da interface
-        cb_lembrar = findViewById(R.id.cb_lembraruser);
-        email = findViewById(R.id.et_email_login);
-        senha = findViewById(R.id.et_senha_login);
-        tvEsqueciSenha = findViewById(R.id.tv_esqueci_senha);
+        rememberMeCheckBox = findViewById(R.id.cb_lembraruser);
+        emailEditText = findViewById(R.id.et_email_login);
+        passwordEditText = findViewById(R.id.et_senha_login);
+        forgotPasswordTextView = findViewById(R.id.tv_esqueci_senha);
 
         btnTwitter = findViewById(R.id.btn_twitter);
         btnGoogle = findViewById(R.id.btn_google);
 
+        btnGoogle.setOnClickListener(v -> loginWithGoogle());
 
-        // Define a ação ao clicar no botão de login com Google
-        btnGoogle.setOnClickListener(v -> logarComGoogle());
-
-        // Define a ação ao clicar no botão de login com Twitter
-        btnTwitter.setOnClickListener(v -> mAuth
-                .startActivityForSignInWithProvider(LoginView.this, provider.build())
+        btnTwitter.setOnClickListener(v -> firebaseAuth
+                .startActivityForSignInWithProvider(LoginView.this, providerAuthTwitter.build())
                 .addOnSuccessListener(authResult -> {
-                    loginViewModel.autenticaUserTwitter(authResult).observe(LoginView.this, aBoolean -> {
+                    loginViewModel.authUserWithTwitter(authResult).observe(LoginView.this, aBoolean -> {
                         if (aBoolean) {
                             Toast.makeText(LoginView.this, "Bem vindo ao Owl", Toast.LENGTH_SHORT).show();
-                            proximaTela();
+                            nextView();
                             finish();
                         } else {
                             Toast.makeText(LoginView.this, "Erro no login.", Toast.LENGTH_SHORT).show();
@@ -137,61 +124,48 @@ public class LoginView extends AppCompatActivity {
                 })
         );
 
-        tvEsqueciSenha.setOnClickListener(v -> {
-            startActivity(new Intent(LoginView.this, EsqueciSenhaView.class));
-        });
+        forgotPasswordTextView.setOnClickListener(v ->
+                startActivity(new Intent(LoginView.this, EsqueciSenhaView.class)));
 
-        email.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                TextInputLayout oi = findViewById(R.id.et_email_layout_login);
-                if(eEmailValido(s.toString())) {
+        // fix me: mudando a cor do email mesmo sem estar focado
+        emailEditText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_login);
+                if (Patterns.EMAIL_ADDRESS.matcher(emailEditText.getText().toString()).matches()) {
                     int cor = getColor(R.color.botao_cor);
-                    oi.setBoxStrokeColor(cor);
+                    textInputLayout.setBoxStrokeColor(cor);
                 } else {
                     int cor = getColor(R.color.cor_primaria);
-                    oi.setBoxStrokeColor(cor);
+                    textInputLayout.setBoxStrokeColor(cor);
                 }
             }
         });
+
     }
 
-    // Método chamado ao clicar no botão "Entrar"
-    public void verificaUsuario(View view) {
-        if (VerificaConexao.hasInternet(this)) { // Verifica se há conexão com a internet
-            String emailUser = email.getText().toString(); // Obtém o email digitado
-            String senhaUser = senha.getText().toString(); // Obtém a senha digitada
+    public void loginUser(View view) {
+        if (VerificationWifi.hasInternet(this)) {
+            String emailUser = emailEditText.getText().toString();
+            String passwordUser = passwordEditText.getText().toString();
 
-            if (!emailUser.isEmpty() && !senhaUser.isEmpty()) { // Verifica se os campos não estão vazios
+            if (!emailUser.isEmpty() && !passwordUser.isEmpty()) {
                 try {
-                    // Tenta autenticar o usuário com email e senha
-                    loginViewModel.autenticaUserEmailSenha(emailUser, senhaUser).observe(this, aBoolean -> {
+                    loginViewModel.authUserWithEmailAndPassoword(emailUser, passwordUser).observe(this, aBoolean -> {
                         if (aBoolean) {
-                            // Se a autenticação for bem-sucedida
-                            if (mAuth.getCurrentUser().isEmailVerified()) { // Verifica se o email está verificado
-                                if (isServicoRodando()) { // Verifica se um serviço está em execução
-                                    stopService(new Intent(this, ContadorService.class)); // Para o serviço
+                            if (firebaseAuth.getCurrentUser().isEmailVerified()) {
+                                if (isServiceCounterRunning()) { 
+                                    stopService(new Intent(this, ContadorService.class));
                                 }
-                                if (cb_lembrar.isChecked()) { // Verifica se a CheckBox está marcada
-                                    mantemLogadoUsuario(emailUser, senhaUser); // Salva o email e senha nas SharedPreferences
+                                if (rememberMeCheckBox.isChecked()) {
+                                    keepsUserLogged(emailUser, passwordUser);
                                 }
-                                proximaTela(); // Vai para a próxima tela
-                                finish(); // Finaliza esta atividade
+                                nextView();
+                                finish();
                             } else {
                                 Toast.makeText(LoginView.this, "Usuário ainda não verificado", Toast.LENGTH_SHORT).show();
-                                email.setText("");
-                                senha.setText("");
-                                startActivity(new Intent(LoginView.this, EnviaEmailVerificacao.class)); // Abre tela de envio de email de verificação
+                                emailEditText.setText("");
+                                passwordEditText.setText("");
+                                startActivity(new Intent(LoginView.this, EmailVerificationView.class));
                             }
                         } else {
                             Toast.makeText(LoginView.this, "Email ou senha incorreta.", Toast.LENGTH_SHORT).show();
@@ -208,29 +182,20 @@ public class LoginView extends AppCompatActivity {
         }
     }
 
-    public boolean eEmailValido(String email) {
-        String regex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
-    }
-
-    // Método chamado ao retornar o resultado de uma atividade (ex: login com Google)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Resultado retornado lançado pela intent GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
+        if (requestCode == REQUEST_CODE_SIGN_IN_GOOGLE) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 // login com o Google feito com sucesso, autentica no Firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
 
-                loginViewModel.autenticaUserGoogle(account.getIdToken(), account).observe(this, aBoolean -> {
+                loginViewModel.authUserWithGoogle(account.getIdToken(), account).observe(this, aBoolean -> {
                     if (aBoolean) {
                         Toast.makeText(LoginView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginView.this, TelaPrincipalActivity.class));
+                        startActivity(new Intent(LoginView.this, TelaPrincipalView.class));
                         finish();
                     } else {
                         Toast.makeText(LoginView.this, "Falha no login.", Toast.LENGTH_SHORT).show();
@@ -243,59 +208,43 @@ public class LoginView extends AppCompatActivity {
             }
         }
     }
-
-    // Método chamado quando o usuário clica no botão para ir para a tela de cadastro
-    public void telaCadastro(View view) {
-        email.setText("");
-        senha.setText("");
-        // Cria uma nova Intent para abrir a CadastroView
-        startActivity(new Intent(this, CadastroView.class));
+    
+    public void goToViewRegister(View view) {
+        emailEditText.setText("");
+        passwordEditText.setText("");
+        startActivity(new Intent(this, RegistrationView.class));
     }
 
-    // Método chamado para avançar para a próxima tela após a autenticação bem-sucedida do usuário
-    public void proximaTela() {
-        // Cria uma nova Intent para abrir a MainActivity
-        this.startActivity(new Intent(this, TelaPrincipalActivity.class));
-        // Finaliza a LoginView atual
+    public void nextView() {
+        this.startActivity(new Intent(this, TelaPrincipalView.class));
         this.finish();
     }
 
-    // Método utilizado para manter o usuário logado, armazenando o email e senha no SharedPreferences
-    private void mantemLogadoUsuario(String email, String senha) {
-        // Obtém uma referência para o Editor do SharedPreferences
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        // Insere o email e senha no SharedPreferences
+    private void keepsUserLogged(String email, String senha) {
+        SharedPreferences.Editor editor = userCredentialsPreferences.edit();
         editor.putString(KEY_USER_LOGIN, email);
         editor.putString(KEY_USER_SENHA, senha);
-        // Aplica as alterações no SharedPreferences
         editor.apply();
     }
 
-    // Método chamado quando o usuário clica no botão de login com o Google
-    private void logarComGoogle() {
-        // Obtém uma Intent de login com o Google usando o GoogleSignInClient
+    private void loginWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        // Inicia o processo de login com o Google utilizando o código de solicitação RC_SIGN_IN
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN_GOOGLE);
     }
 
-    // Método para verificar se um serviço está em execução
-    private boolean isServicoRodando() {
+    private boolean isServiceCounterRunning() {
         NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
-            // Obtenha todas as notificações ativas
             StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
 
-            // ID ou Tag da notificação associada ao seu serviço
             int seuServicoNotificationId = 1;
 
-            // Verifique se existe alguma notificação ativa associada ao seu serviço
             for (StatusBarNotification notification : notifications) {
                 if (notification.getId() == seuServicoNotificationId) {
-                    return true; // Notificação associada ao seu serviço encontrada
+                    return true;
                 }
             }
         }
-        return false; // Nenhuma notificação associada ao seu serviço encontrada
+        return false;
     }
 }

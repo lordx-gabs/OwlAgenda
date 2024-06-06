@@ -78,7 +78,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
-                    android:onClick="verificaUsuario"
+                    android:onClick="loginUser"
                     android:text="Login"
                     app:backgroundTint="@color/botao_cor"
                     app:cornerRadius="16dp" />
@@ -87,7 +87,7 @@
                     android:id="@+id/btn_cadastro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:onClick="telaCadastro"
+                    android:onClick="goToViewRegister"
                     android:text="Cadastrar-se"
                     app:backgroundTint="@color/botao_cor"
                     app:cornerRadius="16dp" />

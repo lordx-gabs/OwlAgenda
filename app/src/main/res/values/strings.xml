@@ -10,7 +10,6 @@
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="entrar_com_google">Entrar com o Google</string>
-    <string name="id_google">542538337985-m4h6ftueoibfr6kipllam98f66qkp2bv.apps.googleusercontent.com</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>

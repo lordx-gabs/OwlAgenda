@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey;
 import java.io.Serializable;
 
 @Entity(tableName = "usuario")
-public class Usuario implements Serializable {
+public class User implements Serializable {
 
     @PrimaryKey
     private @NonNull String id;
@@ -37,7 +37,7 @@ public class Usuario implements Serializable {
     @ColumnInfo(name = "numero_telefone")
     private long numeroTelefone;
 
-    public Usuario() {
+    public User() {
     }
 
     public String getId() {

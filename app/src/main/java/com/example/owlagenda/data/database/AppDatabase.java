@@ -7,9 +7,9 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.example.owlagenda.data.database.dao.UsuarioDao;
-import com.example.owlagenda.data.models.Usuario;
+import com.example.owlagenda.data.models.User;
 
-@Database(entities = {Usuario.class}, version = 1, exportSchema = false)
+@Database(entities = {User.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract UsuarioDao userDao();

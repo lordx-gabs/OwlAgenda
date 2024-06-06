@@ -6,28 +6,29 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.example.owlagenda.data.models.Usuario;
+import com.example.owlagenda.data.models.User;
 
 import java.util.List;
 
 @Dao
 public interface UsuarioDao {
     @Insert
-    void insert(Usuario user);
+    void insert(User user);
 
     @Update
-    void update(Usuario user);
+    void update(User user);
 
     @Delete
-    void delete(Usuario user);
+    void delete(User user);
 
-    @Query("SELECT * FROM usuario WHERE id = :id")
-    Usuario usuarioPorId(String id);
+    @Query("SELECT * FROM USUARIO WHERE id = :id")
+    User usuarioPorId(String id);
 
-    @Query("SELECT * FROM usuario")
-    List<Usuario> listarTodosUsuarios();
+    @Query("SELECT * FROM USUARIO")
+    List<User> listarTodosUsuarios();
 
-    @Query("SELECT * FROM usuario WHERE email = :email AND senha = :senha")
-    Usuario buscarPorEmailESenha(String email, String senha);
+    @Query("SELECT * FROM USUARIO WHERE email = :email AND senha = :senha")
+    User searchEmailAndPassword(String email, String senha);
 }
+
 

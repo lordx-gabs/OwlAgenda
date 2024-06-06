@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.gallery;
+package com.example.owlagenda.ui.calendario;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,17 +9,17 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.databinding.FragmentGalleryBinding;
+import com.example.owlagenda.databinding.FragmentCalendarioBinding;
 
-public class GalleryFragment extends Fragment {
+public class CalendarioFragment extends Fragment {
 
-    private FragmentGalleryBinding binding;
+    private FragmentCalendarioBinding binding;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        binding = FragmentGalleryBinding.inflate(inflater, container, false);
+        binding = FragmentCalendarioBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow); // Define o menu overflow na fragment

@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.home;
+package com.example.owlagenda.ui.inicio;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,18 +10,18 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.databinding.FragmentHomeBinding;
+import com.example.owlagenda.databinding.FragmentInicioBinding;
 
-public class HomeFragment extends Fragment {
+public class InicioFragment extends Fragment {
 
-    private FragmentHomeBinding binding;
+    private FragmentInicioBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
+        InicioViewModel inicioViewModel =
+                new ViewModelProvider(this).get(InicioViewModel.class);
 
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        binding = FragmentInicioBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow); // Define o menu overflow na fragment
