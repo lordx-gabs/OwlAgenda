@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class ContadorService extends Service {
-    private static final int NOTIFICATION_ID = 1;
+    public static final int NOTIFICATION_ID_COUNTER = 65;
     private static final long DURACAO_CONTAGEM = 90000; // 1 minuto e 30 segundos em milissegundos
     private static final long INTERVALO_ATUALIZACAO = 1000; // Intervalo de atualização em milissegundos
     private long tempoRestanteMillis;
@@ -57,7 +57,7 @@ public class ContadorService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = Notificacao.criarNotificacao(this, "Owl Agenda",
                 "Está em execução...", NotificationCompat.PRIORITY_MIN); // Cria a notificação de serviço
-        startForeground(NOTIFICATION_ID, notification); // Inicia o serviço em primeiro plano com a notificação
+        startForeground(NOTIFICATION_ID_COUNTER, notification); // Inicia o serviço em primeiro plano com a notificação
         comecarContagem(); // Inicia a contagem regressiva
         return START_STICKY; // O serviço será reiniciado se for encerrado pelo sistema
     }

@@ -1,11 +1,8 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.androidApplication)
     id("com.google.gms.google-services")
     alias(libs.plugins.jetbrainsKotlinAndroid)
-
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -20,8 +17,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "apiKeyGemini", getLocalProperty("apiKeyGemini"))
-        buildConfigField("String", "tokenGoogle", getLocalProperty("tokenGoogle"))
+
     }
 
     buildTypes {
@@ -59,7 +55,6 @@ android {
         viewBinding = true
         buildConfig = true
     }
-
 }
 
 dependencies {
@@ -73,17 +68,17 @@ dependencies {
     implementation(libs.core.ktx)
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation(project(":opencv"))
-    implementation("com.google.android.gms:play-services-auth:21.1.1")
-    implementation ("com.google.api-client:google-api-client:2.4.1")
-    implementation ("com.google.oauth-client:google-oauth-client-jetty:1.35.0")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation ("com.google.api-client:google-api-client:2.6.0")
+    implementation ("com.google.oauth-client:google-oauth-client-jetty:1.36.0")
     implementation ("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
-    implementation("com.google.firebase:firebase-database")
-    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("com.google.firebase:firebase-database:21.0.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-auth:23.0.0")
     implementation("com.google.firebase:firebase-storage:21.0.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.github.yalantis:ucrop:2.2.8")
-    implementation("com.google.ai.client.generativeai:generativeai:0.6.0")
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -91,14 +86,4 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-}
-
-// Função para ler propriedades do arquivo local.properties em Kotlin
-fun getLocalProperty(propertyName: String): String {
-    val properties = Properties()
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        properties.load(FileInputStream(localPropertiesFile))
-    }
-    return properties.getProperty(propertyName)
 }

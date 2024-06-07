@@ -16,9 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +40,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.util.FormataTelefone;
@@ -60,8 +59,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class RegistrationView extends AppCompatActivity {
     private RegistrationViewModel registrationViewModel;
@@ -131,22 +128,15 @@ public class RegistrationView extends AppCompatActivity {
 
         phoneNumberEditText.addTextChangedListener(new FormataTelefone(phoneNumberEditText));
 
-        emailEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                TextInputLayout emailLayout = findViewById(R.id.et_email_layout);
-                if (isEmailValid(s.toString())) {
+        emailEditText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_login);
+                if (Patterns.EMAIL_ADDRESS.matcher(emailEditText.getText().toString()).matches()) {
                     int cor = getColor(R.color.botao_cor);
-                    emailLayout.setBoxStrokeColor(cor);
+                    textInputLayout.setBoxStrokeColor(cor);
                 } else {
                     int cor = getColor(R.color.cor_primaria);
-                    emailLayout.setBoxStrokeColor(cor);
+                    textInputLayout.setBoxStrokeColor(cor);
                 }
             }
         });
@@ -217,7 +207,7 @@ public class RegistrationView extends AppCompatActivity {
             phoneNumber = Long.parseLong(phoneNumberEditText.getText().toString().replaceAll("\\D", ""));
         }
 
-        if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty() && isEmailValid(email) && !gender.isEmpty()) {
+        if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches() && !gender.isEmpty()) {
             if (password.equals(confirmPassword)) {
                 user.setNome(name);
                 user.setSobrenome(surname);
@@ -374,13 +364,6 @@ public class RegistrationView extends AppCompatActivity {
                 .withAspectRatio(1, 1);
         uCrop.start(this);
         bottomSheetDialog.dismiss();
-    }
-
-    public boolean isEmailValid(String email) {
-        String regex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
     }
 
     @Override

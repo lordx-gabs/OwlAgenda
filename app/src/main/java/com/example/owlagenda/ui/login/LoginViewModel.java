@@ -38,8 +38,8 @@ public class LoginViewModel extends ViewModel {
         return validUser;
     }
 
-    public LiveData<Boolean> authUserWithGoogle(String idToken, GoogleSignInAccount account) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+    public LiveData<Boolean> authUserWithGoogle(GoogleSignInAccount account) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {

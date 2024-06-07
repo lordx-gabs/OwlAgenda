@@ -15,11 +15,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.activities.EsqueciSenhaView;
 import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
@@ -42,17 +42,17 @@ import com.google.firebase.auth.OAuthProvider;
 public class LoginView extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private SharedPreferences userCredentialsPreferences;
-    private LoginViewModel loginViewModel; 
-    private static final String PREF_NAME = "MyPrefs"; 
-    private static final String KEY_USER_LOGIN = "user_login"; 
-    private static final String KEY_USER_SENHA = "user_senha"; 
-    private static final int REQUEST_CODE_SIGN_IN_GOOGLE = 1399;
-    private GoogleSignInClient mGoogleSignInClient; 
-    private Button btnGoogle; 
-    private Button btnTwitter; 
+    private LoginViewModel loginViewModel;
+    private static final String PREF_NAME = "MyPrefs";
+    private static final String KEY_USER_LOGIN = "user_login";
+    private static final String KEY_USER_SENHA = "user_senha";
+    private GoogleSignInClient mGoogleSignInClient;
+    private Button btnGoogle;
+    private Button btnTwitter;
     private EditText emailEditText, passwordEditText;
     private CheckBox rememberMeCheckBox;
     private TextView forgotPasswordTextView;
+    private ActivityResultLauncher<Intent> loginGoogleLauncher;
     OAuthProvider.Builder providerAuthTwitter = OAuthProvider.newBuilder("twitter.com");
 
     @Override
@@ -71,9 +71,10 @@ public class LoginView extends AppCompatActivity {
         providerAuthTwitter.addCustomParameter("lang", "br");
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(BuildConfig.tokenGoogle)
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
+
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
         if (firebaseAuth.getCurrentUser() != null && firebaseAuth.getCurrentUser().isEmailVerified()) {
@@ -127,7 +128,6 @@ public class LoginView extends AppCompatActivity {
         forgotPasswordTextView.setOnClickListener(v ->
                 startActivity(new Intent(LoginView.this, EsqueciSenhaView.class)));
 
-        // fix me: mudando a cor do email mesmo sem estar focado
         emailEditText.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
                 TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_login);
@@ -141,6 +141,30 @@ public class LoginView extends AppCompatActivity {
             }
         });
 
+        loginGoogleLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                        try {
+                            GoogleSignInAccount account = task.getResult(ApiException.class);
+
+                            loginViewModel.authUserWithGoogle(account).observe(this, aBoolean -> {
+                                if (aBoolean) {
+                                    Toast.makeText(LoginView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(LoginView.this, TelaPrincipalView.class));
+                                    finish();
+                                } else {
+                                    Toast.makeText(LoginView.this, "Falha no login.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                        } catch (ApiException e) {
+                            // Ocorreu um erro ao tentar fazer login com o Google
+                            Toast.makeText(this, "Erro ao tentar fazer login com o Google", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
     }
 
     public void loginUser(View view) {
@@ -153,7 +177,7 @@ public class LoginView extends AppCompatActivity {
                     loginViewModel.authUserWithEmailAndPassoword(emailUser, passwordUser).observe(this, aBoolean -> {
                         if (aBoolean) {
                             if (firebaseAuth.getCurrentUser().isEmailVerified()) {
-                                if (isServiceCounterRunning()) { 
+                                if (isServiceCounterRunning()) {
                                     stopService(new Intent(this, ContadorService.class));
                                 }
                                 if (rememberMeCheckBox.isChecked()) {
@@ -182,33 +206,6 @@ public class LoginView extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUEST_CODE_SIGN_IN_GOOGLE) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                // login com o Google feito com sucesso, autentica no Firebase
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-
-                loginViewModel.authUserWithGoogle(account.getIdToken(), account).observe(this, aBoolean -> {
-                    if (aBoolean) {
-                        Toast.makeText(LoginView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginView.this, TelaPrincipalView.class));
-                        finish();
-                    } else {
-                        Toast.makeText(LoginView.this, "Falha no login.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-            } catch (ApiException e) {
-                // Ocorreu um erro ao tentar fazer login com o Google
-                Toast.makeText(this, "Erro ao tentar fazer login com o Google", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-    
     public void goToViewRegister(View view) {
         emailEditText.setText("");
         passwordEditText.setText("");
@@ -220,16 +217,16 @@ public class LoginView extends AppCompatActivity {
         this.finish();
     }
 
-    private void keepsUserLogged(String email, String senha) {
+    private void keepsUserLogged(String email, String password) {
         SharedPreferences.Editor editor = userCredentialsPreferences.edit();
         editor.putString(KEY_USER_LOGIN, email);
-        editor.putString(KEY_USER_SENHA, senha);
+        editor.putString(KEY_USER_SENHA, password);
         editor.apply();
     }
 
     private void loginWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN_GOOGLE);
+        loginGoogleLauncher.launch(signInIntent);
     }
 
     private boolean isServiceCounterRunning() {
@@ -237,10 +234,8 @@ public class LoginView extends AppCompatActivity {
         if (notificationManager != null) {
             StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
 
-            int seuServicoNotificationId = 1;
-
             for (StatusBarNotification notification : notifications) {
-                if (notification.getId() == seuServicoNotificationId) {
+                if (notification.getId() == ContadorService.NOTIFICATION_ID_COUNTER) {
                     return true;
                 }
             }
