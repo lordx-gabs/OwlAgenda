@@ -35,7 +35,7 @@ public class ModelChatBot {
                 BlockThreshold.MEDIUM_AND_ABOVE);
 
         GenerativeModel generativeModel = new GenerativeModel(
-                "gemini-1.5-pro-latest",
+                "gemini-1.5-flash",
                 BuildConfig.apiKeyGemini,
                 generationConfig,
                 Arrays.asList(harassmentSafetySetting, hateSpeechSafetySetting, dangerousContentSafetySetting, sexuallyExplicitSafetySetting),

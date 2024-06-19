@@ -1,6 +1,5 @@
 package com.example.owlagenda.ui.viewmodels;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -8,12 +7,8 @@ import androidx.lifecycle.ViewModel;
 import com.example.owlagenda.data.database.IniciarOuFecharDB;
 import com.example.owlagenda.data.database.dao.UsuarioDao;
 import com.example.owlagenda.data.models.User;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -63,26 +58,10 @@ public class SincronizaBDViewModel extends ViewModel {
     public static void synchronizeUserWithFirebase(User user) {
         isLoadingSync.setValue(true);
         databaseReference = FirebaseDatabase.getInstance().getReference("Usuario");
-        Query query = databaseReference.orderByChild("email").equalTo(user.getEmail());
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                user.setSenha(null);
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        databaseReference.child(snapshot.getKey()).setValue(user);
-                    }
-                } else {
-                    databaseReference.child(user.getId()).setValue(user);
-                }
-                syncStatus.setValue(true);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+        databaseReference.child(user.getId()).setValue(user).addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
                 syncStatus.setValue(false);
                 scheduledExecutorService.schedule(() -> {
-                    // O código dentro deste bloco será executado após 5 segundos
                     synchronizeUserWithFirebase(user);
                 }, 5, TimeUnit.SECONDS);
                 scheduledExecutorService.shutdown();
@@ -96,8 +75,8 @@ public class SincronizaBDViewModel extends ViewModel {
                     scheduledExecutorService.shutdownNow();
                     Thread.currentThread().interrupt();
                 }
-
             }
+            task.addOnCompleteListener(task1 -> isLoadingSync.setValue(false));
         });
 
     }

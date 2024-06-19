@@ -1,11 +1,9 @@
 package com.example.owlagenda.ui.login;
 
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.service.notification.StatusBarNotification;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -21,13 +19,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.ui.activities.EsqueciSenhaView;
+import com.example.owlagenda.ui.forgotpassword.ForgotPasswordView;
 import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
 import com.example.owlagenda.ui.registration.RegistrationView;
 import com.example.owlagenda.ui.emailverificacao.EmailVerificationView;
 import com.example.owlagenda.util.Notificacao;
 import com.example.owlagenda.util.VerificationWifi;
-import com.example.owlagenda.util.services.ContadorService;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -43,9 +40,9 @@ public class LoginView extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private SharedPreferences userCredentialsPreferences;
     private LoginViewModel loginViewModel;
-    private static final String PREF_NAME = "MyPrefs";
-    private static final String KEY_USER_LOGIN = "user_login";
-    private static final String KEY_USER_SENHA = "user_senha";
+    public static final String PREF_NAME = "MyPrefs";
+    private static final String KEY_USER_EMAIL = "user_email";
+    private static final String KEY_USER_PASSWORD = "user_password";
     private GoogleSignInClient mGoogleSignInClient;
     private Button btnGoogle;
     private Button btnTwitter;
@@ -82,10 +79,10 @@ public class LoginView extends AppCompatActivity {
             finish();
         } else {
             try {
-                String email = userCredentialsPreferences.getString(KEY_USER_LOGIN, "");
-                String senha = userCredentialsPreferences.getString(KEY_USER_SENHA, "");
-                if (!email.isEmpty() && !senha.isEmpty()) {
-                    loginViewModel.authUserWithEmailAndPassoword(email, senha).observe(this, aBoolean -> {
+                String email = userCredentialsPreferences.getString(KEY_USER_EMAIL, "");
+                String password = userCredentialsPreferences.getString(KEY_USER_PASSWORD, "");
+                if (!email.isEmpty() && !password.isEmpty()) {
+                    loginViewModel.authUserWithEmailAndPassoword(email, password).observe(this, aBoolean -> {
                         if (aBoolean) {
                             nextView();
                             finish();
@@ -98,7 +95,7 @@ public class LoginView extends AppCompatActivity {
         }
 
         rememberMeCheckBox = findViewById(R.id.cb_lembraruser);
-        emailEditText = findViewById(R.id.et_email_login);
+        emailEditText = findViewById(R.id.et_email_reset_password);
         passwordEditText = findViewById(R.id.et_senha_login);
         forgotPasswordTextView = findViewById(R.id.tv_esqueci_senha);
 
@@ -126,11 +123,11 @@ public class LoginView extends AppCompatActivity {
         );
 
         forgotPasswordTextView.setOnClickListener(v ->
-                startActivity(new Intent(LoginView.this, EsqueciSenhaView.class)));
+                startActivity(new Intent(LoginView.this, ForgotPasswordView.class)));
 
         emailEditText.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
-                TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_login);
+                TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_reset_password);
                 if (Patterns.EMAIL_ADDRESS.matcher(emailEditText.getText().toString()).matches()) {
                     int cor = getColor(R.color.botao_cor);
                     textInputLayout.setBoxStrokeColor(cor);
@@ -177,9 +174,6 @@ public class LoginView extends AppCompatActivity {
                     loginViewModel.authUserWithEmailAndPassoword(emailUser, passwordUser).observe(this, aBoolean -> {
                         if (aBoolean) {
                             if (firebaseAuth.getCurrentUser().isEmailVerified()) {
-                                if (isServiceCounterRunning()) {
-                                    stopService(new Intent(this, ContadorService.class));
-                                }
                                 if (rememberMeCheckBox.isChecked()) {
                                     keepsUserLogged(emailUser, passwordUser);
                                 }
@@ -219,8 +213,8 @@ public class LoginView extends AppCompatActivity {
 
     private void keepsUserLogged(String email, String password) {
         SharedPreferences.Editor editor = userCredentialsPreferences.edit();
-        editor.putString(KEY_USER_LOGIN, email);
-        editor.putString(KEY_USER_SENHA, password);
+        editor.putString(KEY_USER_EMAIL, email);
+        editor.putString(KEY_USER_PASSWORD, password);
         editor.apply();
     }
 
@@ -229,17 +223,4 @@ public class LoginView extends AppCompatActivity {
         loginGoogleLauncher.launch(signInIntent);
     }
 
-    private boolean isServiceCounterRunning() {
-        NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notificationManager != null) {
-            StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
-
-            for (StatusBarNotification notification : notifications) {
-                if (notification.getId() == ContadorService.NOTIFICATION_ID_COUNTER) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

@@ -16,7 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.util.services.ContadorService;
+import com.example.owlagenda.util.services.CounterService;
 
 public class EmailVerificationView extends AppCompatActivity {
     private EmailVerificationViewModel emailVerificationViewModel;
@@ -57,7 +57,7 @@ public class EmailVerificationView extends AppCompatActivity {
         textoContagem = findViewById(R.id.tv_contagem);
 
         // Criação do Intent para o serviço de contagem
-        intent = new Intent(this, ContadorService.class);
+        intent = new Intent(this, CounterService.class);
     }
 
     // Método chamado quando o botão é clicado

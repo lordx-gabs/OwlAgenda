@@ -11,24 +11,25 @@ import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.owlagenda.util.Notificacao;
+import com.google.firebase.database.ServerValue;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class ContadorService extends Service {
+public class CounterService extends Service {
     public static final int NOTIFICATION_ID_COUNTER = 65;
     private static final long DURACAO_CONTAGEM = 90000; // 1 minuto e 30 segundos em milissegundos
     private static final long INTERVALO_ATUALIZACAO = 1000; // Intervalo de atualização em milissegundos
     private long tempoRestanteMillis;
     private Handler handler;
     private Runnable runnable;
-    private static boolean contagemAtiva = false;
+    private static boolean counterActive = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        // Inicialização do serviço
-        this.tempoRestanteMillis = DURACAO_CONTAGEM; // Define o tempo total da contagem regressiva
+        this.tempoRestanteMillis = DURACAO_CONTAGEM;
         this.handler = new Handler(); // Cria um Handler para gerenciar a atualização do contador
         this.runnable = new Runnable() {
             @Override
@@ -50,47 +51,45 @@ public class ContadorService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null; // Não precisa de binder, pois não será utilizado
+        return null;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = Notificacao.criarNotificacao(this, "Owl Agenda",
-                "Está em execução...", NotificationCompat.PRIORITY_MIN); // Cria a notificação de serviço
-        startForeground(NOTIFICATION_ID_COUNTER, notification); // Inicia o serviço em primeiro plano com a notificação
-        comecarContagem(); // Inicia a contagem regressiva
-        return START_STICKY; // O serviço será reiniciado se for encerrado pelo sistema
+                "Está em execução...", NotificationCompat.PRIORITY_MIN);
+        startForeground(NOTIFICATION_ID_COUNTER, notification);
+        comecarContagem();
+        return START_STICKY;
     }
 
     public void atualizaContador() {
-        // Calcula os minutos e segundos restantes
-        long minutos = TimeUnit.MILLISECONDS.toMinutes(tempoRestanteMillis);
-        long segundos = TimeUnit.MILLISECONDS.toSeconds(tempoRestanteMillis) -
-                TimeUnit.MINUTES.toSeconds(minutos);
-        // Formata o tempo restante em minutos e segundos
-        String tempoFormatado = String.format(Locale.getDefault(), "%02d:%02d", minutos, segundos);
-        enviarAtualizacaoContador("Tempo restante: " + tempoFormatado); // Envia a atualização do contador
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(tempoRestanteMillis);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(tempoRestanteMillis) -
+                TimeUnit.MINUTES.toSeconds(minutes);
+        String timeFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+        sendCounterUpdate("Tempo restante: " + timeFormatted);
     }
 
     public void comecarContagem() {
         // Inicia a contagem.
-        contagemAtiva = true; // Define a contagem como ativa
+        counterActive = true; // Define a contagem como ativa
         handler.postDelayed(runnable, INTERVALO_ATUALIZACAO); // Inicia o Runnable para atualizar o contador
     }
 
     private void onFinish() {
         // Lógica para quando a contagem regressiva terminar
-        contagemAtiva = false; // Define a contagem como inativa
-        enviarAtualizacaoContador(null); // Envia uma notificação de que a contagem terminou
+        counterActive = false; // Define a contagem como inativa
+        sendCounterUpdate(null); // Envia uma notificação de que a contagem terminou
 
         stopSelf(); // Encerra o serviço após a contagem regressiva
     }
 
-    private void enviarAtualizacaoContador(String contador) {
-        // Envia uma mensagem de broadcast com o contador atual e o estado da contagem
-        Intent intent = new Intent("atualizacao_contador");
-        intent.putExtra("contador_atual", contador);
-        intent.putExtra("estado_contagem", contagemAtiva);
+    private void sendCounterUpdate(String counter) {
+        // Envia uma mensagem de broadcast com o counter atual e o estado da contagem
+        Intent intent = new Intent("counterUpdate");
+        intent.putExtra("counter", counter);
+        intent.putExtra("counterStatus", counterActive);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 

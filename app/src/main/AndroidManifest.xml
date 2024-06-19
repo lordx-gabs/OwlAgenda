@@ -41,7 +41,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar"
         tools:targetApi="31"
-        android:configChanges="orientation|screenSize"
         >
 
         <provider
@@ -61,11 +60,11 @@
             android:theme="@style/Theme.Material3.DayNight.NoActionBar"
             />
         <activity
-            android:name=".ui.activities.EsqueciSenhaView"
+            android:name=".ui.forgotpassword.ForgotPasswordView"
             android:exported="false" />
 
         <service
-            android:name=".util.services.ContadorService"
+            android:name=".util.services.CounterService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
@@ -76,7 +75,8 @@
         <activity
             android:name=".ui.registration.RegistrationView"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize"
+           />
 
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"

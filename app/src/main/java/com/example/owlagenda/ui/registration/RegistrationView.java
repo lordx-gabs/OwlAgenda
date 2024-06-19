@@ -9,17 +9,17 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
@@ -40,7 +40,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.util.FormataTelefone;
@@ -52,9 +51,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
@@ -71,7 +68,7 @@ public class RegistrationView extends AppCompatActivity {
     private Calendar calendar;
     private DatePickerDialog datePickerDialog;
     private AutoCompleteTextView genderAutoCompleteTextView;
-    private String[] genderOptions = {"", "Masculino", "Feminino", "Outros", "Prefiro não informar"};
+    private String[] genderOptions = {"Masculino", "Feminino", "Outros", "Prefiro não informar"};
     private LinearProgressIndicator loadingProgressBar;
     private ActivityResultLauncher<Intent> pickImageLauncher, takePhotoLauncher;
     private ActivityResultLauncher<IntentSenderRequest> requestWriteAccessLauncher;
@@ -109,10 +106,10 @@ public class RegistrationView extends AppCompatActivity {
         genderAutoCompleteTextView.setAdapter(adapter);
 
         datePickerDialog = new DatePickerDialog(RegistrationView.this, (view, year, month, dayOfMonth) -> {
-            Calendar dataSelecionado = Calendar.getInstance();
-            dataSelecionado.set(year, month, dayOfMonth);
+            Calendar dateSelected = Calendar.getInstance();
+            dateSelected.set(year, month, dayOfMonth);
             SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
-            birthdateEditText.setText(format.format(dataSelecionado.getTime()));
+            birthdateEditText.setText(format.format(dateSelected.getTime()));
 
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
@@ -128,18 +125,28 @@ public class RegistrationView extends AppCompatActivity {
 
         phoneNumberEditText.addTextChangedListener(new FormataTelefone(phoneNumberEditText));
 
-        emailEditText.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_login);
+        emailEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_register);
+                int boxStrokeColor;
                 if (Patterns.EMAIL_ADDRESS.matcher(emailEditText.getText().toString()).matches()) {
-                    int cor = getColor(R.color.botao_cor);
-                    textInputLayout.setBoxStrokeColor(cor);
+                    boxStrokeColor = getColor(R.color.botao_cor);
                 } else {
-                    int cor = getColor(R.color.cor_primaria);
-                    textInputLayout.setBoxStrokeColor(cor);
+                    boxStrokeColor = getColor(R.color.cor_primaria);
                 }
+                textInputLayout.setBoxStrokeColor(boxStrokeColor);
             }
         });
+
 
         pickImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -194,10 +201,13 @@ public class RegistrationView extends AppCompatActivity {
         String surname = (surnameEditText.getText()).toString();
         String email = (emailEditText.getText()).toString();
         String password = (passwordEditText.getText()).toString();
-        String birthdate = null;
-        String gender = genderAutoCompleteTextView.getText().toString();
         String confirmPassword = (confirmPasswordEditText.getText()).toString();
+        String birthdate = null;
+        String gender = null;
         long phoneNumber = 0;
+
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
 
         if (!(birthdateEditText.getText()).toString().isEmpty()) {
             birthdate = birthdateEditText.getText().toString();
@@ -207,7 +217,11 @@ public class RegistrationView extends AppCompatActivity {
             phoneNumber = Long.parseLong(phoneNumberEditText.getText().toString().replaceAll("\\D", ""));
         }
 
-        if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches() && !gender.isEmpty()) {
+        if (genderAutoCompleteTextView.getListSelection() > -1) {
+            gender = genderAutoCompleteTextView.getText().toString();
+        }
+
+        if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             if (password.equals(confirmPassword)) {
                 user.setNome(name);
                 user.setSobrenome(surname);
@@ -268,7 +282,13 @@ public class RegistrationView extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_IMAGE_CAPTURE);
         } else {
-            File photoFile = createImageFileAvatar();
+            File photoFile;
+            try {
+                photoFile = registrationViewModel.createImageFileAvatar(getApplicationContext());
+            } catch (IOException e) {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                return;
+            }
             imageUri = FileProvider.getUriForFile(this,
                     "com.example.owlagenda.fileprovider",
                     photoFile);
@@ -313,28 +333,11 @@ public class RegistrationView extends AppCompatActivity {
         return id;
     }
 
-    private File createImageFileAvatar() {
-        Bitmap bitmap = ((BitmapDrawable) ContextCompat.getDrawable(this, R.drawable.ic_calendario))
-                .getBitmap();
-
-        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File outputFile = null;
-        try {
-            outputFile = File.createTempFile("avatar", ".png", storageDir);
-            OutputStream outputStream = new FileOutputStream(outputFile);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-            outputStream.close();
-        } catch (IOException e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-
-        return outputFile;
-    }
 
     public void clipsClick(View v) {
         bottomSheetDialog = new BottomSheetDialog(this);
         // pode não rodar
-        View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_login, (ViewGroup) this.getWindow().getDecorView(), false);
+        View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_select_picture, (ViewGroup) this.getWindow().getDecorView(), false);
         bottomSheetDialog.setContentView(view);
         bottomSheetDialog.show();
 

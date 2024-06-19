@@ -153,7 +153,7 @@
 
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/et_email_layout_login"
+                    android:id="@+id/et_email_layout_reset_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -172,7 +172,7 @@
                     >
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_email_login"
+                        android:id="@+id/et_email_reset_password"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:drawableStart="@drawable/ic_email"
@@ -194,7 +194,7 @@
                 android:text="Faça seu login no Owl e tenha acesso a todos seus beneficios."
                 android:textAlignment="center"
                 android:textSize="16sp"
-                app:layout_constraintBottom_toTopOf="@+id/et_email_layout_login"
+                app:layout_constraintBottom_toTopOf="@+id/et_email_layout_reset_password"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent" />
