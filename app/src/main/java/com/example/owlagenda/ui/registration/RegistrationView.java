@@ -1,14 +1,11 @@
 package com.example.owlagenda.ui.registration;
 
 import android.Manifest;
-import android.app.DatePickerDialog;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -42,9 +39,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
-import com.example.owlagenda.util.FormataTelefone;
+import com.example.owlagenda.util.FormatPhone;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.datepicker.CalendarConstraints;
+import com.google.android.material.datepicker.DateValidatorPointBackward;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -56,6 +56,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class RegistrationView extends AppCompatActivity {
     private RegistrationViewModel registrationViewModel;
@@ -65,10 +66,9 @@ public class RegistrationView extends AppCompatActivity {
     private ImageView userProfileImage;
     private TextInputEditText nameEditText, surnameEditText, emailEditText, passwordEditText, birthdateEditText, phoneNumberEditText, confirmPasswordEditText;
     private Uri imageUri;
-    private Calendar calendar;
-    private DatePickerDialog datePickerDialog;
+    private MaterialDatePicker<Long> materialDatePicker;
     private AutoCompleteTextView genderAutoCompleteTextView;
-    private String[] genderOptions = {"Masculino", "Feminino", "Outros", "Prefiro não informar"};
+    private final String[] genderOptions = {"Masculino", "Feminino", "Outros", "Prefiro não informar"};
     private LinearProgressIndicator loadingProgressBar;
     private ActivityResultLauncher<Intent> pickImageLauncher, takePhotoLauncher;
     private ActivityResultLauncher<IntentSenderRequest> requestWriteAccessLauncher;
@@ -86,7 +86,6 @@ public class RegistrationView extends AppCompatActivity {
             return insets;
         });
 
-        calendar = Calendar.getInstance();
 
         registrationViewModel = new ViewModelProvider(this).get(RegistrationViewModel.class);
 
@@ -105,35 +104,42 @@ public class RegistrationView extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, genderOptions);
         genderAutoCompleteTextView.setAdapter(adapter);
 
-        datePickerDialog = new DatePickerDialog(RegistrationView.this, (view, year, month, dayOfMonth) -> {
+        Calendar calendarEnd = Calendar.getInstance();
+        calendarEnd.set(1940, Calendar.JANUARY, 1);
+        long dateStart = calendarEnd.getTimeInMillis();
+
+        Calendar calendarStart = Calendar.getInstance();
+        calendarStart.add(Calendar.YEAR, -16);
+        long dateEnd = calendarStart.getTimeInMillis();
+
+        CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder()
+                .setStart(dateStart)
+                .setEnd(dateEnd)
+                .setValidator(DateValidatorPointBackward.before(dateEnd));
+
+        materialDatePicker = MaterialDatePicker.Builder.datePicker()
+                .setTitleText("Selecione uma data")
+                .setCalendarConstraints(constraintsBuilder.build())
+                .setSelection(dateEnd).build();
+
+        materialDatePicker.addOnPositiveButtonClickListener(selection -> {
             Calendar dateSelected = Calendar.getInstance();
-            dateSelected.set(year, month, dayOfMonth);
+            dateSelected.setTimeInMillis(selection);
             SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
+            format.setTimeZone(TimeZone.getTimeZone("UTC"));
+
             birthdateEditText.setText(format.format(dateSelected.getTime()));
+        });
 
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        birthdateEditText.setOnClickListener(v -> materialDatePicker.show(getSupportFragmentManager(), "material_date_picker"));
 
-        Calendar dateStart = Calendar.getInstance();
-        dateStart.set(1930, Calendar.JANUARY, 1);
-        datePickerDialog.getDatePicker().setMinDate(dateStart.getTimeInMillis());
-
-        Calendar dateFinal = Calendar.getInstance();
-        dateFinal.add(Calendar.YEAR, -16);
-        datePickerDialog.getDatePicker().setMaxDate(dateFinal.getTimeInMillis());
-
-        birthdateEditText.setOnClickListener(v -> datePickerDialog.show());
-
-        phoneNumberEditText.addTextChangedListener(new FormataTelefone(phoneNumberEditText));
+        phoneNumberEditText.addTextChangedListener(new FormatPhone(phoneNumberEditText));
 
         emailEditText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
                 TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_register);
@@ -146,7 +152,6 @@ public class RegistrationView extends AppCompatActivity {
                 textInputLayout.setBoxStrokeColor(boxStrokeColor);
             }
         });
-
 
         pickImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -231,32 +236,21 @@ public class RegistrationView extends AppCompatActivity {
                 user.setSexo(gender);
                 user.setNumeroTelefone(phoneNumber);
 
-                registrationViewModel.storeImageInStorage(imageUri).observe(this, s -> {
-                    if (s != null) {
-                        user.setUrl_foto_perfil(s);
-                        registerUserInDatabase(user);
+                registrationViewModel.registerUser(user, imageUri).observe(this, success -> {
+                    if (success) {
+                        //colocar que o email será enviado
+                        Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
+                        finish();
                     } else {
-                        Toast.makeText(RegistrationView.this, "Erro ao cadastra a foto de perfil, tente novamente.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
                     }
                 });
-
             } else {
                 Toast.makeText(this, "As senhas precisam ser iguais.", Toast.LENGTH_SHORT).show();
             }
         } else {
             Toast.makeText(this, "Todos os campos obrigatorios precisam ser preenchidos.", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void registerUserInDatabase(User user) {
-        registrationViewModel.registrationUserInDatabase(user).observe(this, success -> {
-            if (success) {
-                Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
-                finish();
-            } else {
-                Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     public void pickImage() {
@@ -294,7 +288,7 @@ public class RegistrationView extends AppCompatActivity {
                     photoFile);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                long mediaID = getFilePathToPhotoID(photoFile.getAbsolutePath(), getApplicationContext());
+                long mediaID = registrationViewModel.getFilePathToPhotoID(photoFile.getAbsolutePath(), getApplicationContext());
                 Uri uriImageCamera = ContentUris.withAppendedId(MediaStore.Images.Media.getContentUri("external"), mediaID);
 
                 IntentSender intentSender = MediaStore.createWriteRequest(getContentResolver(), Collections.singletonList(uriImageCamera)).getIntentSender();
@@ -310,33 +304,8 @@ public class RegistrationView extends AppCompatActivity {
         }
     }
 
-    public long getFilePathToPhotoID(String imagePath, Context context) {
-        long id = 0;
-        ContentResolver cr = context.getContentResolver();
-
-        Uri uri = MediaStore.Files.getContentUri("external");
-        String selection = MediaStore.Images.Media.DATA;
-        String[] selectionArgs = {imagePath};
-        String[] projection = {MediaStore.Images.Media._ID};
-        String sortOrder = MediaStore.Images.Media.TITLE + " ASC";
-
-        Cursor cursor = cr.query(uri, projection, selection + "=?", selectionArgs, sortOrder);
-
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                int idIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
-                id = Long.parseLong(cursor.getString(idIndex));
-            }
-        }
-
-        cursor.close();
-        return id;
-    }
-
-
     public void clipsClick(View v) {
         bottomSheetDialog = new BottomSheetDialog(this);
-        // pode não rodar
         View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_select_picture, (ViewGroup) this.getWindow().getDecorView(), false);
         bottomSheetDialog.setContentView(view);
         bottomSheetDialog.show();

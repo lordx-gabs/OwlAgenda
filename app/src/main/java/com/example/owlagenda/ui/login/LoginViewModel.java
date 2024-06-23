@@ -19,15 +19,14 @@ import java.util.Map;
 public class LoginViewModel extends ViewModel {
     private FirebaseAuth firebaseAuth;
     private User user;
-    private MutableLiveData<Boolean> validUser;
 
     public LoginViewModel() {
         firebaseAuth = FirebaseAuth.getInstance();
         user = new User();
-        validUser = new MutableLiveData<>();
     }
 
-    public LiveData<Boolean> authUserWithEmailAndPassoword(String email, String password) throws FirebaseAuthException {
+    public LiveData<Boolean> authUserWithEmailAndPassword(String email, String password) throws FirebaseAuthException {
+        MutableLiveData<Boolean> validUser = new MutableLiveData<>();
         firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 validUser.setValue(true);
@@ -39,6 +38,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     public LiveData<Boolean> authUserWithGoogle(GoogleSignInAccount account) {
+        MutableLiveData<Boolean> validUser = new MutableLiveData<>();
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(task -> {
@@ -60,6 +60,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     public LiveData<Boolean> authUserWithTwitter(AuthResult authResult){
+        MutableLiveData<Boolean> validUser = new MutableLiveData<>();
         firebaseAuth.signInWithCredential(authResult.getCredential())
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()){

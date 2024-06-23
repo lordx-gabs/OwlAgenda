@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -17,7 +16,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -26,6 +24,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -63,15 +62,9 @@ public class ForgotPasswordView extends AppCompatActivity {
 
         emailEditText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
                 TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_reset_password);
@@ -94,7 +87,6 @@ public class ForgotPasswordView extends AppCompatActivity {
                 btnSend.setEnabled(true);
             }
         });
-
     }
 
     public void sendEmailResetPassword(View v) {
@@ -119,11 +111,11 @@ public class ForgotPasswordView extends AppCompatActivity {
                             });
 
                         } else {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                            builder.setMessage("Aguarde o término da contagem para enviar outro email de redefinição de senha. Tempo restante: " + timeLeft + "segundos");
-                            builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
-                            builder.create().show();
-
+                            new MaterialAlertDialogBuilder(this)
+                                    .setTitle("Owl Agenda")
+                                    .setMessage("Aguarde o término da contagem para enviar outro email de redefinição de senha. Tempo restante: " + timeLeft + "segundos")
+                                    .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
+                                    .show();
                         }
                     } else {
                         Toast.makeText(this, "Erro no envio do email de redefinição de senha, tente novamente mais tarde", Toast.LENGTH_SHORT).show();
@@ -144,7 +136,6 @@ public class ForgotPasswordView extends AppCompatActivity {
         Instant instantTimestampUser = Instant.ofEpochSecond(userTimeCredentials.getLong(KEY_USER_TIMESTAMP,
                 instantTimestampServer.plusSeconds(oneMinuteThirtySeconds).getLong(ChronoField.INSTANT_SECONDS)));
         timeLeft = 90 - (instantTimestampServer.getEpochSecond() - instantTimestampUser.getEpochSecond());
-        Log.e("timestamp", "timestampUser: " + instantTimestampUser + " timestampServer: " + instantTimestampServer + "left: " + timeLeft);
         return timeLeft <= 0;
     }
 }

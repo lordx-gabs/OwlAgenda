@@ -1,13 +1,14 @@
 package com.example.owlagenda.ui.registration;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Environment;
-import android.util.Log;
-import android.widget.Toast;
+import android.provider.MediaStore;
 
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
@@ -17,27 +18,23 @@ import androidx.lifecycle.ViewModel;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.ui.viewmodels.SincronizaBDViewModel;
-import com.google.common.primitives.Bytes;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class RegistrationViewModel extends ViewModel {
-    private FirebaseAuth firebaseAuth;
-    private StorageReference storageReference;
-    private StorageReference imageStorageReference;
-    private MutableLiveData<Boolean> isLoading;
-    private MutableLiveData<String> errorMessageLiveData;
+    private final FirebaseAuth firebaseAuth;
+    private final StorageReference storageReference;
+    private final MutableLiveData<Boolean> isLoading;
+    private final MutableLiveData<String> errorMessageLiveData;
 
     public RegistrationViewModel() {
         firebaseAuth = FirebaseAuth.getInstance();
@@ -46,8 +43,10 @@ public class RegistrationViewModel extends ViewModel {
         errorMessageLiveData = new MutableLiveData<>();
     }
 
-    public LiveData<Boolean> registrationUserInDatabase(User user) {
+    public MutableLiveData<Boolean> registerUser(User user, Uri imagePath) {
+        isLoading.postValue(true);
         MutableLiveData<Boolean> registrationResultLiveData = new MutableLiveData<>();
+
         firebaseAuth.createUserWithEmailAndPassword(user.getEmail(), user.getSenha())
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -55,73 +54,83 @@ public class RegistrationViewModel extends ViewModel {
                         user.setId(firebaseUser.getUid());
                         user.setSenha(null);
 
-                        firebaseUser.sendEmailVerification().addOnCompleteListener(task1 -> {
-                            if (task1.isSuccessful()) {
-                                SincronizaBDViewModel.synchronizeUserWithFirebase(user);
-                                registrationResultLiveData.postValue(true);
-                            } else {
-                                firebaseUser.delete();
-                                registrationResultLiveData.postValue(false);
-                            }
-                            // Update isLoading after all operations have completed
-                            Log.e("MENSAGEM", "terminou");
-                            isLoading.postValue(false);
-                        });
-
-                    } else {
-                        registrationResultLiveData.postValue(false);
-                        Exception exception = task.getException();
-                        if (exception instanceof FirebaseAuthUserCollisionException) {
-                            errorMessageLiveData.postValue("Este e-mail já está cadastrado. Por favor, tente outro e-mail.");
+                        if (imagePath != null) {
+                            uploadProfileImage(imagePath, user, firebaseUser, registrationResultLiveData);
                         } else {
-                            errorMessageLiveData.postValue("Erro ao cadastrar usuário: " + exception.getMessage());
+                            setDefaultProfileImage(user, firebaseUser, registrationResultLiveData);
                         }
-
-                        // Update isLoading in case of initial task failure
-                        isLoading.postValue(false);
+                    } else {
+                        handleRegistrationFailure(task.getException(), registrationResultLiveData);
                     }
                 });
 
         return registrationResultLiveData;
     }
 
-    public LiveData<String> storeImageInStorage(Uri imagePath) {
-        isLoading.postValue(true);
-        MutableLiveData<String> photoUrlStorageLiveData = new MutableLiveData<>();
-        if (imagePath != null) {
-            Bitmap bitmapImage = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(imagePath.getPath()),
-                    200,
-                    200,
-                    false);
-            byte[] imageBytes = bitmapToByteArray(bitmapImage);
+    private void uploadProfileImage(Uri imagePath, User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
+        Bitmap bitmapImage = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(imagePath.getPath()), 200, 200, false);
+        byte[] imageBytes = bitmapToByteArray(bitmapImage);
 
-            imageStorageReference = storageReference.child("fotosdeperfil/" + imagePath.getLastPathSegment());
-            imageStorageReference.putBytes(imageBytes).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    imageStorageReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                        photoUrlStorageLiveData.postValue(uri.toString());
-                    }).addOnFailureListener(e -> {
-                        photoUrlStorageLiveData.postValue(null);
-                    });
-                } else {
-                    photoUrlStorageLiveData.postValue(null);
-                }
-            });
+        StorageReference folderPathUser = storageReference.child("usuarios");
+        StorageReference imageStorageReference = folderPathUser.child(firebaseUser.getUid()).child("foto_perfil.jpg");
+        imageStorageReference.putBytes(imageBytes).addOnCompleteListener(task3 -> {
+            if (task3.isSuccessful()) {
+                imageStorageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                    user.setUrl_foto_perfil(uri.toString());
+                    sendVerificationEmail(user, firebaseUser, registrationResultLiveData);
+                }).addOnFailureListener(e -> {
+                    handleImageUploadFailure(e, registrationResultLiveData, firebaseUser, imageStorageReference);
+                });
+            } else {
+                handleImageUploadFailure(task3.getException(), registrationResultLiveData, firebaseUser, imageStorageReference);
+            }
+        });
+    }
+
+    private void setDefaultProfileImage(User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
+
+        StorageReference imageStorageReference = storageReference.child(firebaseUser.getUid()).child("foto_perfil.jpg");
+        imageStorageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+            user.setUrl_foto_perfil(uri.toString());
+            sendVerificationEmail(user, firebaseUser, registrationResultLiveData);
+        }).addOnFailureListener(e -> {
+            isLoading.postValue(false);
+            deleteUser(firebaseUser, registrationResultLiveData);
+            registrationResultLiveData.postValue(false);
+        });
+    }
+
+    private void sendVerificationEmail(User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
+        firebaseUser.sendEmailVerification().addOnCompleteListener(task -> {
+            SincronizaBDViewModel.synchronizeUserWithFirebase(user);
+            registrationResultLiveData.postValue(true);
+        });
+    }
+
+    private void handleRegistrationFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData) {
+        if (exception instanceof FirebaseAuthUserCollisionException) {
+            errorMessageLiveData.postValue("Este e-mail já está cadastrado. Por favor, tente outro e-mail.");
         } else {
-            imageStorageReference = storageReference.child("fotosdeperfil/Foto_Perfil_Padrao.jpeg");
-            imageStorageReference.getDownloadUrl().addOnSuccessListener(uri ->
-                            photoUrlStorageLiveData.postValue(uri.toString()))
-                    .addOnFailureListener(e -> photoUrlStorageLiveData.postValue(null));
+            registrationResultLiveData.postValue(false);
         }
-        return photoUrlStorageLiveData;
+        isLoading.postValue(false);
     }
 
-    public LiveData<Boolean> isLoading() {
-        return isLoading;
+    private void handleImageUploadFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData, FirebaseUser firebaseUser, StorageReference imageStorageReference) {
+        registrationResultLiveData.postValue(false);
+        errorMessageLiveData.postValue("Erro ao guardar foto de perfil. Erro: " + exception.getMessage());
+        if (imageStorageReference != null) {
+            imageStorageReference.delete();
+        }
+        deleteUser(firebaseUser, registrationResultLiveData);
+        isLoading.postValue(false);
     }
 
-    public LiveData<String> getErrorMessageLiveData() {
-        return errorMessageLiveData;
+    private void deleteUser(FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
+        firebaseUser.delete().addOnCompleteListener(task -> {
+            registrationResultLiveData.postValue(false);
+            isLoading.postValue(false);
+        });
     }
 
     private byte[] bitmapToByteArray(Bitmap bitmap) {
@@ -143,6 +152,37 @@ public class RegistrationViewModel extends ViewModel {
         outputStream.close();
 
         return outputFile;
+    }
+
+    public long getFilePathToPhotoID(String imagePath, Context context) {
+        long id = 0;
+        ContentResolver cr = context.getContentResolver();
+
+        Uri uri = MediaStore.Files.getContentUri("external");
+        String selection = MediaStore.Images.Media.DATA;
+        String[] selectionArgs = {imagePath};
+        String[] projection = {MediaStore.Images.Media._ID};
+        String sortOrder = MediaStore.Images.Media.TITLE + " ASC";
+
+        Cursor cursor = cr.query(uri, projection, selection + "=?", selectionArgs, sortOrder);
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int idIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
+                id = Long.parseLong(cursor.getString(idIndex));
+            }
+        }
+
+        cursor.close();
+        return id;
+    }
+
+    public LiveData<Boolean> isLoading() {
+        return isLoading;
+    }
+
+    public LiveData<String> getErrorMessageLiveData() {
+        return errorMessageLiveData;
     }
 
 }

@@ -1,7 +1,6 @@
 package com.example.owlagenda.ui.forgotpassword;
 
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -44,12 +43,12 @@ public class ForgotPasswordViewModel extends ViewModel {
                         Long timestamp = snapshot.getValue(Long.class);
                         if (timestamp != null) {
                             Instant instantTimestampServer = Instant.ofEpochMilli(timestamp);
-                            Log.e("Teste", "Timestamp do servidor: " + instantTimestampServer);
                             currentTimeLiveData.postValue(instantTimestampServer);
                         } else {
                             currentTimeLiveData.postValue(null);
                         }
                         isLoading.postValue(false);
+                        tempRef.removeValue();
                     }
 
                     @Override
@@ -70,7 +69,6 @@ public class ForgotPasswordViewModel extends ViewModel {
     public LiveData<Boolean> sendResetPasswordEmail(String email) {
         isLoading.postValue(true);
         MutableLiveData<Boolean> emailResetPasswordResult = new MutableLiveData<>();
-        Log.e("Teste", "Email: " + email);
         mAuth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 emailResetPasswordResult.postValue(true);

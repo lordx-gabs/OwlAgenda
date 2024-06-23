@@ -22,8 +22,7 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.ui.forgotpassword.ForgotPasswordView;
 import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
 import com.example.owlagenda.ui.registration.RegistrationView;
-import com.example.owlagenda.ui.emailverificacao.EmailVerificationView;
-import com.example.owlagenda.util.Notificacao;
+import com.example.owlagenda.util.Notification;
 import com.example.owlagenda.util.VerificationWifi;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -31,10 +30,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.appcheck.FirebaseAppCheck;
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.OAuthProvider;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginView extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
@@ -57,7 +61,15 @@ public class LoginView extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         this.setContentView(R.layout.activity_login_view);
-        Notificacao.criarCanalDeNotificacao(getApplicationContext());
+
+        FirebaseApp.initializeApp(this);
+        FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
+        firebaseAppCheck.installAppCheckProviderFactory(
+                DebugAppCheckProviderFactory.getInstance());
+
+        Notification.getNotificationChannel(getApplicationContext());
+
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
@@ -82,7 +94,7 @@ public class LoginView extends AppCompatActivity {
                 String email = userCredentialsPreferences.getString(KEY_USER_EMAIL, "");
                 String password = userCredentialsPreferences.getString(KEY_USER_PASSWORD, "");
                 if (!email.isEmpty() && !password.isEmpty()) {
-                    loginViewModel.authUserWithEmailAndPassoword(email, password).observe(this, aBoolean -> {
+                    loginViewModel.authUserWithEmailAndPassword(email, password).observe(this, aBoolean -> {
                         if (aBoolean) {
                             nextView();
                             finish();
@@ -171,7 +183,7 @@ public class LoginView extends AppCompatActivity {
 
             if (!emailUser.isEmpty() && !passwordUser.isEmpty()) {
                 try {
-                    loginViewModel.authUserWithEmailAndPassoword(emailUser, passwordUser).observe(this, aBoolean -> {
+                    loginViewModel.authUserWithEmailAndPassword(emailUser, passwordUser).observe(this, aBoolean -> {
                         if (aBoolean) {
                             if (firebaseAuth.getCurrentUser().isEmailVerified()) {
                                 if (rememberMeCheckBox.isChecked()) {
@@ -180,10 +192,13 @@ public class LoginView extends AppCompatActivity {
                                 nextView();
                                 finish();
                             } else {
-                                Toast.makeText(LoginView.this, "Usuário ainda não verificado", Toast.LENGTH_SHORT).show();
-                                emailEditText.setText("");
-                                passwordEditText.setText("");
-                                startActivity(new Intent(LoginView.this, EmailVerificationView.class));
+                                new MaterialAlertDialogBuilder(this)
+                                        .setTitle("Verificação de email não realizada.")
+                                        .setMessage("Seu email ainda não foi verificado, por favor verifique sua caixa de entrada ou de spam do seu email, caso não tenha recebido, clique em Enviar novamente.")
+                                        .setNeutralButton("Ok", (dialog, which) -> dialog.dismiss())
+                                        .setPositiveButton("Enviar novamente", (dialog, which) ->
+                                                firebaseAuth.getCurrentUser().sendEmailVerification())
+                                        .show();
                             }
                         } else {
                             Toast.makeText(LoginView.this, "Email ou senha incorreta.", Toast.LENGTH_SHORT).show();

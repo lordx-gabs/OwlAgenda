@@ -20,7 +20,6 @@ public class UsuarioViewModel extends ViewModel {
 
         observer = usuario -> {
             if (usuario != null) {
-                SincronizaBDViewModel.synchronizeUserWithRoom(usuario);
                 SincronizaBDViewModel.synchronizeUserWithFirebase(usuario);
                 usuarioLiveData.setValue(usuario);
             }
