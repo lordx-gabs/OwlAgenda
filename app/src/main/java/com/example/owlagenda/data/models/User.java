@@ -1,45 +1,25 @@
 package com.example.owlagenda.data.models;
 
-import androidx.annotation.NonNull;
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
-
-import java.io.Serializable;
-
-@Entity(tableName = "usuario")
-public class User implements Serializable {
-
-    @PrimaryKey
-    private @NonNull String id;
-
-    @ColumnInfo(name = "nome")
-    private String nome;
-
-    @ColumnInfo(name = "sobrenome")
-    private String sobrenome;
-
-    @ColumnInfo(name = "senha")
-    private String senha;
-
-    @ColumnInfo(name = "email")
+public class User {
+    
+    private String id;
+    
+    private String name;
+    
+    private String surname;
+    
+    private String password;
+    
     private String email;
-
-    @ColumnInfo(name = "data_de_aniversario")
-    private String data_aniversario;
-
-    @ColumnInfo(name = "sexo")
-    private String sexo;
-
-    @ColumnInfo(name = "url_foto_perfil")
-    private String url_foto_perfil;
-
-    @ColumnInfo(name = "numero_telefone")
-    private long numeroTelefone;
-
-    public User() {
-    }
-
+    
+    private String birthdate;
+    
+    private String gender;
+    
+    private String urlProfilePhoto;
+    
+    private long phoneNumber;
+    
     public String getId() {
         return id;
     }
@@ -48,28 +28,28 @@ public class User implements Serializable {
         this.id = id;
     }
 
-    public String getNome() {
-        return nome;
+    public String getName() {
+        return name;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getSobrenome() {
-        return sobrenome;
+    public String getSurname() {
+        return surname;
     }
 
-    public void setSobrenome(String sobrenome) {
-        this.sobrenome = sobrenome;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
-    public String getSenha() {
-        return senha;
+    public String getPassword() {
+        return password;
     }
 
-    public void setSenha(String senha) {
-        this.senha = senha;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getEmail() {
@@ -80,35 +60,35 @@ public class User implements Serializable {
         this.email = email;
     }
 
-    public String getUrl_foto_perfil() {
-        return url_foto_perfil;
+    public String getUrlProfilePhoto() {
+        return urlProfilePhoto;
     }
 
-    public void setUrl_foto_perfil(String url_foto_perfil) {
-        this.url_foto_perfil = url_foto_perfil;
+    public void setUrlProfilePhoto(String urlProfilePhoto) {
+        this.urlProfilePhoto = urlProfilePhoto;
     }
 
     public String getData_aniversario() {
-        return data_aniversario;
+        return birthdate;
     }
 
     public void setData_aniversario(String data_aniversario) {
-        this.data_aniversario = data_aniversario;
+        this.birthdate = data_aniversario;
     }
 
-    public String getSexo() {
-        return sexo;
+    public String getGender() {
+        return gender;
     }
 
-    public void setSexo(String sexo) {
-        this.sexo = sexo;
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
-    public long getNumeroTelefone() {
-        return numeroTelefone;
+    public long getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setNumeroTelefone(long numeroTelefone) {
-        this.numeroTelefone = numeroTelefone;
+    public void setPhoneNumber(long phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }

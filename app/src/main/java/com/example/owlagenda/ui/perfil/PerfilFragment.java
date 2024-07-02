@@ -25,9 +25,6 @@ public class PerfilFragment extends Fragment {
         binding = FragmentPerfilBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textSlideshow;
-        perfilViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
-
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow); // Define o menu overflow na fragment
 
         return root;

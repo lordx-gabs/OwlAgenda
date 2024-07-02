@@ -22,7 +22,7 @@
         android:focusableInTouchMode="false"
         android:scrollbars="none"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:context=".ui.registration.RegistrationView">
+        tools:context=".ui.register.RegisterView">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/main"
@@ -53,7 +53,6 @@
                     android:layout_height="50dp"
                     android:drawableStart="@drawable/ic_cadeado"
                     android:drawablePadding="8dp"
-                    android:drawableTint="@color/cinza"
                     android:inputType="textPassword"
                     android:maxLines="1"
                     android:padding="8dp" />
@@ -157,9 +156,9 @@
                     android:id="@+id/et_data_nascimento"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:cursorVisible="false"
                     android:drawableStart="@drawable/calendar"
                     android:drawablePadding="10dp"
-
                     android:focusable="false"
                     android:inputType="text"
                     android:maxLines="1"
@@ -222,7 +221,6 @@
                     android:layout_height="50dp"
                     android:drawableStart="@drawable/ic_cadeado"
                     android:drawablePadding="8dp"
-                    android:drawableTint="@color/cinza"
                     android:inputType="textPassword"
                     android:maxLines="1"
                     android:padding="8dp" />
@@ -336,7 +334,6 @@
                     android:background="@null"
                     android:drawableStart="@drawable/genre_5169"
                     android:drawablePadding="10dp"
-                    android:drawableTint="@color/cinza"
                     android:focusable="false"
                     android:inputType="none"
                     android:padding="15dp"

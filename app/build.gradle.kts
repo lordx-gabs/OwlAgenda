@@ -58,7 +58,6 @@ android {
 }
 
 dependencies {
-    implementation("androidx.room:room-runtime:2.6.1")
     implementation(libs.annotation)
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -72,14 +71,16 @@ dependencies {
     implementation ("com.google.api-client:google-api-client:2.6.0")
     implementation ("com.google.oauth-client:google-oauth-client-jetty:1.36.0")
     implementation ("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
-    implementation("com.google.firebase:firebase-database:21.0.0")
+    implementation(libs.firebase.database)
     implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation("com.google.firebase:firebase-auth:23.0.0")
     implementation("com.google.firebase:firebase-storage:21.0.0")
-    implementation("com.google.firebase:firebase-appcheck-debug")
-    implementation("com.google.android.material:material:1.12.0")
+    implementation(libs.material)
     implementation("com.github.yalantis:ucrop:2.2.8")
     implementation("com.google.ai.client.generativeai:generativeai:0.8.0")
+    implementation ("com.facebook.android:facebook-login:17.0.0")
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

@@ -28,7 +28,7 @@
             <!-- Conteúdo do ScrollView aqui -->
 
             <TextView
-                android:id="@+id/tv_message_gemini"
+                android:id="@+id/tvMessageGemini"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"

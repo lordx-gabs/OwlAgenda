@@ -1,12 +1,11 @@
 package com.example.owlagenda.ui.forgotpassword;
 
-import android.content.SharedPreferences;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -18,14 +17,14 @@ import com.google.firebase.database.ValueEventListener;
 import java.time.Instant;
 
 public class ForgotPasswordViewModel extends ViewModel {
-    private MutableLiveData<Boolean> isLoading;
-    private DatabaseReference databaseReference;
-    private FirebaseAuth mAuth;
-    public static final String KEY_USER_TIMESTAMP = "timeCredentials";
+    private final MutableLiveData<Boolean> isLoading;
+    private final MutableLiveData<String> errorMessage;
+    private final DatabaseReference databaseReference;
+    private final FirebaseAuth mAuth;
 
     public ForgotPasswordViewModel() {
-
         this.isLoading = new MutableLiveData<>();
+        this.errorMessage = new MutableLiveData<>();
         this.databaseReference = FirebaseDatabase.getInstance().getReference();
         this.mAuth = FirebaseAuth.getInstance();
     }
@@ -53,8 +52,12 @@ public class ForgotPasswordViewModel extends ViewModel {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        currentTimeLiveData.postValue(null);
                         isLoading.postValue(false);
+                        if(error.getCode() == DatabaseError.NETWORK_ERROR) {
+                            errorMessage.postValue("Erro de conexão com o servidor, tente novamente mais tarde");
+                            return;
+                        }
+                        currentTimeLiveData.postValue(null);
                     }
                 });
             } else {
@@ -81,14 +84,16 @@ public class ForgotPasswordViewModel extends ViewModel {
         return emailResetPasswordResult;
     }
 
-    public void saveTimestampUserShared(SharedPreferences userTimestampCredentials, long timestamp) {
-        SharedPreferences.Editor editor = userTimestampCredentials.edit();
-        editor.putLong(KEY_USER_TIMESTAMP, timestamp);
-        editor.apply();
+    public void saveTimestampUserShared(long timestamp) {
+        SharedPreferencesUtil.saveLong(SharedPreferencesUtil.KEY_USER_TIMESTAMP, timestamp);
     }
 
     public LiveData<Boolean> isLoading() {
         return isLoading;
+    }
+
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
     }
 
 }

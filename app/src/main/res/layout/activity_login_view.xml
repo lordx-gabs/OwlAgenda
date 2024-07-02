@@ -7,37 +7,6 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
-
-            <!-- Conteúdo da barra de ferramentas -->
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:layout_scrollFlags="scroll|enterAlways" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/textView16"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_margin="15dp"
-
-                android:fontFamily="@font/akaya_telivigala"
-                android:text="Owl Agenda"
-                android:textAlignment="textStart"
-                android:textSize="24sp" />
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Conteúdo rolável -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -49,14 +18,23 @@
             android:layout_height="match_parent"
             tools:context=".ui.login.LoginView">
 
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/loadingBarLogin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:visibility="invisible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/foto_perfil_nav"
                 android:layout_width="322dp"
                 android:layout_height="152dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="24dp"
-                app:layout_constraintBottom_toTopOf="@+id/textView14"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.505"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/wallpaper_your_name" />
@@ -65,13 +43,15 @@
                 android:id="@+id/linearLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
                 android:gravity="center"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="parent">
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/login_button">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_login"
@@ -91,53 +71,40 @@
                     android:text="Cadastrar-se"
                     app:backgroundTint="@color/botao_cor"
                     app:cornerRadius="16dp" />
+
             </LinearLayout>
+
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cb_lembraruser"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="8dp"
                 android:text="Lembrar-me"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@+id/btn_google"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.006"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_twitter"
-                android:layout_width="316dp"
-                android:layout_height="50dp"
-                android:layout_marginBottom="16dp"
-                android:backgroundTint="#000000"
-                android:text="Continuar com o X"
-                android:textColor="#FFFFFF"
-                app:cornerRadius="3dp"
-                app:icon="@drawable/logo_x"
-                app:iconTint="#000000"
-                app:iconTintMode="add"
-                app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-
+                app:layout_constraintEnd_toStartOf="@+id/tv_esqueci_senha"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/et_senha_layout_login" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/et_senha_layout_login"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginBottom="8dp"
                 android:hint="Senha"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusTopEnd="8dp"
                 app:boxCornerRadiusTopStart="8dp"
                 app:hintEnabled="true"
-                app:layout_constraintBottom_toTopOf="@+id/cb_lembraruser"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/et_email_layout_reset_password">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_senha_login"
@@ -145,103 +112,104 @@
                     android:layout_height="50dp"
                     android:drawableStart="@drawable/ic_cadeado"
                     android:drawablePadding="8dp"
-                    android:drawableTint="@color/cinza"
                     android:inputType="text|textPassword"
                     android:maxLines="1"
                     android:padding="8dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/et_email_layout_reset_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:hint="Email"
+                app:boxCornerRadiusBottomEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusTopStart="8dp"
+                app:hintEnabled="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView15">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/et_email_layout_reset_password"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_email_reset_password"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:hint="Email"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp"
-                    app:hintEnabled="true"
-                    app:layout_constraintBottom_toTopOf="@+id/et_senha_layout_login"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintStart_toStartOf="parent"
-                    >
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_email_reset_password"
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:drawableStart="@drawable/ic_email"
-                        android:drawablePadding="8dp"
-                        android:inputType="text|textEmailAddress"
-                        android:maxLines="1"
-                        android:padding="8dp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
+                    android:layout_height="50dp"
+                    android:drawableStart="@drawable/ic_email"
+                    android:drawablePadding="8dp"
+                    android:inputType="text|textEmailAddress"
+                    android:maxLines="1"
+                    android:padding="8dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textView15"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="32dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginBottom="24dp"
                 android:fontFamily="@font/akaya_telivigala"
                 android:text="Faça seu login no Owl e tenha acesso a todos seus beneficios."
                 android:textAlignment="center"
                 android:textSize="16sp"
-                app:layout_constraintBottom_toTopOf="@+id/et_email_layout_reset_password"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView14" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textView14"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
+                android:layout_marginTop="32dp"
                 android:fontFamily="@font/akaya_telivigala"
                 android:text="Bem-vindo ao Owl"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@+id/textView15"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintHorizontal_bias="0.495"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/foto_perfil_nav" />
 
-            <com.google.android.material.button.MaterialButton
+            <com.google.android.gms.common.SignInButton
                 android:id="@+id/btn_google"
-                android:layout_width="316dp"
-                android:layout_height="50dp"
-                android:layout_marginBottom="8dp"
-                android:backgroundTint="#FFFFFF"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:text="Continuar com o Google"
                 android:textColor="#808080"
-                app:cornerRadius="3dp"
-                app:icon="@drawable/logo_google"
-                app:iconTint="@android:color/transparent"
-                app:iconTintMode="add"
-                app:layout_constraintBottom_toTopOf="@+id/btn_twitter"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cb_lembraruser" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tv_esqueci_senha"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="45dp"
+                android:layout_marginEnd="8dp"
                 android:text="Esqueci minha senha"
                 android:textAlignment="center"
                 android:textColor="#00B7FF"
-                app:layout_constraintBottom_toTopOf="@+id/btn_google"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.95"
-                app:layout_constraintStart_toEndOf="@+id/cb_lembraruser"
                 app:layout_constraintTop_toBottomOf="@+id/et_senha_layout_login" />
+
+            <com.facebook.login.widget.LoginButton
+                android:id="@+id/login_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:minHeight="48dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.458"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btn_google" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

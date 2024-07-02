@@ -4,12 +4,12 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
 
-public class FormatPhone implements TextWatcher {
+public class FormatPhoneNumber implements TextWatcher {
     private EditText editText;
     private boolean isFormatting = false;
     private boolean deletedDigit = false;
 
-    public FormatPhone(EditText editText) {
+    public FormatPhoneNumber(EditText editText) {
         this.editText = editText;
     }
 

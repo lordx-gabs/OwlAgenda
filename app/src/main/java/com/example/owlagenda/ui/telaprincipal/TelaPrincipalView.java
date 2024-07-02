@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import com.example.owlagenda.R;
 
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
@@ -12,13 +13,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.owlagenda.databinding.ActivityTelaPrincipalBinding;
 
 public class TelaPrincipalView extends AppCompatActivity {
-
     private ActivityTelaPrincipalBinding binding;
     private NavController navController;
+    private TelaPrincipalViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        viewModel = new ViewModelProvider(this).get(TelaPrincipalViewModel.class);
 
         binding = ActivityTelaPrincipalBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -31,6 +34,14 @@ public class TelaPrincipalView extends AppCompatActivity {
         binding.appFab.fab.setOnClickListener(v -> {
 
         });
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 }
+
 

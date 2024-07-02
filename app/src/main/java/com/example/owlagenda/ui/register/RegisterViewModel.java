@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.registration;
+package com.example.owlagenda.ui.register;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -17,7 +17,8 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
-import com.example.owlagenda.ui.viewmodels.SincronizaBDViewModel;
+import com.example.owlagenda.util.SyncData;
+import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
@@ -30,15 +31,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class RegistrationViewModel extends ViewModel {
+public class RegisterViewModel extends ViewModel {
     private final FirebaseAuth firebaseAuth;
-    private final StorageReference storageReference;
+    private final StorageReference folderPathUser;
     private final MutableLiveData<Boolean> isLoading;
     private final MutableLiveData<String> errorMessageLiveData;
 
-    public RegistrationViewModel() {
+    public RegisterViewModel() {
         firebaseAuth = FirebaseAuth.getInstance();
-        storageReference = FirebaseStorage.getInstance().getReference();
+        folderPathUser = FirebaseStorage.getInstance().getReference().child("usuarios");
         isLoading = new MutableLiveData<>();
         errorMessageLiveData = new MutableLiveData<>();
     }
@@ -47,18 +48,13 @@ public class RegistrationViewModel extends ViewModel {
         isLoading.postValue(true);
         MutableLiveData<Boolean> registrationResultLiveData = new MutableLiveData<>();
 
-        firebaseAuth.createUserWithEmailAndPassword(user.getEmail(), user.getSenha())
+        firebaseAuth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                         user.setId(firebaseUser.getUid());
-                        user.setSenha(null);
-
-                        if (imagePath != null) {
-                            uploadProfileImage(imagePath, user, firebaseUser, registrationResultLiveData);
-                        } else {
-                            setDefaultProfileImage(user, firebaseUser, registrationResultLiveData);
-                        }
+                        user.setPassword(null);
+                        uploadProfileImage(imagePath, user, firebaseUser, registrationResultLiveData);
                     } else {
                         handleRegistrationFailure(task.getException(), registrationResultLiveData);
                     }
@@ -71,12 +67,11 @@ public class RegistrationViewModel extends ViewModel {
         Bitmap bitmapImage = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(imagePath.getPath()), 200, 200, false);
         byte[] imageBytes = bitmapToByteArray(bitmapImage);
 
-        StorageReference folderPathUser = storageReference.child("usuarios");
         StorageReference imageStorageReference = folderPathUser.child(firebaseUser.getUid()).child("foto_perfil.jpg");
         imageStorageReference.putBytes(imageBytes).addOnCompleteListener(task3 -> {
             if (task3.isSuccessful()) {
                 imageStorageReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                    user.setUrl_foto_perfil(uri.toString());
+                    user.setUrlProfilePhoto(uri.toString());
                     sendVerificationEmail(user, firebaseUser, registrationResultLiveData);
                 }).addOnFailureListener(e -> {
                     handleImageUploadFailure(e, registrationResultLiveData, firebaseUser, imageStorageReference);
@@ -87,22 +82,9 @@ public class RegistrationViewModel extends ViewModel {
         });
     }
 
-    private void setDefaultProfileImage(User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
-
-        StorageReference imageStorageReference = storageReference.child(firebaseUser.getUid()).child("foto_perfil.jpg");
-        imageStorageReference.getDownloadUrl().addOnSuccessListener(uri -> {
-            user.setUrl_foto_perfil(uri.toString());
-            sendVerificationEmail(user, firebaseUser, registrationResultLiveData);
-        }).addOnFailureListener(e -> {
-            isLoading.postValue(false);
-            deleteUser(firebaseUser, registrationResultLiveData);
-            registrationResultLiveData.postValue(false);
-        });
-    }
-
     private void sendVerificationEmail(User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
         firebaseUser.sendEmailVerification().addOnCompleteListener(task -> {
-            SincronizaBDViewModel.synchronizeUserWithFirebase(user);
+            SyncData.synchronizeUserWithFirebase(user);
             registrationResultLiveData.postValue(true);
         });
     }
@@ -110,6 +92,8 @@ public class RegistrationViewModel extends ViewModel {
     private void handleRegistrationFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData) {
         if (exception instanceof FirebaseAuthUserCollisionException) {
             errorMessageLiveData.postValue("Este e-mail já está cadastrado. Por favor, tente outro e-mail.");
+        } else if (exception instanceof FirebaseNetworkException) {
+            errorMessageLiveData.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
         } else {
             registrationResultLiveData.postValue(false);
         }
@@ -139,14 +123,14 @@ public class RegistrationViewModel extends ViewModel {
         return byteArrayOutputStream.toByteArray();
     }
 
-    public File createImageFileAvatar(Context context) throws IOException {
-        Bitmap bitmap = ((BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.avatar_1))
+    public File createImageProfileDefaultFile(Context context) throws IOException {
+        Bitmap bitmap = ((BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.wallpaper_your_name))
                 .getBitmap();
 
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File outputFile;
 
-        outputFile = File.createTempFile("avatar", ".png", storageDir);
+        outputFile = File.createTempFile("avatar", ".jpeg", storageDir);
         OutputStream outputStream = new FileOutputStream(outputFile);
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
         outputStream.close();

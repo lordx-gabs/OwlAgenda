@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.viewmodels;
+package com.example.owlagenda.util;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class SincronizaBDViewModel extends ViewModel {
+public class SyncData extends ViewModel {
     private static final MutableLiveData<Boolean> syncStatus = new MutableLiveData<>();
     private static final MutableLiveData<Boolean> isLoadingSync = new MutableLiveData<>();
     private static DatabaseReference databaseReference;

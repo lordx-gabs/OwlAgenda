@@ -3,6 +3,8 @@ package com.example.owlagenda.util;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.annotation.NonNull;
+
 import com.google.ai.client.generativeai.java.ChatFutures;
 import com.google.ai.client.generativeai.type.Content;
 import com.google.ai.client.generativeai.type.GenerateContentResponse;
@@ -14,15 +16,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ChatBot {
-    private ChatFutures chatFutures = ModelChatBot.createChatbotModel().startChat();
+    private final ChatFutures chatFutures = ModelChatBot.createChatbotModel().startChat();
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
     public void sendMessage(String userMessage, Callback<String> callback) {
         Content.Builder messageContent = new Content.Builder();
-                messageContent.addText(userMessage);
-                messageContent.setRole("user");
+        messageContent.addText(userMessage);
+        messageContent.setRole("user");
         Content userContent = messageContent.build();
-
-        Executor executor = Executors.newSingleThreadExecutor();
 
         ListenableFuture<GenerateContentResponse> responseFuture = chatFutures.sendMessage(userContent);
 
@@ -33,7 +34,7 @@ public class ChatBot {
             }
 
             @Override
-            public void onFailure(Throwable t) {
+            public void onFailure(@NonNull Throwable t) {
                 new Handler(Looper.getMainLooper()).post(() -> callback.onFailure(t));
             }
         }, executor);
@@ -44,5 +45,4 @@ public class ChatBot {
         void onSuccess(T result);
         void onFailure(Throwable t);
     }
-
 }

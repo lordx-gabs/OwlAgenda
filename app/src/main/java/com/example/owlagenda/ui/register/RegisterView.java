@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.registration;
+package com.example.owlagenda.ui.register;
 
 import android.Manifest;
 import android.content.ContentUris;
@@ -39,7 +39,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
-import com.example.owlagenda.util.FormatPhone;
+import com.example.owlagenda.util.FormatPhoneNumber;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.CalendarConstraints;
@@ -52,24 +52,26 @@ import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public class RegistrationView extends AppCompatActivity {
-    private RegistrationViewModel registrationViewModel;
+public class RegisterView extends AppCompatActivity {
+    private RegisterViewModel registerViewModel;
     private static final int PICK_IMAGE_REQUEST = 1;
-    private final int REQUEST_IMAGE_CAPTURE = 5;
+    private final int REQUEST_IMAGE_CAPTURE = 2;
     private User user;
     private ImageView userProfileImage;
     private TextInputEditText nameEditText, surnameEditText, emailEditText, passwordEditText, birthdateEditText, phoneNumberEditText, confirmPasswordEditText;
-    private Uri imageUri;
+    private Uri imageProfileUri;
     private MaterialDatePicker<Long> materialDatePicker;
     private AutoCompleteTextView genderAutoCompleteTextView;
     private final String[] genderOptions = {"Masculino", "Feminino", "Outros", "Prefiro não informar"};
-    private LinearProgressIndicator loadingProgressBar;
+    private int genderSelected = -1;
+    private LinearProgressIndicator loadingProgress;
     private ActivityResultLauncher<Intent> pickImageLauncher, takePhotoLauncher;
     private ActivityResultLauncher<IntentSenderRequest> requestWriteAccessLauncher;
     private BottomSheetDialog bottomSheetDialog;
@@ -86,8 +88,7 @@ public class RegistrationView extends AppCompatActivity {
             return insets;
         });
 
-
-        registrationViewModel = new ViewModelProvider(this).get(RegistrationViewModel.class);
+        registerViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
 
         user = new User();
         nameEditText = findViewById(R.id.et_nome);
@@ -99,10 +100,12 @@ public class RegistrationView extends AppCompatActivity {
         phoneNumberEditText = findViewById(R.id.et_telefone);
         userProfileImage = findViewById(R.id.foto_usuario);
         confirmPasswordEditText = findViewById(R.id.et_confirma_senha);
-        loadingProgressBar = findViewById(R.id.barra_carregando);
+        loadingProgress = findViewById(R.id.barra_carregando);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, genderOptions);
         genderAutoCompleteTextView.setAdapter(adapter);
+        genderAutoCompleteTextView.setOnItemClickListener((parent, view, position, id) ->
+                genderSelected = position);
 
         Calendar calendarEnd = Calendar.getInstance();
         calendarEnd.set(1940, Calendar.JANUARY, 1);
@@ -117,23 +120,41 @@ public class RegistrationView extends AppCompatActivity {
                 .setEnd(dateEnd)
                 .setValidator(DateValidatorPointBackward.before(dateEnd));
 
-        materialDatePicker = MaterialDatePicker.Builder.datePicker()
-                .setTitleText("Selecione uma data")
-                .setCalendarConstraints(constraintsBuilder.build())
-                .setSelection(dateEnd).build();
+        birthdateEditText.setOnClickListener(v -> {
+            Calendar calendarInitialed = Calendar.getInstance();
+            if (birthdateEditText.getText().toString().isEmpty()) {
+                calendarInitialed.setTimeInMillis(dateEnd);
+            } else {
+                try {
+                    calendarInitialed.setTime(new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                            .parse(birthdateEditText.getText().toString()));
+                } catch (ParseException e) {
+                    Toast.makeText(this, "Erro ao formatar a data.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
 
-        materialDatePicker.addOnPositiveButtonClickListener(selection -> {
-            Calendar dateSelected = Calendar.getInstance();
-            dateSelected.setTimeInMillis(selection);
-            SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
-            format.setTimeZone(TimeZone.getTimeZone("UTC"));
+            materialDatePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Selecione uma data")
+                    .setCalendarConstraints(constraintsBuilder.build())
+                    .setSelection(calendarInitialed.getTimeInMillis())
+                    .build();
 
-            birthdateEditText.setText(format.format(dateSelected.getTime()));
+            materialDatePicker.addOnPositiveButtonClickListener(selection -> {
+                Calendar dateSelected = Calendar.getInstance();
+                dateSelected.setTimeInMillis(selection);
+                SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
+                format.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+                birthdateEditText.setText(format.format(dateSelected.getTime()));
+            });
+
+            if (!materialDatePicker.isAdded()) {
+                materialDatePicker.show(getSupportFragmentManager(), "material_date_picker");
+            }
         });
 
-        birthdateEditText.setOnClickListener(v -> materialDatePicker.show(getSupportFragmentManager(), "material_date_picker"));
-
-        phoneNumberEditText.addTextChangedListener(new FormatPhone(phoneNumberEditText));
+        phoneNumberEditText.addTextChangedListener(new FormatPhoneNumber(phoneNumberEditText));
 
         emailEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -165,9 +186,9 @@ public class RegistrationView extends AppCompatActivity {
                 });
 
         takePhotoLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(), resul -> {
-                    if (resul.getResultCode() == RESULT_OK) {
-                        cutImage(imageUri);
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        cutImage(imageProfileUri);
                     } else {
                         Toast.makeText(this, "Erro ao tirar foto.", Toast.LENGTH_SHORT).show();
                     }
@@ -178,7 +199,7 @@ public class RegistrationView extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK) {
                         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageProfileUri);
                             takePhotoLauncher.launch(takePictureIntent);
                         }
                     } else {
@@ -186,19 +207,21 @@ public class RegistrationView extends AppCompatActivity {
                     }
                 });
 
-        registrationViewModel.isLoading().observe(this, aBoolean -> {
+        registerViewModel.isLoading().observe(this, aBoolean -> {
             MaterialButton btnRegister = findViewById(R.id.btn_cadastrar);
             if (aBoolean) {
                 btnRegister.setEnabled(false);
-                loadingProgressBar.setVisibility(View.VISIBLE);
+                loadingProgress.setVisibility(View.VISIBLE);
             } else {
-                loadingProgressBar.setVisibility(View.GONE);
+                loadingProgress.setVisibility(View.GONE);
                 btnRegister.setEnabled(true);
             }
         });
 
-        registrationViewModel.getErrorMessageLiveData().observe(this, s ->
+        registerViewModel.getErrorMessageLiveData().observe(this, s ->
                 Toast.makeText(this, s, Toast.LENGTH_SHORT).show());
+
+
     }
 
     public void registerUser(View view) {
@@ -222,21 +245,30 @@ public class RegistrationView extends AppCompatActivity {
             phoneNumber = Long.parseLong(phoneNumberEditText.getText().toString().replaceAll("\\D", ""));
         }
 
-        if (genderAutoCompleteTextView.getListSelection() > -1) {
+        if (genderSelected > -1) {
             gender = genderAutoCompleteTextView.getText().toString();
         }
 
         if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             if (password.equals(confirmPassword)) {
-                user.setNome(name);
-                user.setSobrenome(surname);
+                user.setName(name);
+                user.setSurname(surname);
                 user.setEmail(email);
-                user.setSenha(password);
+                user.setPassword(password);
                 user.setData_aniversario(birthdate);
-                user.setSexo(gender);
-                user.setNumeroTelefone(phoneNumber);
+                user.setGender(gender);
+                user.setPhoneNumber(phoneNumber);
 
-                registrationViewModel.registerUser(user, imageUri).observe(this, success -> {
+                if (imageProfileUri == null) {
+                    try {
+                        imageProfileUri = Uri.fromFile(registerViewModel.createImageProfileDefaultFile(this));
+                    } catch (IOException e) {
+                        Toast.makeText(this, "Erro: " + e, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+
+                registerViewModel.registerUser(user, imageProfileUri).observe(this, success -> {
                     if (success) {
                         //colocar que o email será enviado
                         Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
@@ -253,7 +285,7 @@ public class RegistrationView extends AppCompatActivity {
         }
     }
 
-    public void pickImage() {
+    private void pickImage() {
         Intent pickImageIntent = new Intent(Intent.ACTION_PICK);
         pickImageIntent.setType("image/*");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -272,31 +304,34 @@ public class RegistrationView extends AppCompatActivity {
         }
     }
 
-    public void takePhoto() {
+    private void takePhoto() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_IMAGE_CAPTURE);
         } else {
             File photoFile;
             try {
-                photoFile = registrationViewModel.createImageFileAvatar(getApplicationContext());
+                photoFile = registerViewModel.createImageProfileDefaultFile(getApplicationContext());
             } catch (IOException e) {
                 Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 return;
             }
-            imageUri = FileProvider.getUriForFile(this,
+            imageProfileUri = FileProvider.getUriForFile(this,
                     "com.example.owlagenda.fileprovider",
                     photoFile);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                long mediaID = registrationViewModel.getFilePathToPhotoID(photoFile.getAbsolutePath(), getApplicationContext());
-                Uri uriImageCamera = ContentUris.withAppendedId(MediaStore.Images.Media.getContentUri("external"), mediaID);
+                long mediaID = registerViewModel.getFilePathToPhotoID(photoFile.getAbsolutePath()
+                        , getApplicationContext());
+                Uri uriImageCamera = ContentUris.withAppendedId(MediaStore.Images.Media
+                        .getContentUri("external"), mediaID);
 
-                IntentSender intentSender = MediaStore.createWriteRequest(getContentResolver(), Collections.singletonList(uriImageCamera)).getIntentSender();
+                IntentSender intentSender = MediaStore.createWriteRequest(getContentResolver()
+                        , Collections.singletonList(uriImageCamera)).getIntentSender();
                 requestWriteAccessLauncher.launch(new IntentSenderRequest.Builder(intentSender).build());
             } else {
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageProfileUri);
                     takePhotoLauncher.launch(takePictureIntent);
                 }
 
@@ -320,7 +355,7 @@ public class RegistrationView extends AppCompatActivity {
 
         btnDeleteImage.setOnClickListener(v12 -> {
             userProfileImage.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.avatar_1));
-            imageUri = null;
+            imageProfileUri = null;
             bottomSheetDialog.dismiss();
         });
     }
@@ -346,7 +381,7 @@ public class RegistrationView extends AppCompatActivity {
             if (resultadoUri != null) {
                 userProfileImage.setImageURI(null);
                 userProfileImage.setImageURI(resultadoUri);
-                imageUri = resultadoUri;
+                imageProfileUri = resultadoUri;
             }
         } else if (resultCode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(data);
@@ -378,7 +413,7 @@ public class RegistrationView extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable("imageUri", imageUri);
+        outState.putParcelable("imageUri", imageProfileUri);
     }
 
     @Override
@@ -387,7 +422,7 @@ public class RegistrationView extends AppCompatActivity {
         Uri imageUriRestored = savedInstanceState.getParcelable("imageUri");
         if (imageUriRestored != null) {
             userProfileImage.setImageURI(imageUriRestored);
-            imageUri = imageUriRestored;
+            imageProfileUri = imageUriRestored;
         }
     }
 }

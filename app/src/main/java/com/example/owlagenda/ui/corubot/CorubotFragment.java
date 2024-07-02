@@ -6,20 +6,22 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.databinding.FragmentCorubotBinding;
-import com.example.owlagenda.ui.registration.RegistrationView;
-import com.example.owlagenda.util.ChatBot;
+import com.example.owlagenda.ui.register.RegisterView;
 
 public class CorubotFragment extends Fragment {
 
-    private CorubotViewModel mViewModel;
+    private CorubotViewModel viewModel;
     private FragmentCorubotBinding binding;
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -28,28 +30,27 @@ public class CorubotFragment extends Fragment {
 
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow); // Define o menu overflow na fragment
 
-        binding.button.setOnClickListener(v -> {
-            ChatBot chatBot = new ChatBot();
-            chatBot.sendMessage(binding.etMessageUser.getText().toString(), new ChatBot.Callback<>() {
-                @Override
-                public void onSuccess(String response) {
-                    // Do something with the response
-                    binding.tvMessageGemini.setText(response);
-                }
+        viewModel = new ViewModelProvider(this).get(CorubotViewModel.class);
 
-                @Override
-                public void onFailure(Throwable t) {
-                    // Handle the error
+        binding.button.setOnClickListener(v -> {
+            viewModel.sendMessage(binding.etMessageUser.getText().toString()).observe(getViewLifecycleOwner(), s -> {
+                if (s != null) {
+                    binding.tvMessageGemini.setText(s);
+                } else {
+                    Toast.makeText(getActivity(), "Erro ao enviar mensagem.", Toast.LENGTH_SHORT).show();
                 }
             });
-
         });
 
-        binding.appFab.fab.setOnClickListener(v ->
-                startActivity(new Intent(getActivity(), RegistrationView.class)));
+        binding.appFab.fab.setOnClickListener(v -> startActivity(new Intent(getActivity(), RegisterView.class)));
 
         return binding.getRoot();
+    }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
 }

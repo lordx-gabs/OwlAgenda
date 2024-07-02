@@ -13,8 +13,18 @@ import com.google.ai.client.generativeai.type.SafetySetting;
 import java.util.Arrays;
 
 public class ModelChatBot {
+    private static final String MODEL_ID = "gemini-1.5-flash";
+    private static final GenerationConfig.Builder configBuilder = new GenerationConfig.Builder();
+    private static final SafetySetting harassmentSafetySetting = new SafetySetting(HarmCategory.HARASSMENT,
+            BlockThreshold.MEDIUM_AND_ABOVE);
+    private static final SafetySetting hateSpeechSafetySetting = new SafetySetting(HarmCategory.HATE_SPEECH,
+            BlockThreshold.MEDIUM_AND_ABOVE);
+    private static final SafetySetting dangerousContentSafetySetting = new SafetySetting(HarmCategory.DANGEROUS_CONTENT,
+            BlockThreshold.MEDIUM_AND_ABOVE);
+    private static final SafetySetting sexuallyExplicitSafetySetting = new SafetySetting(HarmCategory.SEXUALLY_EXPLICIT,
+            BlockThreshold.MEDIUM_AND_ABOVE);
+
     public static GenerativeModelFutures createChatbotModel() {
-        GenerationConfig.Builder configBuilder = new GenerationConfig.Builder();
         configBuilder.temperature = 1f;
         configBuilder.topK = 64;
         configBuilder.topP = 0.95f;
@@ -22,20 +32,8 @@ public class ModelChatBot {
 
         GenerationConfig generationConfig = configBuilder.build();
 
-        SafetySetting harassmentSafetySetting = new SafetySetting(HarmCategory.HARASSMENT,
-                BlockThreshold.MEDIUM_AND_ABOVE);
-
-        SafetySetting hateSpeechSafetySetting = new SafetySetting(HarmCategory.HATE_SPEECH,
-                BlockThreshold.MEDIUM_AND_ABOVE);
-
-        SafetySetting dangerousContentSafetySetting = new SafetySetting(HarmCategory.DANGEROUS_CONTENT,
-                BlockThreshold.MEDIUM_AND_ABOVE);
-
-        SafetySetting sexuallyExplicitSafetySetting = new SafetySetting(HarmCategory.SEXUALLY_EXPLICIT,
-                BlockThreshold.MEDIUM_AND_ABOVE);
-
         GenerativeModel generativeModel = new GenerativeModel(
-                "gemini-1.5-flash",
+                MODEL_ID,
                 BuildConfig.apiKeyGemini,
                 generationConfig,
                 Arrays.asList(harassmentSafetySetting, hateSpeechSafetySetting, dangerousContentSafetySetting, sexuallyExplicitSafetySetting),
