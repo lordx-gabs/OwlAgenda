@@ -81,6 +81,7 @@ dependencies {
     implementation ("com.facebook.android:facebook-login:17.0.0")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
+    implementation ("com.github.instacart:truetime-android:3.5")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

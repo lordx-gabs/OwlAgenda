@@ -143,10 +143,10 @@ public class RegisterView extends AppCompatActivity {
             materialDatePicker.addOnPositiveButtonClickListener(selection -> {
                 Calendar dateSelected = Calendar.getInstance();
                 dateSelected.setTimeInMillis(selection);
-                SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
-                format.setTimeZone(TimeZone.getTimeZone("UTC"));
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
+                dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-                birthdateEditText.setText(format.format(dateSelected.getTime()));
+                birthdateEditText.setText(dateFormat.format(dateSelected.getTime()));
             });
 
             if (!materialDatePicker.isAdded()) {
@@ -315,20 +315,20 @@ public class RegisterView extends AppCompatActivity {
                 Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 return;
             }
-            imageProfileUri = FileProvider.getUriForFile(this,
-                    "com.example.owlagenda.fileprovider",
-                    photoFile);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 long mediaID = registerViewModel.getFilePathToPhotoID(photoFile.getAbsolutePath()
-                        , getApplicationContext());
+                        ,getApplicationContext());
                 Uri uriImageCamera = ContentUris.withAppendedId(MediaStore.Images.Media
                         .getContentUri("external"), mediaID);
 
                 IntentSender intentSender = MediaStore.createWriteRequest(getContentResolver()
-                        , Collections.singletonList(uriImageCamera)).getIntentSender();
+                        ,Collections.singletonList(uriImageCamera)).getIntentSender();
                 requestWriteAccessLauncher.launch(new IntentSenderRequest.Builder(intentSender).build());
             } else {
+                imageProfileUri = FileProvider.getUriForFile(this,
+                        "com.example.owlagenda.fileprovider",
+                        photoFile);
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageProfileUri);

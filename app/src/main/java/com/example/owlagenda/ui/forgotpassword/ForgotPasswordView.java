@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -21,7 +22,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.util.NetworkUtil;
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -92,55 +92,50 @@ public class ForgotPasswordView extends AppCompatActivity {
     }
 
     public void sendEmailResetPassword(View v) {
-        if(NetworkUtil.isInternetAvailable(this)) {
-            String email = emailEditText.getText().toString();
-            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        String email = emailEditText.getText().toString();
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-            if (!email.isEmpty()) {
-                if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    viewModel.fetchCurrentTimeFirebase().observe(this, instantTimestampServer -> {
-                        if (instantTimestampServer != null) {
-                            if (isTimestampValid(instantTimestampServer)) {
-                                viewModel.sendResetPasswordEmail(email).observe(this, aBoolean -> {
-                                    message.setVisibility(View.VISIBLE);
-                                    if (aBoolean) {
-                                        emailEditText.setText("");
-                                        message.setText("Caso o email corresponder a uma das contas no Owl, será enviado um e-mail com instruções para redefinir a senha!");
-                                    } else {
-                                        message.setError("Erro ao enviar e-mail, tente novamente");
-                                    }
-                                    viewModel.saveTimestampUserShared(instantTimestampServer.getLong(ChronoField.INSTANT_SECONDS));
-                                });
-
-                            } else {
-                                new MaterialAlertDialogBuilder(this)
-                                        .setTitle("Owl Agenda")
-                                        .setMessage("Aguarde o término da contagem para enviar outro email de redefinição de senha. Tempo restante: " + timeLeft + "segundos")
-                                        .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
-                                        .show();
-                            }
+        if (!email.isEmpty()) {
+            if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                viewModel.getCurrentTime().observe(this, instant -> {
+                    if (instant != null) {
+                        if (isTimestampValid(instant)) {
+                            viewModel.sendResetPasswordEmail(email).observe(this, aBoolean -> {
+                                message.setVisibility(View.VISIBLE);
+                                if (aBoolean) {
+                                    emailEditText.setText("");
+                                    message.setText("Caso o email corresponder a uma das contas no Owl, será enviado um e-mail com instruções para redefinir a senha!");
+                                } else {
+                                    message.setError("Erro ao enviar e-mail, tente novamente");
+                                }
+                                viewModel.saveTimestampUserShared(instant.getLong(ChronoField.INSTANT_SECONDS));
+                            });
                         } else {
-                            Toast.makeText(this, "Erro no envio do email de redefinição de senha, tente novamente mais tarde", Toast.LENGTH_SHORT).show();
+                            new MaterialAlertDialogBuilder(this)
+                                    .setTitle("Owl Agenda")
+                                    .setMessage("Aguarde o término da contagem para enviar outro email de redefinição de senha. Tempo restante: " + timeLeft + "segundos")
+                                    .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
+                                    .show();
                         }
-                    });
-                } else {
-                    message.setVisibility(View.VISIBLE);
-                    message.setError("Digite um email válido");
-                }
+                    } else {
+                        Toast.makeText(this, "Erro no envio do email de redefinição de senha, tente novamente mais tarde", Toast.LENGTH_SHORT).show();
+                    }
+                });
             } else {
                 message.setVisibility(View.VISIBLE);
-                message.setError("Preencha o campo de e-mail");
+                message.setError("Digite um email válido");
             }
         } else {
-            Toast.makeText(this, "Erro de conexão com o servidor, verifique sua conexão", Toast.LENGTH_SHORT).show();
+            message.setVisibility(View.VISIBLE);
+            message.setError("Preencha o campo de e-mail");
         }
     }
 
     private boolean isTimestampValid(Instant instantTimestampServer) {
         long oneMinuteThirtySeconds = 90;
         Instant instantTimestampUser = Instant.ofEpochSecond(SharedPreferencesUtil.getLong(KEY_USER_TIMESTAMP
-                ,instantTimestampServer.plusSeconds(oneMinuteThirtySeconds).getLong(ChronoField.INSTANT_SECONDS)));
+                , instantTimestampServer.plusSeconds(oneMinuteThirtySeconds).getLong(ChronoField.INSTANT_SECONDS)));
         timeLeft = 90 - Math.abs(instantTimestampServer.getEpochSecond() - instantTimestampUser.getEpochSecond());
         return timeLeft <= 0;
     }

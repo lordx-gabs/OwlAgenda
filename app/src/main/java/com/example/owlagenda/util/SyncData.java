@@ -15,12 +15,11 @@ import java.util.concurrent.TimeUnit;
 public class SyncData extends ViewModel {
     private static final MutableLiveData<Boolean> syncStatus = new MutableLiveData<>();
     private static final MutableLiveData<Boolean> isLoadingSync = new MutableLiveData<>();
-    private static DatabaseReference databaseReference;
+    private static final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Usuario");
     private static final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
     public static void synchronizeUserWithFirebase(User user) {
         isLoadingSync.setValue(true);
-        databaseReference = FirebaseDatabase.getInstance().getReference("Usuario");
         databaseReference.child(user.getId()).setValue(user).addOnCompleteListener(task -> {
             if (!task.isSuccessful()) {
                 syncStatus.setValue(false);

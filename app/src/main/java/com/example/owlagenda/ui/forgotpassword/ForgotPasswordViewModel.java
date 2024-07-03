@@ -1,71 +1,46 @@
 package com.example.owlagenda.ui.forgotpassword;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
-import com.google.firebase.database.ValueEventListener;
+import com.instacart.library.truetime.TrueTime;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.time.Instant;
 
 public class ForgotPasswordViewModel extends ViewModel {
     private final MutableLiveData<Boolean> isLoading;
     private final MutableLiveData<String> errorMessage;
-    private final DatabaseReference databaseReference;
     private final FirebaseAuth mAuth;
 
     public ForgotPasswordViewModel() {
         this.isLoading = new MutableLiveData<>();
         this.errorMessage = new MutableLiveData<>();
-        this.databaseReference = FirebaseDatabase.getInstance().getReference();
         this.mAuth = FirebaseAuth.getInstance();
+        new Thread(() -> {
+            try {
+                TrueTime.build().initialize();
+            } catch (IOException e) {
+                if (e instanceof UnknownHostException){
+                    errorMessage.postValue("Erro de conexão com o servidor, verifique sua conexão");
+                } else {
+                    errorMessage.postValue("Ocorreu um erro, tente novamente mais tarde");
+                }
+            }
+        }).start();
     }
 
-    public LiveData<Instant> fetchCurrentTimeFirebase() {
+    public LiveData<Instant> getCurrentTime() {
         MutableLiveData<Instant> currentTimeLiveData = new MutableLiveData<>();
-        isLoading.postValue(true);
-        DatabaseReference tempRef = databaseReference.child("tempTime");
-
-        tempRef.setValue(ServerValue.TIMESTAMP).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                tempRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        Long timestamp = snapshot.getValue(Long.class);
-                        if (timestamp != null) {
-                            Instant instantTimestampServer = Instant.ofEpochMilli(timestamp);
-                            currentTimeLiveData.postValue(instantTimestampServer);
-                        } else {
-                            currentTimeLiveData.postValue(null);
-                        }
-                        isLoading.postValue(false);
-                        tempRef.removeValue();
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        isLoading.postValue(false);
-                        if(error.getCode() == DatabaseError.NETWORK_ERROR) {
-                            errorMessage.postValue("Erro de conexão com o servidor, tente novamente mais tarde");
-                            return;
-                        }
-                        currentTimeLiveData.postValue(null);
-                    }
-                });
-            } else {
-                currentTimeLiveData.postValue(null);
-                isLoading.postValue(false);
-            }
-        });
-
+        if (TrueTime.isInitialized()) {
+            currentTimeLiveData.postValue(Instant.ofEpochMilli(TrueTime.now().getTime()));
+        } else {
+            errorMessage.postValue("Erro de conexão com o servidor, tente novamente mais tarde");
+        }
         return currentTimeLiveData;
     }
 
