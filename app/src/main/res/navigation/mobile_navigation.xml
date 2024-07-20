@@ -23,9 +23,9 @@
 
     <fragment
         android:id="@+id/nav_calendario"
-        android:name="com.example.owlagenda.ui.calendario.CalendarioFragment"
+        android:name="com.example.owlagenda.ui.calendar.CalendarFragment"
         android:label="@string/menu_calendario"
-        tools:layout="@layout/fragment_calendario" >
+        tools:layout="@layout/fragment_calendar" >
 
         <action
             android:id="@+id/action_nav_calendario_to_nav_perfil"

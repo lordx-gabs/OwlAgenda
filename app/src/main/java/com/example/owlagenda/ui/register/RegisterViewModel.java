@@ -1,6 +1,7 @@
 package com.example.owlagenda.ui.register;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -64,7 +65,8 @@ public class RegisterViewModel extends ViewModel {
     }
 
     private void uploadProfileImage(Uri imagePath, User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
-        Bitmap bitmapImage = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(imagePath.getPath()), 200, 200, false);
+        int imageWidthMax = 200, imageHeightMax = 200;
+        Bitmap bitmapImage = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(imagePath.getPath()), imageWidthMax, imageHeightMax, false);
         byte[] imageBytes = bitmapToByteArray(bitmapImage);
 
         StorageReference imageStorageReference = folderPathUser.child(firebaseUser.getUid()).child("foto_perfil.jpg");
@@ -138,9 +140,8 @@ public class RegisterViewModel extends ViewModel {
         return outputFile;
     }
 
-    public long getFilePathToPhotoID(String imagePath, Context context) {
-        long id = 0;
-        ContentResolver cr = context.getContentResolver();
+    public Uri getFilePathToPhotoID(String imagePath, ContentResolver cr) {
+        Uri uriImageCamera = null;
 
         Uri uri = MediaStore.Files.getContentUri("external");
         String selection = MediaStore.Images.Media.DATA;
@@ -153,12 +154,42 @@ public class RegisterViewModel extends ViewModel {
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 int idIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
-                id = Long.parseLong(cursor.getString(idIndex));
+                long id = Long.parseLong(cursor.getString(idIndex));
+                uriImageCamera = ContentUris.withAppendedId(MediaStore.Images.Media
+                        .getContentUri("external"), id);
             }
         }
 
         cursor.close();
-        return id;
+        return uriImageCamera;
+    }
+
+    public Uri getUserSelectionPhoto(ContentResolver cr) {
+        Uri imageUri = null;
+        String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA};
+
+        Cursor cursor = cr.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null) {
+            try {
+                int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
+                if (!(cursor.getCount() == 1)) {
+                    while (cursor.moveToNext()) {
+                        imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                                ,cursor.getLong(idColumn));
+                    }
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        return imageUri;
     }
 
     public LiveData<Boolean> isLoading() {

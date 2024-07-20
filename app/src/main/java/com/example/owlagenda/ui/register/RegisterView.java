@@ -1,7 +1,9 @@
 package com.example.owlagenda.ui.register;
 
+import static android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
 import android.Manifest;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -28,6 +30,7 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -161,6 +164,7 @@ public class RegisterView extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
             @Override
             public void afterTextChanged(Editable s) {
                 TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_register);
@@ -286,8 +290,7 @@ public class RegisterView extends AppCompatActivity {
     }
 
     private void pickImage() {
-        Intent pickImageIntent = new Intent(Intent.ACTION_PICK);
-        pickImageIntent.setType("image/*");
+        Intent pickImageIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -305,7 +308,7 @@ public class RegisterView extends AppCompatActivity {
     }
 
     private void takePhoto() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_IMAGE_CAPTURE);
         } else {
             File photoFile;
@@ -316,19 +319,18 @@ public class RegisterView extends AppCompatActivity {
                 return;
             }
 
+            imageProfileUri = FileProvider.getUriForFile(this,
+                    "com.example.owlagenda.fileprovider",
+                    photoFile);
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                long mediaID = registerViewModel.getFilePathToPhotoID(photoFile.getAbsolutePath()
-                        ,getApplicationContext());
-                Uri uriImageCamera = ContentUris.withAppendedId(MediaStore.Images.Media
-                        .getContentUri("external"), mediaID);
+               Uri imageCamera = registerViewModel.getFilePathToPhotoID(photoFile.getAbsolutePath()
+                        , getContentResolver());
 
                 IntentSender intentSender = MediaStore.createWriteRequest(getContentResolver()
-                        ,Collections.singletonList(uriImageCamera)).getIntentSender();
+                        , Collections.singletonList(imageCamera)).getIntentSender();
                 requestWriteAccessLauncher.launch(new IntentSenderRequest.Builder(intentSender).build());
             } else {
-                imageProfileUri = FileProvider.getUriForFile(this,
-                        "com.example.owlagenda.fileprovider",
-                        photoFile);
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageProfileUri);
@@ -391,18 +393,28 @@ public class RegisterView extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PICK_IMAGE_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
                 pickImage();
             } else {
+                if (ContextCompat.checkSelfPermission(this, READ_MEDIA_VISUAL_USER_SELECTED) == PERMISSION_GRANTED) {
+                    Uri imageSelected = registerViewModel.getUserSelectionPhoto(getContentResolver());
+                    if (imageSelected != null) {
+                        cutImage(imageSelected);
+                    } else {
+                        Toast.makeText(this, "Selecione somente uma imagem.", Toast.LENGTH_SHORT).show();
+                    }
+                    return;
+                }
                 Toast.makeText(this, "Permissão necessária para acessar o armazenamento.", Toast.LENGTH_SHORT).show();
             }
         }
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
                 takePhoto();
             } else {
                 Toast.makeText(this, "Permissão necessária para tirar foto.", Toast.LENGTH_SHORT).show();
@@ -425,4 +437,5 @@ public class RegisterView extends AppCompatActivity {
             imageProfileUri = imageUriRestored;
         }
     }
+
 }

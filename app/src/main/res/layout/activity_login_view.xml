@@ -79,7 +79,7 @@
                 android:id="@+id/cb_lembraruser"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:text="Lembrar-me"
                 android:textStyle="bold"
@@ -104,7 +104,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/et_email_layout_reset_password">
+                app:layout_constraintTop_toBottomOf="@+id/et_email_layout_login">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_senha_login"
@@ -118,7 +118,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/et_email_layout_reset_password"
+                android:id="@+id/et_email_layout_login"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -136,7 +136,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/textView15">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_email_reset_password"
+                    android:id="@+id/et_email_login"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:drawableStart="@drawable/ic_email"
