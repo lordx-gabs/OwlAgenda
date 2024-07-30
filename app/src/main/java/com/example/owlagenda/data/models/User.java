@@ -3,23 +3,15 @@ package com.example.owlagenda.data.models;
 public class User {
     
     private String id;
-    
     private String name;
-    
     private String surname;
-    
     private String password;
-    
     private String email;
-    
     private String birthdate;
-    
     private String gender;
-    
     private String urlProfilePhoto;
-    
-    private long phoneNumber;
-    
+    private Long phoneNumber;
+
     public String getId() {
         return id;
     }
@@ -68,12 +60,12 @@ public class User {
         this.urlProfilePhoto = urlProfilePhoto;
     }
 
-    public String getData_aniversario() {
+    public String getBirthdate() {
         return birthdate;
     }
 
-    public void setData_aniversario(String data_aniversario) {
-        this.birthdate = data_aniversario;
+    public void setBirthdate(String birthdate) {
+        this.birthdate = birthdate;
     }
 
     public String getGender() {
@@ -84,11 +76,11 @@ public class User {
         this.gender = gender;
     }
 
-    public long getPhoneNumber() {
+    public Long getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(long phoneNumber) {
+    public void setPhoneNumber(Long phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 }

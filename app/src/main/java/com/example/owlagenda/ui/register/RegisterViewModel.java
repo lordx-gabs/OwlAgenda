@@ -1,21 +1,19 @@
 package com.example.owlagenda.ui.register;
 
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Environment;
-import android.provider.MediaStore;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.util.SyncData;
@@ -75,9 +73,8 @@ public class RegisterViewModel extends ViewModel {
                 imageStorageReference.getDownloadUrl().addOnSuccessListener(uri -> {
                     user.setUrlProfilePhoto(uri.toString());
                     sendVerificationEmail(user, firebaseUser, registrationResultLiveData);
-                }).addOnFailureListener(e -> {
-                    handleImageUploadFailure(e, registrationResultLiveData, firebaseUser, imageStorageReference);
-                });
+                }).addOnFailureListener(e ->
+                        handleImageUploadFailure(e, registrationResultLiveData, firebaseUser, imageStorageReference));
             } else {
                 handleImageUploadFailure(task3.getException(), registrationResultLiveData, firebaseUser, imageStorageReference);
             }
@@ -93,7 +90,7 @@ public class RegisterViewModel extends ViewModel {
 
     private void handleRegistrationFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData) {
         if (exception instanceof FirebaseAuthUserCollisionException) {
-            errorMessageLiveData.postValue("Este e-mail já está cadastrado. Por favor, tente outro e-mail.");
+            errorMessageLiveData.postValue("Já existe um usuário cadastrado com esse email. Por favor, tente outro email.");
         } else if (exception instanceof FirebaseNetworkException) {
             errorMessageLiveData.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
         } else {
@@ -125,71 +122,39 @@ public class RegisterViewModel extends ViewModel {
         return byteArrayOutputStream.toByteArray();
     }
 
-    public File createImageProfileDefaultFile(Context context) throws IOException {
+    public Uri getImageProfileDefaultUri(Context context) {
         Bitmap bitmap = ((BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.wallpaper_your_name))
                 .getBitmap();
-
-        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File outputFile;
 
-        outputFile = File.createTempFile("avatar", ".jpeg", storageDir);
-        OutputStream outputStream = new FileOutputStream(outputFile);
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-        outputStream.close();
-
-        return outputFile;
-    }
-
-    public Uri getFilePathToPhotoID(String imagePath, ContentResolver cr) {
-        Uri uriImageCamera = null;
-
-        Uri uri = MediaStore.Files.getContentUri("external");
-        String selection = MediaStore.Images.Media.DATA;
-        String[] selectionArgs = {imagePath};
-        String[] projection = {MediaStore.Images.Media._ID};
-        String sortOrder = MediaStore.Images.Media.TITLE + " ASC";
-
-        Cursor cursor = cr.query(uri, projection, selection + "=?", selectionArgs, sortOrder);
-
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                int idIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
-                long id = Long.parseLong(cursor.getString(idIndex));
-                uriImageCamera = ContentUris.withAppendedId(MediaStore.Images.Media
-                        .getContentUri("external"), id);
-            }
+        try {
+            outputFile = File.createTempFile(
+                    "avatar",
+                    ".jpeg",
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                    );
+            OutputStream outputStream = new FileOutputStream(outputFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            outputStream.close();
+        } catch (IOException e) {
+            return null;
         }
 
-        cursor.close();
-        return uriImageCamera;
+        return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", outputFile);
     }
 
-    public Uri getUserSelectionPhoto(ContentResolver cr) {
-        Uri imageUri = null;
-        String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA};
-
-        Cursor cursor = cr.query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                null,
-                null,
-                null
-        );
-
-        if (cursor != null) {
-            try {
-                int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
-                if (!(cursor.getCount() == 1)) {
-                    while (cursor.moveToNext()) {
-                        imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                                ,cursor.getLong(idColumn));
-                    }
-                }
-            } finally {
-                cursor.close();
-            }
+    public Uri getImageFile(Context context) {
+        File image;
+        try {
+            image = File.createTempFile(
+                    "avatar",
+                    ".jpeg",
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            );
+        } catch (IOException e) {
+            return null;
         }
-        return imageUri;
+        return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", image);
     }
 
     public LiveData<Boolean> isLoading() {

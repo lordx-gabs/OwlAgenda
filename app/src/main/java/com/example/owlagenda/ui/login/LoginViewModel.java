@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.util.SyncData;
 import com.facebook.AccessToken;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.AuthCredential;
@@ -19,13 +18,10 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class LoginViewModel extends ViewModel {
     private final FirebaseAuth firebaseAuth;
-    private final DatabaseReference databaseReference;
     private User user;
     private MutableLiveData<Boolean> isSuccessfully;
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
@@ -33,7 +29,6 @@ public class LoginViewModel extends ViewModel {
 
     public LoginViewModel() {
         firebaseAuth = FirebaseAuth.getInstance();
-        databaseReference = FirebaseDatabase.getInstance().getReference("Usuario");
     }
 
     public LiveData<Boolean> authUserWithEmailAndPassword(String email, String password) {
@@ -66,7 +61,7 @@ public class LoginViewModel extends ViewModel {
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                databaseReference.child(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                SyncData.databaseUserReference.child(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (!snapshot.exists()) {
@@ -76,8 +71,10 @@ public class LoginViewModel extends ViewModel {
                             user.setSurname(account.getFamilyName());
                             user.setUrlProfilePhoto(firebaseUser.getPhotoUrl().toString());
                             SyncData.synchronizeUserWithFirebase(user);
+
                         }
                         isSuccessfully.postValue(true);
+                        isLoading.postValue(false);
                     }
 
                     @Override
@@ -86,12 +83,12 @@ public class LoginViewModel extends ViewModel {
                         if (error.getCode() == DatabaseError.DISCONNECTED ||
                                 error.getCode() == DatabaseError.NETWORK_ERROR) {
                             errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
-                            return;
+                        } else {
+                            isSuccessfully.postValue(false);
                         }
-                        isSuccessfully.postValue(false);
+                        isLoading.postValue(false);
                     }
                 });
-                isLoading.postValue(false);
             } else {
                 isSuccessfully.postValue(false);
                 isLoading.postValue(false);
@@ -108,18 +105,20 @@ public class LoginViewModel extends ViewModel {
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                databaseReference.child(firebaseUser.getUid())
+                SyncData.databaseUserReference.child(firebaseUser.getUid())
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 if (!snapshot.exists()) {
                                     user.setEmail(firebaseUser.getEmail());
                                     user.setId(firebaseUser.getUid());
-                                    user.setName(firebaseUser.getDisplayName());
+                                    user.setName(firebaseUser.getDisplayName().split(" ")[0]);
+                                    user.setSurname(firebaseUser.getDisplayName().split(" ")[1]);
                                     user.setUrlProfilePhoto(firebaseUser.getPhotoUrl().toString());
                                     SyncData.synchronizeUserWithFirebase(user);
                                 }
                                 isSuccessfully.postValue(true);
+                                isLoading.postValue(false);
                             }
 
                             @Override
@@ -131,9 +130,9 @@ public class LoginViewModel extends ViewModel {
                                     return;
                                 }
                                 isSuccessfully.postValue(false);
+                                isLoading.postValue(false);
                             }
                         });
-                isLoading.postValue(false);
             } else {
                 isSuccessfully.postValue(false);
                 isLoading.postValue(false);

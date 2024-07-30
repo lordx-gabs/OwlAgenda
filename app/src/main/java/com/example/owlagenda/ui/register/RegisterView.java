@@ -1,12 +1,10 @@
 package com.example.owlagenda.ui.register;
 
-import static android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -26,15 +24,12 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -54,11 +49,9 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -76,7 +69,6 @@ public class RegisterView extends AppCompatActivity {
     private int genderSelected = -1;
     private LinearProgressIndicator loadingProgress;
     private ActivityResultLauncher<Intent> pickImageLauncher, takePhotoLauncher;
-    private ActivityResultLauncher<IntentSenderRequest> requestWriteAccessLauncher;
     private BottomSheetDialog bottomSheetDialog;
 
     @Override
@@ -161,9 +153,12 @@ public class RegisterView extends AppCompatActivity {
 
         emailEditText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -198,19 +193,6 @@ public class RegisterView extends AppCompatActivity {
                     }
                 });
 
-        requestWriteAccessLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartIntentSenderForResult(), result -> {
-                    if (result.getResultCode() == RESULT_OK) {
-                        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageProfileUri);
-                            takePhotoLauncher.launch(takePictureIntent);
-                        }
-                    } else {
-                        Toast.makeText(this, "Permissão necessária para tirar fotos.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
         registerViewModel.isLoading().observe(this, aBoolean -> {
             MaterialButton btnRegister = findViewById(R.id.btn_cadastrar);
             if (aBoolean) {
@@ -236,7 +218,7 @@ public class RegisterView extends AppCompatActivity {
         String confirmPassword = (confirmPasswordEditText.getText()).toString();
         String birthdate = null;
         String gender = null;
-        long phoneNumber = 0;
+        Long phoneNumber = null;
 
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
@@ -246,7 +228,7 @@ public class RegisterView extends AppCompatActivity {
         }
 
         if (!(phoneNumberEditText.getText()).toString().isEmpty()) {
-            phoneNumber = Long.parseLong(phoneNumberEditText.getText().toString().replaceAll("\\D", ""));
+            phoneNumber = Long.valueOf(phoneNumberEditText.getText().toString().replaceAll("\\D", ""));
         }
 
         if (genderSelected > -1) {
@@ -259,15 +241,14 @@ public class RegisterView extends AppCompatActivity {
                 user.setSurname(surname);
                 user.setEmail(email);
                 user.setPassword(password);
-                user.setData_aniversario(birthdate);
+                user.setBirthdate(birthdate);
                 user.setGender(gender);
                 user.setPhoneNumber(phoneNumber);
 
                 if (imageProfileUri == null) {
-                    try {
-                        imageProfileUri = Uri.fromFile(registerViewModel.createImageProfileDefaultFile(this));
-                    } catch (IOException e) {
-                        Toast.makeText(this, "Erro: " + e, Toast.LENGTH_SHORT).show();
+                    imageProfileUri = registerViewModel.getImageProfileDefaultUri(this);
+                    if (imageProfileUri == null) {
+                        Toast.makeText(this, "Erro ao carregar imagem padrão.", Toast.LENGTH_SHORT).show();
                         return;
                     }
                 }
@@ -290,19 +271,13 @@ public class RegisterView extends AppCompatActivity {
     }
 
     private void pickImage() {
-        Intent pickImageIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, PICK_IMAGE_REQUEST);
-            } else {
-                pickImageLauncher.launch(pickImageIntent);
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            pickImageLauncher.launch(new Intent(Intent.ACTION_GET_CONTENT).setType("image/*"));
         } else {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PICK_IMAGE_REQUEST);
             } else {
-                pickImageLauncher.launch(pickImageIntent);
+                pickImageLauncher.launch(new Intent(Intent.ACTION_PICK).setType("image/*"));
             }
         }
     }
@@ -311,32 +286,15 @@ public class RegisterView extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_IMAGE_CAPTURE);
         } else {
-            File photoFile;
-            try {
-                photoFile = registerViewModel.createImageProfileDefaultFile(getApplicationContext());
-            } catch (IOException e) {
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            imageProfileUri = registerViewModel.getImageFile(this);
+            if (imageProfileUri == null) {
+                Toast.makeText(this, "Erro ao tirar foto.", Toast.LENGTH_SHORT).show();
                 return;
             }
-
-            imageProfileUri = FileProvider.getUriForFile(this,
-                    "com.example.owlagenda.fileprovider",
-                    photoFile);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-               Uri imageCamera = registerViewModel.getFilePathToPhotoID(photoFile.getAbsolutePath()
-                        , getContentResolver());
-
-                IntentSender intentSender = MediaStore.createWriteRequest(getContentResolver()
-                        , Collections.singletonList(imageCamera)).getIntentSender();
-                requestWriteAccessLauncher.launch(new IntentSenderRequest.Builder(intentSender).build());
-            } else {
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageProfileUri);
-                    takePhotoLauncher.launch(takePictureIntent);
-                }
-
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageProfileUri);
+                takePhotoLauncher.launch(takePictureIntent);
             }
         }
     }
@@ -393,7 +351,6 @@ public class RegisterView extends AppCompatActivity {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -401,15 +358,6 @@ public class RegisterView extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
                 pickImage();
             } else {
-                if (ContextCompat.checkSelfPermission(this, READ_MEDIA_VISUAL_USER_SELECTED) == PERMISSION_GRANTED) {
-                    Uri imageSelected = registerViewModel.getUserSelectionPhoto(getContentResolver());
-                    if (imageSelected != null) {
-                        cutImage(imageSelected);
-                    } else {
-                        Toast.makeText(this, "Selecione somente uma imagem.", Toast.LENGTH_SHORT).show();
-                    }
-                    return;
-                }
                 Toast.makeText(this, "Permissão necessária para acessar o armazenamento.", Toast.LENGTH_SHORT).show();
             }
         }

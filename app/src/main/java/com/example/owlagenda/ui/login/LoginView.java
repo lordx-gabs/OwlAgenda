@@ -84,9 +84,8 @@ public class LoginView extends AppCompatActivity {
 
         btnGoogle = findViewById(R.id.btn_google);
         btnGoogle.setOnClickListener(v -> loginWithGoogle());
-        request = new GetCredentialRequest.Builder().addCredentialOption(new GetSignInWithGoogleOption.Builder(getString(R.string.default_web_client_id))
-                        .build())
-                .build();
+        request = new GetCredentialRequest.Builder().addCredentialOption(new GetSignInWithGoogleOption
+                .Builder(getString(R.string.default_web_client_id)).build()).build();
 
         btnFacebook = findViewById(R.id.login_button);
         btnFacebook.setPermissions("email", "public_profile");
@@ -208,9 +207,9 @@ public class LoginView extends AppCompatActivity {
                 new CredentialManagerCallback<>() {
                     @Override
                     public void onResult(GetCredentialResponse getCredentialResponse) {
-                        GoogleIdTokenCredential google = GoogleIdTokenCredential.createFrom(getCredentialResponse.getCredential().getData());
+                        GoogleIdTokenCredential googleIdToken = GoogleIdTokenCredential.createFrom(getCredentialResponse.getCredential().getData());
                         runOnUiThread(() ->
-                                loginViewModel.authUserWithGoogle(google).observe(LoginView.this, aBoolean -> {
+                                loginViewModel.authUserWithGoogle(googleIdToken).observe(LoginView.this, aBoolean -> {
                                     if (aBoolean) {
                                         Toast.makeText(LoginView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
                                         nextView();
