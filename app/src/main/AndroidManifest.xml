@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.owlagenda" >
+    package="com.example.owlagenda">
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -15,11 +15,21 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
 
     <application
         android:name=".util.MyApplication"
@@ -31,58 +41,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Base.Theme.OwlAgenda"
-        tools:targetApi="31"
-        >
-
-        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
-        <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.owlagenda.fileprovider"
-            android:grantUriPermissions="true"
-            android:exported="false">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
-
-        <activity android:name="com.facebook.FacebookActivity"
-            android:configChanges= "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            />
-        <activity
-            android:name="com.facebook.CustomTabActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="@string/fb_login_protocol_scheme" />
-            </intent-filter>
-        </activity>
+        tools:targetApi="31">
 
         <activity
-            android:name=".ui.telaprincipal.TelaPrincipalView"
-            android:exported="false"
-            android:label="@string/title_activity_tela_principal"
-            />
-        <activity
-            android:name=".ui.forgotpassword.ForgotPasswordView"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.register.RegisterView"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize"
-           />
-
-        <activity
-            android:name="com.yalantis.ucrop.UCropActivity"
-            />
-        <activity
-            android:name=".ui.login.LoginView"
+            android:name=".ui.homescreen.HomeScreenView"
             android:exported="true"
-            android:launchMode="singleTop" >
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -90,14 +54,66 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.prova.Prova"
+            android:exported="false" />
+
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.facebook.sdk.ClientToken"
+            android:value="@string/facebook_client_token" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.owlagenda.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation" />
+        <activity
+            android:name="com.facebook.CustomTabActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="@string/fb_login_protocol_scheme" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.telaprincipal.TelaPrincipalView"
+            android:exported="false"
+            android:label="@string/title_activity_tela_principal"
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
+            android:name=".ui.forgotpassword.ForgotPasswordView"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.register.RegisterView"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity android:name="com.yalantis.ucrop.UCropActivity" />
+
+        <activity
+            android:name=".ui.login.LoginView"
+            android:exported="false" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
     </application>
 
-    <queries>
-        <intent>
-            <action android:name="android.media.action.IMAGE_CAPTURE" />
-        </intent>
-    </queries>
 </manifest>

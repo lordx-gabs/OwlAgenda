@@ -16,8 +16,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ChatBot {
-    private final ChatFutures chatFutures = ModelChatBot.createChatbotModel().startChat();
+    private final ChatFutures chatFutures;
     private final Executor executor = Executors.newSingleThreadExecutor();
+
+    public ChatBot(ChatFutures chatFutures) {
+        this.chatFutures = chatFutures;
+    }
+    
 
     public void sendMessage(String userMessage, Callback<String> callback) {
         Content.Builder messageContent = new Content.Builder();

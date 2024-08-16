@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.owlagenda.databinding.ActivityTelaPrincipalBinding;
 
 public class TelaPrincipalView extends AppCompatActivity {
-    private ActivityTelaPrincipalBinding binding;
+    public ActivityTelaPrincipalBinding binding;
     private NavController navController;
     private TelaPrincipalViewModel viewModel;
 
@@ -31,9 +31,6 @@ public class TelaPrincipalView extends AppCompatActivity {
         // Configure a visualização de navegação inferior com o NavController
         NavigationUI.setupWithNavController(binding.bottomNavigationView.bottomNavigationView, navController);
 
-        binding.appFab.fab.setOnClickListener(v -> {
-
-        });
 
     }
 

@@ -1,3 +1,4 @@
+
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_inicio"
@@ -7,12 +8,12 @@
     <item
         android:id="@+id/nav_calendario"
         android:title="@string/menu_calendario"
-        android:icon="@drawable/ic_calendario" />
+        android:icon="@drawable/ic_calendar" />
 
     <item
         android:id="@+id/nav_corubot"
         android:title="@string/corubot"
-        android:icon="@drawable/ic_corubot" />
+        android:icon="@drawable/ic_selene" />
 
     <item
         android:id="@+id/nav_perfil"

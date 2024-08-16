@@ -57,7 +57,7 @@
 
     <fragment
         android:id="@+id/nav_perfil"
-        android:name="com.example.owlagenda.ui.perfil.PerfilFragment"
+        android:name="com.example.owlagenda.ui.profile.ProfileFragment"
         android:label="@string/menu_perfil"
         tools:layout="@layout/fragment_perfil" >
 

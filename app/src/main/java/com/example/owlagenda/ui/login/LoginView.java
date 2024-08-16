@@ -27,7 +27,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.forgotpassword.ForgotPasswordView;
 import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
-import com.example.owlagenda.ui.register.RegisterView;
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -41,7 +40,10 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.UserInfo;
 
 import java.io.IOException;
 import java.util.concurrent.Executor;
@@ -64,13 +66,14 @@ public class LoginView extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        this.setContentView(R.layout.activity_login_view);
+        this.setContentView(R.layout.activity_login);
 
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         SharedPreferencesUtil.init(this);
         firebaseAuth = FirebaseAuth.getInstance();
-        if (firebaseAuth.getCurrentUser() != null && firebaseAuth.getCurrentUser().isEmailVerified() && SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.KEY_USER_REMEMBER_ME, true)) {
+        if (firebaseAuth.getCurrentUser() != null && SharedPreferencesUtil
+                .getBoolean(SharedPreferencesUtil.KEY_USER_REMEMBER_ME, true)) {
             this.nextView();
             finish();
         }
@@ -90,6 +93,7 @@ public class LoginView extends AppCompatActivity {
         btnFacebook = findViewById(R.id.login_button);
         btnFacebook.setPermissions("email", "public_profile");
         callbackManager = CallbackManager.Factory.create();
+
         btnFacebook.registerCallback(callbackManager, new FacebookCallback<>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
@@ -160,19 +164,9 @@ public class LoginView extends AppCompatActivity {
         if (!emailUser.isEmpty() && !passwordUser.isEmpty()) {
             loginViewModel.authUserWithEmailAndPassword(emailUser, passwordUser).observe(this, aBoolean -> {
                 if (aBoolean) {
-                    if (firebaseAuth.getCurrentUser().isEmailVerified()) {
-                        keepsUserLogged(rememberMeCheckBox.isChecked());
-                        Toast.makeText(LoginView.this, "Bem vindo ao Owl", Toast.LENGTH_SHORT).show();
-                        nextView();
-                    } else {
-                        new MaterialAlertDialogBuilder(this)
-                                .setTitle("Verificação de email não realizada.")
-                                .setMessage("Seu email ainda não foi verificado, por favor verifique sua caixa de entrada ou de spam do seu email, caso não tenha recebido o email de verificação, clique em Enviar novamente.")
-                                .setNeutralButton("Ok", (dialog, which) -> dialog.dismiss())
-                                .setPositiveButton("Enviar novamente", (dialog, which) ->
-                                        firebaseAuth.getCurrentUser().sendEmailVerification())
-                                .show();
-                    }
+                    keepsUserLogged(rememberMeCheckBox.isChecked());
+                    Toast.makeText(LoginView.this, "Bem vindo ao Owl", Toast.LENGTH_SHORT).show();
+                    nextView();
                 } else {
                     Toast.makeText(LoginView.this, "Erro na autenticação, tente novamente.", Toast.LENGTH_SHORT).show();
                 }
@@ -180,12 +174,6 @@ public class LoginView extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Todos os campos precisam ser preenchidos.", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    public void goToViewRegister(View view) {
-        emailEditText.setText("");
-        passwordEditText.setText("");
-        startActivity(new Intent(this, RegisterView.class));
     }
 
     private void nextView() {

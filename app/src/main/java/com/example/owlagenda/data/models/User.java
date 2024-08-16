@@ -1,5 +1,7 @@
 package com.example.owlagenda.data.models;
 
+import java.net.URL;
+
 public class User {
     
     private String id;

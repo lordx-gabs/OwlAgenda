@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Environment;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.lifecycle.LiveData;
@@ -16,7 +17,10 @@ import androidx.lifecycle.ViewModel;
 import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
+import com.example.owlagenda.data.repository.UserRepository;
 import com.example.owlagenda.util.SyncData;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
@@ -32,60 +36,59 @@ import java.io.OutputStream;
 
 public class RegisterViewModel extends ViewModel {
     private final FirebaseAuth firebaseAuth;
-    private final StorageReference folderPathUser;
     private final MutableLiveData<Boolean> isLoading;
     private final MutableLiveData<String> errorMessageLiveData;
+    private final UserRepository repository;
 
     public RegisterViewModel() {
         firebaseAuth = FirebaseAuth.getInstance();
-        folderPathUser = FirebaseStorage.getInstance().getReference().child("usuarios");
         isLoading = new MutableLiveData<>();
         errorMessageLiveData = new MutableLiveData<>();
+        repository = new UserRepository();
     }
 
     public MutableLiveData<Boolean> registerUser(User user, Uri imagePath) {
         isLoading.postValue(true);
         MutableLiveData<Boolean> registrationResultLiveData = new MutableLiveData<>();
 
-        firebaseAuth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                        user.setId(firebaseUser.getUid());
-                        user.setPassword(null);
-                        uploadProfileImage(imagePath, user, firebaseUser, registrationResultLiveData);
-                    } else {
-                        handleRegistrationFailure(task.getException(), registrationResultLiveData);
-                    }
-                });
+        repository.registerUser(user.getEmail(), user.getPassword(), task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                user.setId(firebaseUser.getUid());
+                user.setPassword(null);
+                uploadProfileImage(imagePath, user, firebaseUser, registrationResultLiveData);
+            } else {
+                handleRegistrationFailure(task.getException(), registrationResultLiveData);
+            }
+        });
 
         return registrationResultLiveData;
     }
 
     private void uploadProfileImage(Uri imagePath, User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
-        int imageWidthMax = 200, imageHeightMax = 200;
-        Bitmap bitmapImage = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(imagePath.getPath()), imageWidthMax, imageHeightMax, false);
-        byte[] imageBytes = bitmapToByteArray(bitmapImage);
+        byte[] imageBytes = resizeImage(imagePath);
+        StorageReference imageStorageReference = FirebaseStorage.getInstance().getReference()
+                .child("usuarios").child(firebaseUser.getUid()).child("foto_perfil.jpg");
 
-        StorageReference imageStorageReference = folderPathUser.child(firebaseUser.getUid()).child("foto_perfil.jpg");
-        imageStorageReference.putBytes(imageBytes).addOnCompleteListener(task3 -> {
+        repository.uploadProfilePhoto(imageBytes, imageStorageReference, task3 -> {
             if (task3.isSuccessful()) {
                 imageStorageReference.getDownloadUrl().addOnSuccessListener(uri -> {
                     user.setUrlProfilePhoto(uri.toString());
-                    sendVerificationEmail(user, firebaseUser, registrationResultLiveData);
+                    repository.sendVerificationEmail();
+                    SyncData.synchronizeUserWithFirebase(user);
+                    registrationResultLiveData.postValue(true);
                 }).addOnFailureListener(e ->
-                        handleImageUploadFailure(e, registrationResultLiveData, firebaseUser, imageStorageReference));
+                        handleImageUploadFailure(e, registrationResultLiveData, firebaseUser));
             } else {
-                handleImageUploadFailure(task3.getException(), registrationResultLiveData, firebaseUser, imageStorageReference);
+                handleImageUploadFailure(task3.getException(), registrationResultLiveData, firebaseUser);
             }
         });
     }
 
-    private void sendVerificationEmail(User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
-        firebaseUser.sendEmailVerification().addOnCompleteListener(task -> {
-            SyncData.synchronizeUserWithFirebase(user);
-            registrationResultLiveData.postValue(true);
-        });
+    private byte[] resizeImage(Uri imagePath) {
+        int imageWidthMax = 300, imageHeightMax = 300;
+        Bitmap bitmapImage = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(imagePath.getPath()), imageWidthMax, imageHeightMax, false);
+        return bitmapToByteArray(bitmapImage);
     }
 
     private void handleRegistrationFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData) {
@@ -99,18 +102,11 @@ public class RegisterViewModel extends ViewModel {
         isLoading.postValue(false);
     }
 
-    private void handleImageUploadFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData, FirebaseUser firebaseUser, StorageReference imageStorageReference) {
-        registrationResultLiveData.postValue(false);
+    private void handleImageUploadFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData, FirebaseUser firebaseUser) {
         errorMessageLiveData.postValue("Erro ao guardar foto de perfil. Erro: " + exception.getMessage());
-        if (imageStorageReference != null) {
-            imageStorageReference.delete();
-        }
-        deleteUser(firebaseUser, registrationResultLiveData);
-        isLoading.postValue(false);
-    }
-
-    private void deleteUser(FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
-        firebaseUser.delete().addOnCompleteListener(task -> {
+        FirebaseStorage.getInstance().getReference().child("usuarios")
+                .child(firebaseUser.getUid()).delete();
+        repository.deleteUser(task -> {
             registrationResultLiveData.postValue(false);
             isLoading.postValue(false);
         });

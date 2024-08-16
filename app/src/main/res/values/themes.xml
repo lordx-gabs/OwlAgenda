@@ -1,17 +1,12 @@
 <resources>
     <!-- Tema claro do app -->
     <style name="Base.Theme.OwlAgenda" parent="Theme.Material3.Light.NoActionBar">
-        <!-- cor do botão -->
-        <item name="colorButtonNormal">#DDA0DD</item>
-        <!-- Define a cor do texto na barra de título -->
-        <item name="android:textColorPrimary">@color/black</item>
-        <!-- Define a cor da barra de status como branca -->
+        <item name="colorPrimary">@color/lightbrown</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorButtonNormal">@color/lightbrown</item>
+        <item name="android:textColor">@color/black</item>
         <item name="android:statusBarColor">?android:attr/colorBackground</item>
-        <!-- Define os itens da barra de status como visivel -->
         <item name="android:windowLightStatusBar">true</item>
-        <!-- Define a cor da barra de navegação -->
-        <item name="android:navigationBarColor">@android:color/white</item>
-
     </style>
 
 </resources>

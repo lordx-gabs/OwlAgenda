@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.perfil.PerfilFragment">
+    tools:context=".ui.profile.ProfileFragment">
     <include
         android:id="@+id/app_bar_tela_principal"
         layout="@layout/toolbar_layout"
@@ -24,19 +24,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- Conteúdo do ScrollView aqui -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recylerView"
+                android:layout_width="350dp"
+                android:layout_height="250dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="32dp"
+                app:layout_constraintBottom_toTopOf="@+id/button6"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.497"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.079" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/textView55"
+            <Button
+                android:id="@+id/button6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"
-                android:textSize="100sp"
+                android:layout_marginBottom="32dp"
+                android:text="ta"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
+                app:layout_constraintStart_toStartOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 

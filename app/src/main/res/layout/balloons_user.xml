@@ -1,0 +1,51 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="right"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+
+        <!-- TextView com fundo e texto -->
+
+        <!-- ImageView que será sobreposta -->
+        <TextView
+            android:id="@+id/tv_balloons_user"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="7dp"
+            android:background="@drawable/balloons_rounded_background_user"
+            android:gravity="right"
+            android:maxWidth="250dp"
+            android:paddingStart="15dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="15dp"
+            android:paddingBottom="8dp"
+            android:text="jjfshjfusdhfhsdf" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            app:srcCompat="@drawable/tip_user" />
+
+    </FrameLayout>
+
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/profile_photo_ballons_user"
+        android:layout_width="45dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="4dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/owl_home_screen" />
+</LinearLayout>

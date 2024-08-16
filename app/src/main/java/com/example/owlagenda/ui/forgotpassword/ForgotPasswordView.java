@@ -6,7 +6,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -43,16 +42,11 @@ public class ForgotPasswordView extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_forgot_password_view);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        setContentView(R.layout.activity_forgot_password);
 
         emailEditText = findViewById(R.id.et_email_reset_password);
-        message = findViewById(R.id.tv_mensagem);
-        loadingProgress = findViewById(R.id.progress_indicator_forgot);
+        message = findViewById(R.id.tv_message_forgot_password);
+        loadingProgress = findViewById(R.id.progress_indicator_forgot_password);
         btnSend = findViewById(R.id.btn_send_email);
 
         SharedPreferencesUtil.init(this);

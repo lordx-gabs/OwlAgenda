@@ -21,41 +21,52 @@
     <string name="navigation_drawer_open">Abrir menu</string>
     <string name="navigation_drawer_close">Fechar menu</string>
 
-    <string name="lorem_ipsum">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
-        volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
-        dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad
-        litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse blandit eleifend
-        diam, vel rutrum tellus vulputate quis. Aliquam eget libero aliquet, imperdiet nisl a,
-        ornare ex. Sed rhoncus est ut libero porta lobortis. Fusce in dictum tellus.\n\n
-        Suspendisse interdum ornare ante. Aliquam nec cursus lorem. Morbi id magna felis. Vivamus
-        egestas, est a condimentum egestas, turpis nisl iaculis ipsum, in dictum tellus dolor sed
-        neque. Morbi tellus erat, dapibus ut sem a, iaculis tincidunt dui. Interdum et malesuada
-        fames ac ante ipsum primis in faucibus. Curabitur et eros porttitor, ultricies urna vitae,
-        molestie nibh. Phasellus at commodo eros, non aliquet metus. Sed maximus nisl nec dolor
-        bibendum, vel congue leo egestas.\n\n
-        Sed interdum tortor nibh, in sagittis risus mollis quis. Curabitur mi odio, condimentum sit
-        amet auctor at, mollis non turpis. Nullam pretium libero vestibulum, finibus orci vel,
-        molestie quam. Fusce blandit tincidunt nulla, quis sollicitudin libero facilisis et. Integer
-        interdum nunc ligula, et fermentum metus hendrerit id. Vestibulum lectus felis, dictum at
-        lacinia sit amet, tristique id quam. Cras eu consequat dui. Suspendisse sodales nunc ligula,
-        in lobortis sem porta sed. Integer id ultrices magna, in luctus elit. Sed a pellentesque
-        est.\n\n
-        Aenean nunc velit, lacinia sed dolor sed, ultrices viverra nulla. Etiam a venenatis nibh.
-        Morbi laoreet, tortor sed facilisis varius, nibh orci rhoncus nulla, id elementum leo dui
-        non lorem. Nam mollis ipsum quis auctor varius. Quisque elementum eu libero sed commodo. In
-        eros nisl, imperdiet vel imperdiet et, scelerisque a mauris. Pellentesque varius ex nunc,
-        quis imperdiet eros placerat ac. Duis finibus orci et est auctor tincidunt. Sed non viverra
-        ipsum. Nunc quis augue egestas, cursus lorem at, molestie sem. Morbi a consectetur ipsum, a
-        placerat diam. Etiam vulputate dignissim convallis. Integer faucibus mauris sit amet finibus
-        convallis.\n\n
-        Phasellus in aliquet mi. Pellentesque habitant morbi tristique senectus et netus et
-        malesuada fames ac turpis egestas. In volutpat arcu ut felis sagittis, in finibus massa
-        gravida. Pellentesque id tellus orci. Integer dictum, lorem sed efficitur ullamcorper,
-        libero justo consectetur ipsum, in mollis nisl ex sed nisl. Donec maximus ullamcorper
-        sodales. Praesent bibendum rhoncus tellus nec feugiat. In a ornare nulla. Donec rhoncus
-        libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
-        vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
+    <string name="comando_gemini_trigger">
+        Você deve analisar o texto fornecido por um usuário e identificar se ele está solicitando uma das ações específicas listadas abaixo. Sua resposta deve seguir estas diretrizes para garantir precisão e consistência:\n\nDiretrizes:\nIdentificação de Ação:\nDetermine se o usuário está solicitando uma das ações listadas. Se estiver, envie somente o número correspondente à ação.\n\nEdição ou Exclusão de Tarefas (Ações 2 e 3):\nCaso Completo: Se o usuário fornece tanto o nome da tarefa quanto a data, envie o número da ação seguido do nome da tarefa e da data, separados por vírgulas.\nExemplo: \"Quero editar a tarefa do dia 23/05, chamada tarefa sala 3c.\"\nResposta: \"3, tarefa sala 3c, 23/05\"\nCaso Incompleto: Se o usuário fornece apenas o nome ou apenas a data, envie somente o número da ação. Não inclua o nome, a data, ou outros detalhes.\nExemplo: \"Preciso excluir a tarefa chamada prova de história.\"\nResposta: \"2\"\nRegra Essencial: Quando qualquer detalhe essencial (nome ou data) estiver ausente, a resposta deve ser somente o número da ação, sem qualquer outra informação.\n\nAdição de Tarefa (Ação 1):\nCaso Completo: Se o usuário deseja adicionar uma nova tarefa e fornece todos os três detalhes (nome, data, e tag), envie o número da ação seguido do nome, data, e tag, separados por vírgulas.\nExemplo: \"Adicione uma tarefa chamada estudo inglês para o dia 01/09 com a tag revisão.\"\nResposta: \"1, estudo inglês, 01/09, revisão\"\nCaso Incompleto: Se faltar qualquer um desses detalhes (nome, data, ou tag), envie somente o número da ação. Não inclua informações parciais.\nExemplo: \"Quero adicionar uma tarefa chamada reunião pais e mestres.\"\nResposta: \"1\"\nRegra Essencial: Quando nome, data, ou tag estiver ausente, responda apenas com o número da ação, sem outros detalhes.\n\nSolicitações sem Ação Específica (Ação 0):\nQuando o usuário não solicitar nenhuma das ações listadas, envie \"0\".\nExemplo: \"Como foi seu dia hoje?\"\nResposta: \"0\"\nRegra Essencial: Use \"0\" para qualquer texto que não corresponda diretamente às ações de adição, edição, exclusão, ou visualização de tarefas.\n\nSolicitações de ver tarefas do mês:\nQuando o usuário solicitar para ver as tarefas do mês, e ele envie também o mês que ele deseje visualizar as tarefas, mande além do número da solicitação, mande o mês separado por virgula. Caso ele não envie o mês, só responda com o número da solicitação.\nExemplo: \"Desejo ver as tarefas do mês de agosto.\"\nResposta\"4, agosto\"\nExemplo: \"Desejo ver as tarefas do mês.\"\nResposta\"4\"\n\nAções:\n1 - Adicionar uma tarefa\n2 - Excluir uma tarefa\n3 - Editar uma tarefa\n4 - Ver as tarefas do mês\n5 - Ver as tarefas do dia
+        input: Quero editar a tarefa do dia 23/05, o nome é tarefa sala 3c
+        output 2: 3, tarefa sala 3c, 23/05
+        input: Gostaria de excluir a tarefa, prova de história, no dia 23/06
+        output 2: 2, prova de história, 23/06
+        input: Adicione uma tarefa para o dia 24/05 com o nome atividade arduino e a tag atividade extra-curricular
+        output 2: 1, atividade arduino, 24/05, atividade extra-curricular
+        input: Quero editar uma tarefa, o nome é tarefa sala 3c
+        output 2: 3
+        input: Quero editar uma tarefa do dia 04/05
+        output 2: 3
+        input: Quero excluir a tarefa, prova de história
+        output 2: 2
+        input: Quero adicionar uma tarefa chamada reunião pais e mestres no dia 15/09
+        output 2: 1
+        input: Quais são as tarefas do dia?
+        output 2: 5
+        input: Por favor, mostre as tarefas do mês de setembro
+        output 2: 4
+        input: Por favor, mostre as tarefas do mês de setembro
+        output 2: 4, setembro
+        input: Por favor, mostre as tarefas do mês
+        output 2: 4
+        input: Eu gostaria de adicionar uma nova tarefa chamada revisão final para o dia 30/08, com a tag estudo
+        output 2: 1, revisão final, 30/08, estudo
+        input: Preciso editar a tarefa apresentação final
+        output 2: 3
+        input: Preciso editar a tarefa apresentação final, do dia 25/06
+        output 2: 3, apresentação final, 25/06
+        input: Excluir a tarefa leitura do capítulo 5
+        output 2: 2
+        input: Quero adicionar uma tarefa chamada reunião pais e mestres no dia 15/09 com a tag reunião
+        output 2: 1, reunião pais e mestres, 15/09, reunião
+        input: Gostaria de ver minhas tarefas de hoje
+        output 2: 5
+        input: Quero deletar a tarefa, mas não sei a data
+        output 2: 2
+        input: Gostaria de adicionar uma tarefa chamada revisão final
+        output 2: 1
+        input: Quero editar uma tarefa, mas não lembro a data ou o nome
+        output 2: 3
+        input: Mostrar minhas tarefas do mês
+        output 2: 4
+        input: Bom dia! Como vai?
+        output 2: 0
     </string>
     <string name="title_activity_tela_principal">TelaPrincipal</string>
     <string name="nav_header_title">Olá senhor(a) </string>

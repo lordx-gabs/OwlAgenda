@@ -37,6 +37,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
+import com.example.owlagenda.ui.login.LoginView;
 import com.example.owlagenda.util.FormatPhoneNumber;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -75,7 +76,7 @@ public class RegisterView extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        this.setContentView(R.layout.activity_cadastro_view);
+        this.setContentView(R.layout.activity_register);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -193,8 +194,8 @@ public class RegisterView extends AppCompatActivity {
                     }
                 });
 
+        MaterialButton btnRegister = findViewById(R.id.btn_cadastrar);
         registerViewModel.isLoading().observe(this, aBoolean -> {
-            MaterialButton btnRegister = findViewById(R.id.btn_cadastrar);
             if (aBoolean) {
                 btnRegister.setEnabled(false);
                 loadingProgress.setVisibility(View.VISIBLE);
@@ -257,6 +258,8 @@ public class RegisterView extends AppCompatActivity {
                     if (success) {
                         //colocar que o email será enviado
                         Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(this, LoginView.class);
+                        startActivity(intent);
                         finish();
                     } else {
                         Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
