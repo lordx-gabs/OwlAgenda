@@ -7,6 +7,7 @@ public class SharedPreferencesUtil {
     private static final String PREF_NAME = "UserPrefs";
     public static final String KEY_USER_REMEMBER_ME = "userRememberMe";
     public static final String KEY_USER_TIMESTAMP = "timeCredentials";
+    public static final String KEY_USER_MESSAGES = "messagesList";
     private static SharedPreferences sharedPreferences;
     private static SharedPreferences.Editor editor;
 
@@ -38,6 +39,15 @@ public class SharedPreferencesUtil {
 
     public static long getLong(String key, long defaultValue) {
         return sharedPreferences.getLong(key, defaultValue);
+    }
+
+    public static void saveMessagesUser(String key, String messages) {
+        editor.putString(key, messages);
+        editor.apply();
+    }
+
+    public static String getMessagesUser(String key) {
+        return sharedPreferences.getString(key, "");
     }
 
 }

@@ -1,4 +1,6 @@
-package com.example.owlagenda.ui.corubot;
+package com.example.owlagenda.ui.selene;
+
+import androidx.annotation.NonNull;
 
 public class Message {
     private String text;
@@ -11,11 +13,20 @@ public class Message {
         this.messageType = messageType;
     }
 
+    public Message() {
+
+    }
+
     public String getText() {
         return text;
     }
 
     public int getMessageType() {
         return messageType;
+    }
+
+    @NonNull
+    public String toString() {
+        return text + "////" + messageType;
     }
 }

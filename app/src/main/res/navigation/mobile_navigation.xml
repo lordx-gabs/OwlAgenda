@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_inicio" >
+    app:startDestination="@+id/nav_inicio">
 
     <fragment
         android:id="@+id/nav_inicio"
@@ -12,64 +12,77 @@
         tools:layout="@layout/fragment_inicio">
         <action
             android:id="@+id/action_nav_inicio_to_nav_calendario"
-            app:destination="@id/nav_calendario" />
+            app:destination="@id/nav_calendario"
+            app:popUpToSaveState="true"/>
         <action
             android:id="@+id/action_nav_inicio_to_nav_perfil2"
-            app:destination="@id/nav_perfil" />
+            app:destination="@id/nav_perfil"
+            app:popUpToSaveState="true"/>
         <action
             android:id="@+id/action_nav_inicio_to_nav_corubot"
-            app:destination="@id/nav_corubot" />
+            app:destination="@id/nav_corubot"
+            app:popUpToSaveState="true"/>
     </fragment>
 
     <fragment
         android:id="@+id/nav_calendario"
         android:name="com.example.owlagenda.ui.calendar.CalendarFragment"
         android:label="@string/menu_calendario"
-        tools:layout="@layout/fragment_calendar" >
+        tools:layout="@layout/fragment_calendar"
+        >
 
         <action
             android:id="@+id/action_nav_calendario_to_nav_perfil"
-            app:destination="@id/nav_perfil" />
+            app:destination="@id/nav_perfil"
+            app:popUpToSaveState="true"/>
         <action
             android:id="@+id/action_nav_calendario_to_nav_inicio"
-            app:destination="@id/nav_inicio" />
+            app:destination="@id/nav_inicio"
+            app:popUpToSaveState="true"/>
         <action
             android:id="@+id/action_nav_calendario_to_nav_corubot"
-            app:destination="@id/nav_corubot" />
+            app:destination="@id/nav_corubot"
+            app:popUpToSaveState="true"/>
     </fragment>
 
     <fragment
         android:id="@+id/nav_corubot"
-        android:name="com.example.owlagenda.ui.corubot.CorubotFragment"
-        android:label="@string/corubot"
+        android:name="com.example.owlagenda.ui.selene.SeleneFragment"
+        android:label="@string/menu_selene"
         tools:layout="@layout/fragment_corubot" >
 
         <action
             android:id="@+id/action_nav_corubot_to_nav_inicio"
-            app:destination="@id/nav_inicio" />
+            app:destination="@id/nav_inicio"
+            app:popUpToSaveState="true"/>
         <action
             android:id="@+id/action_nav_corubot_to_nav_calendario"
-            app:destination="@id/nav_calendario" />
+            app:destination="@id/nav_calendario"
+            app:popUpToSaveState="true"/>
         <action
             android:id="@+id/action_nav_corubot_to_nav_perfil"
-            app:destination="@id/nav_perfil" />
+            app:destination="@id/nav_perfil"
+            app:popUpToSaveState="true"/>
     </fragment>
 
     <fragment
         android:id="@+id/nav_perfil"
         android:name="com.example.owlagenda.ui.profile.ProfileFragment"
         android:label="@string/menu_perfil"
-        tools:layout="@layout/fragment_perfil" >
+        tools:layout="@layout/fragment_profile" >
 
         <action
             android:id="@+id/action_nav_perfil_to_nav_calendario"
-            app:destination="@id/nav_calendario" />
+            app:destination="@id/nav_calendario"
+            app:popUpToSaveState="true"/>
         <action
             android:id="@+id/action_nav_perfil_to_nav_inicio"
-            app:destination="@id/nav_inicio" />
+            app:destination="@id/nav_inicio"
+            app:popUpToSaveState="true"/>
         <action
             android:id="@+id/action_nav_perfil_to_nav_corubot"
-            app:destination="@id/nav_corubot" />
+            app:destination="@id/nav_corubot"
+            app:popUpToSaveState="true"/>
     </fragment>
 
 </navigation>

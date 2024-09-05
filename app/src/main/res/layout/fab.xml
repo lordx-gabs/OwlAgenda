@@ -1,4 +1,3 @@
-<!-- fab_layout.xml -->
 <com.google.android.material.floatingactionbutton.FloatingActionButton xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fab"
@@ -7,6 +6,9 @@
     android:layout_gravity="bottom|end"
     android:layout_marginEnd="16dp"
     android:layout_marginBottom="16dp"
+    android:contentDescription="Adicionar novo item"
     android:src="@drawable/ic_fab"
-    android:backgroundTint="@color/selector_btn_toolbar_sofia"
+    android:tint="@color/black"
+    android:tintMode="multiply"
+    app:backgroundTint="@color/selector_navigation_bottom_icon"
     app:fabSize="normal" />

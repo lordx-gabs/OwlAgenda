@@ -7,6 +7,15 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
+    <!-- Mova o ProgressIndicator para o topo, fora do ScrollView -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/barra_carregando"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:indeterminate="true"
+        android:visibility="invisible" />
+
     <ScrollView
         style="@android:style/Widget.Material.ScrollView"
         android:layout_width="match_parent"
@@ -15,7 +24,8 @@
         android:focusableInTouchMode="false"
         android:scrollbars="none"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:context=".ui.register.RegisterView">
+        tools:context=".ui.register.RegisterView"
+        android:layout_marginTop="8dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/main"
@@ -23,17 +33,6 @@
             android:layout_height="wrap_content"
             tools:layout_editor_absoluteY="4dp">
 
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/barra_carregando"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:indeterminate="true"
-                android:visibility="visible"
-                app:layout_constraintBottom_toTopOf="@+id/appBarLayout_register"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.appbar.AppBarLayout
                 android:id="@+id/appBarLayout_register"
@@ -41,7 +40,7 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/barra_carregando">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/toolbar_register"
@@ -65,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="24dp"
                 android:hint="Confirme sua senha"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
@@ -87,29 +86,29 @@
                     android:padding="8dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <ImageButton
-                android:id="@+id/imageButton"
+
+            <Button
+                android:id="@+id/btn_register_clips"
+                style="?attr/materialIconButtonFilledTonalStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginEnd="4dp"
-                android:layout_marginBottom="24dp"
-                android:background="@android:color/transparent"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="8dp"
                 android:onClick="clipsClick"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_clips"
+                app:icon="@drawable/ic_clips"
                 app:layout_constraintBottom_toTopOf="@+id/textView13"
                 app:layout_constraintEnd_toStartOf="@+id/foto_usuario"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_title_register" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_title_register"
+                app:layout_constraintVertical_bias="1.0" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tv_title_register"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="64dp"
+                android:layout_marginTop="60dp"
                 android:layout_marginEnd="32dp"
                 android:drawableEnd="@drawable/ic_selene"
                 android:fontFamily="@font/righteous"
@@ -118,6 +117,7 @@
                 android:textAlignment="center"
                 android:textSize="20sp"
                 android:textStyle="bold"
+                app:drawableTint="@color/selector_icon_color"
                 app:layout_constraintEnd_toStartOf="@+id/foto_usuario"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
@@ -136,9 +136,10 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/et_email_layout_register"
-                android:layout_width="325dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
                 android:hint="Email"
                 app:boxCornerRadiusBottomEnd="8dp"
@@ -349,9 +350,10 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/et_data_nascimento_layout"
-                android:layout_width="275dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
                 android:hint="Data de Nascimento"
                 app:boxBackgroundMode="outline"

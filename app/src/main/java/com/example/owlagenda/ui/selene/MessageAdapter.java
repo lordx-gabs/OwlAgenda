@@ -1,4 +1,4 @@
-package com.example.owlagenda.ui.corubot;
+package com.example.owlagenda.ui.selene;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;

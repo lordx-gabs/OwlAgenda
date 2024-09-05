@@ -15,9 +15,10 @@
     <color name="example_5_text_grey">#DCDCDC</color>
     <color name="example_5_page_bg_color">#0E0E0E</color>
     <color name="activeBrown">#55D2B48C</color>
-    <color name="lightLilac">#B6B6FF</color>
-    <color name="mediumLilac">#B9A0E8</color>
-    <color name="darkLilac">#8A6FC4</color>
+    <color name="lightLilac">#A997D8</color>
+    <color name="darkLilac">#8C5FB8</color>
+    <color name="activeLilacMedium">#50A997D8</color>
+    <color name="activeLilacDark">#508C5FB8</color>
 
 
 </resources>

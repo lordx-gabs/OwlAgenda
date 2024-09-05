@@ -2,9 +2,9 @@ package com.example.owlagenda.ui.login;
 
 import static com.example.owlagenda.util.SharedPreferencesUtil.KEY_USER_REMEMBER_ME;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CancellationSignal;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Patterns;
@@ -15,52 +15,28 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.credentials.CredentialManager;
-import androidx.credentials.CredentialManagerCallback;
-import androidx.credentials.GetCredentialRequest;
-import androidx.credentials.GetCredentialResponse;
-import androidx.credentials.exceptions.GetCredentialException;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.forgotpassword.ForgotPasswordView;
 import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
 import com.example.owlagenda.util.SharedPreferencesUtil;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
-import com.google.android.gms.common.SignInButton;
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.dialog.MaterialDialogs;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.auth.FacebookAuthProvider;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.UserInfo;
-
-import java.io.IOException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class LoginView extends AppCompatActivity {
-    private FirebaseAuth firebaseAuth;
     private LoginViewModel loginViewModel;
     private MaterialButton btnLogin;
-    private SignInButton btnGoogle;
     private EditText emailEditText, passwordEditText;
     private CheckBox rememberMeCheckBox;
     private TextView forgotPasswordTextView;
-    private CallbackManager callbackManager;
-    private LoginButton btnFacebook;
     private LinearProgressIndicator loadingProgress;
-    private GetCredentialRequest request;
+    private MaterialToolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,13 +47,8 @@ public class LoginView extends AppCompatActivity {
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         SharedPreferencesUtil.init(this);
-        firebaseAuth = FirebaseAuth.getInstance();
-        if (firebaseAuth.getCurrentUser() != null && SharedPreferencesUtil
-                .getBoolean(SharedPreferencesUtil.KEY_USER_REMEMBER_ME, true)) {
-            this.nextView();
-            finish();
-        }
 
+        toolbar = findViewById(R.id.toolbar_login);
         rememberMeCheckBox = findViewById(R.id.cb_lembraruser);
         loadingProgress = findViewById(R.id.loadingBarLogin);
         emailEditText = findViewById(R.id.et_email_login);
@@ -85,39 +56,19 @@ public class LoginView extends AppCompatActivity {
         forgotPasswordTextView = findViewById(R.id.tv_esqueci_senha);
         btnLogin = findViewById(R.id.btn_login);
 
-        btnGoogle = findViewById(R.id.btn_google);
-        btnGoogle.setOnClickListener(v -> loginWithGoogle());
-        request = new GetCredentialRequest.Builder().addCredentialOption(new GetSignInWithGoogleOption
-                .Builder(getString(R.string.default_web_client_id)).build()).build();
-
-        btnFacebook = findViewById(R.id.login_button);
-        btnFacebook.setPermissions("email", "public_profile");
-        callbackManager = CallbackManager.Factory.create();
-
-        btnFacebook.registerCallback(callbackManager, new FacebookCallback<>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                loginViewModel.authUserWithFacebook(loginResult.getAccessToken()).observe(LoginView.this, aBoolean -> {
-                    if (aBoolean) {
-                        Toast.makeText(LoginView.this, "Bem vindo ao Owl", Toast.LENGTH_SHORT).show();
-                        keepsUserLogged(true);
-                        nextView();
-                    } else {
-                        Toast.makeText(LoginView.this, "Erro no login.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onCancel() {
-                Toast.makeText(LoginView.this, "Erro de conexão com o Facebook", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onError(@NonNull FacebookException error) {
-                Toast.makeText(LoginView.this, "Erro ao fazer login com o Facebook.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        String email = getIntent().getStringExtra("emailUser");
+        String firstName = getIntent().getStringExtra("firstNameUser");
+        if (email != null && firstName != null) {
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
+            builder.setTitle("Owl Agenda")
+                    .setMessage("Olá senhor(a) " + firstName + ".\nFicamos feliz com o seu cadastro na Owl, faça seu login " +
+                            "para ter acesso a todas as funcionalidades do Owl Agenda!\nEnviamos um email de " +
+                            "confirmação para o seu email " + email + "\nNão esqueça de ativar ele mais tarde, aproveite " +
+                            "o nosso aplicativo. :)")
+                    .setPositiveButton("Ok", (dialog, which) -> {})
+                    .create()
+                    .show();
+        }
 
         forgotPasswordTextView.setOnClickListener(v ->
                 startActivity(new Intent(LoginView.this, ForgotPasswordView.class)));
@@ -156,6 +107,8 @@ public class LoginView extends AppCompatActivity {
                 btnLogin.setEnabled(true);
             }
         });
+
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
     }
 
     public void loginUser(View view) {
@@ -184,51 +137,4 @@ public class LoginView extends AppCompatActivity {
     private void keepsUserLogged(boolean value) {
         SharedPreferencesUtil.saveBoolean(KEY_USER_REMEMBER_ME, value);
     }
-
-    private void loginWithGoogle() {
-        Executor executor = Executors.newSingleThreadExecutor();
-        CredentialManager.create(this).getCredentialAsync(
-                this,
-                request,
-                new CancellationSignal(),
-                executor,
-                new CredentialManagerCallback<>() {
-                    @Override
-                    public void onResult(GetCredentialResponse getCredentialResponse) {
-                        GoogleIdTokenCredential googleIdToken = GoogleIdTokenCredential.createFrom(getCredentialResponse.getCredential().getData());
-                        runOnUiThread(() ->
-                                loginViewModel.authUserWithGoogle(googleIdToken).observe(LoginView.this, aBoolean -> {
-                                    if (aBoolean) {
-                                        Toast.makeText(LoginView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
-                                        nextView();
-                                        keepsUserLogged(true);
-                                    } else {
-                                        Toast.makeText(LoginView.this, "Falha no login. Tente novamente mais tarde.", Toast.LENGTH_SHORT).show();
-                                    }
-                                })
-                        );
-                    }
-
-                    @Override
-                    public void onError(@NonNull GetCredentialException e) {
-                        if (e.getCause() instanceof IOException) {
-                            runOnUiThread(() ->
-                                    Toast.makeText(LoginView.this, "Falha de conexão. Verifique sua internet e tente novamente.", Toast.LENGTH_SHORT).show()
-                            );
-                        } else {
-                            runOnUiThread(() ->
-                                    Toast.makeText(LoginView.this, "Erro ao fazer login com o Google. Tente novamente mais tarde.", Toast.LENGTH_SHORT).show()
-                            );
-                        }
-                    }
-                }
-        );
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
-    }
-
 }

@@ -6,6 +6,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,6 +41,7 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.ui.login.LoginView;
 import com.example.owlagenda.util.FormatPhoneNumber;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.CalendarConstraints;
@@ -47,11 +50,13 @@ import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -63,7 +68,7 @@ public class RegisterView extends AppCompatActivity {
     private User user;
     private ImageView userProfileImage;
     private TextInputEditText nameEditText, surnameEditText, emailEditText, passwordEditText, birthdateEditText, phoneNumberEditText, confirmPasswordEditText;
-    private Uri imageProfileUri;
+    private Bitmap imageProfileBitmap;
     private MaterialDatePicker<Long> materialDatePicker;
     private AutoCompleteTextView genderAutoCompleteTextView;
     private final String[] genderOptions = {"Masculino", "Feminino", "Outros", "Prefiro não informar"};
@@ -71,6 +76,8 @@ public class RegisterView extends AppCompatActivity {
     private LinearProgressIndicator loadingProgress;
     private ActivityResultLauncher<Intent> pickImageLauncher, takePhotoLauncher;
     private BottomSheetDialog bottomSheetDialog;
+    private MaterialToolbar toolbar;
+    private Uri fileDestination;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +104,7 @@ public class RegisterView extends AppCompatActivity {
         userProfileImage = findViewById(R.id.foto_usuario);
         confirmPasswordEditText = findViewById(R.id.et_confirma_senha);
         loadingProgress = findViewById(R.id.barra_carregando);
+        toolbar = findViewById(R.id.toolbar_register);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, genderOptions);
         genderAutoCompleteTextView.setAdapter(adapter);
@@ -188,7 +196,7 @@ public class RegisterView extends AppCompatActivity {
         takePhotoLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(), result -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        cutImage(imageProfileUri);
+                        cutImage(fileDestination);
                     } else {
                         Toast.makeText(this, "Erro ao tirar foto.", Toast.LENGTH_SHORT).show();
                     }
@@ -209,6 +217,7 @@ public class RegisterView extends AppCompatActivity {
                 Toast.makeText(this, s, Toast.LENGTH_SHORT).show());
 
 
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
     }
 
     public void registerUser(View view) {
@@ -245,21 +254,23 @@ public class RegisterView extends AppCompatActivity {
                 user.setBirthdate(birthdate);
                 user.setGender(gender);
                 user.setPhoneNumber(phoneNumber);
+                user.setHistoryMessage(new ArrayList<>());
 
-                if (imageProfileUri == null) {
-                    imageProfileUri = registerViewModel.getImageProfileDefaultUri(this);
-                    if (imageProfileUri == null) {
+                if (imageProfileBitmap == null) {
+                    imageProfileBitmap = registerViewModel.getImageProfileDefaultBitmap(this);
+                    if (imageProfileBitmap == null) {
                         Toast.makeText(this, "Erro ao carregar imagem padrão.", Toast.LENGTH_SHORT).show();
                         return;
                     }
                 }
 
-                registerViewModel.registerUser(user, imageProfileUri).observe(this, success -> {
+                registerViewModel.registerUser(user, imageProfileBitmap).observe(this, success -> {
                     if (success) {
-                        //colocar que o email será enviado
                         Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(this, LoginView.class);
-                        startActivity(intent);
+                        startActivity(new Intent(this, LoginView.class)
+                                .putExtra("emailUser", user.getEmail())
+                                .putExtra("firstNameUser", user.getName()));
+                        FirebaseAuth.getInstance().signOut();
                         finish();
                     } else {
                         Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
@@ -289,14 +300,14 @@ public class RegisterView extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_IMAGE_CAPTURE);
         } else {
-            imageProfileUri = registerViewModel.getImageFile(this);
-            if (imageProfileUri == null) {
+            fileDestination = registerViewModel.getImageFile(this);
+            if (fileDestination == null) {
                 Toast.makeText(this, "Erro ao tirar foto.", Toast.LENGTH_SHORT).show();
                 return;
             }
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageProfileUri);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileDestination);
                 takePhotoLauncher.launch(takePictureIntent);
             }
         }
@@ -318,7 +329,7 @@ public class RegisterView extends AppCompatActivity {
 
         btnDeleteImage.setOnClickListener(v12 -> {
             userProfileImage.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.avatar_1));
-            imageProfileUri = null;
+            imageProfileBitmap = null;
             bottomSheetDialog.dismiss();
         });
     }
@@ -344,7 +355,7 @@ public class RegisterView extends AppCompatActivity {
             if (resultadoUri != null) {
                 userProfileImage.setImageURI(null);
                 userProfileImage.setImageURI(resultadoUri);
-                imageProfileUri = resultadoUri;
+                imageProfileBitmap = BitmapFactory.decodeFile(resultadoUri.getPath());
             }
         } else if (resultCode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(data);
@@ -376,16 +387,16 @@ public class RegisterView extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable("imageUri", imageProfileUri);
+        outState.putParcelable("imageUri", imageProfileBitmap);
     }
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        Uri imageUriRestored = savedInstanceState.getParcelable("imageUri");
-        if (imageUriRestored != null) {
-            userProfileImage.setImageURI(imageUriRestored);
-            imageProfileUri = imageUriRestored;
+        Bitmap imageBitmapRestored = savedInstanceState.getParcelable("imageUri");
+        if (imageBitmapRestored != null) {
+            userProfileImage.setImageBitmap(imageBitmapRestored);
+            imageProfileBitmap = imageBitmapRestored;
         }
     }
 

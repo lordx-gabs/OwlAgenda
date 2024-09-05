@@ -13,12 +13,14 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
+import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentInicioBinding;
 import com.example.owlagenda.ui.prova.Prova;
 
 public class InicioFragment extends Fragment {
     private InicioViewModel inicioViewModel;
     private FragmentInicioBinding binding;
+    private UserViewModel userViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -26,6 +28,9 @@ public class InicioFragment extends Fragment {
 
         binding = FragmentInicioBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+
 
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow); // Define o menu overflow na fragment
 

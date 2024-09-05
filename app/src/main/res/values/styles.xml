@@ -6,7 +6,7 @@
     </style>
 
     <style name="Custom.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/activeBrown</item>
+        <item name="android:color">@color/selector_bottom_navigation_background</item>
     </style>
 
 </resources>

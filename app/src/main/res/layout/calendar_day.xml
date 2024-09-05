@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="5dp"
             android:layout_gravity="bottom"
-            android:layout_marginBottom="18dp"
+            android:layout_marginBottom="22dp"
             android:background="@color/blue_grey_700" />
 
         <View
@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="5dp"
             android:layout_gravity="bottom"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="12dp"
             android:background="@color/brown_700" />
 
     </FrameLayout>

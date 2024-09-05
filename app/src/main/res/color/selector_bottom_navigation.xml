@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Estado ativado (selecionado) -->
-    <item android:color="@color/lightbrown" android:state_checked="true" />
-    <!-- Estado desativado (não selecionado) -->
+
+    <item android:color="@color/selector_navigation_bottom_icon" android:state_checked="true" />
+
     <item android:color="@color/white" android:state_checked="false" />
 </selector>

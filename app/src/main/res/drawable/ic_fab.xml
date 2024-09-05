@@ -1,5 +1,5 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="21dp" android:viewportHeight="512" android:viewportWidth="512" android:width="21dp">
       
-    <path android:fillColor="#231F20" android:pathData="M381,236H276V131c0,-11 -9,-20 -20,-20s-20,9 -20,20v105H131c-11,0 -20,9 -20,20s9,20 20,20h105v105c0,11 9,20 20,20s20,-9 20,-20V276h105c11,0 20,-9 20,-20S392,236 381,236z"/>
+    <path android:fillColor="@color/selector_calendar" android:pathData="M381,236H276V131c0,-11 -9,-20 -20,-20s-20,9 -20,20v105H131c-11,0 -20,9 -20,20s9,20 20,20h105v105c0,11 9,20 20,20s20,-9 20,-20V276h105c11,0 20,-9 20,-20S392,236 381,236z"/>
     
 </vector>

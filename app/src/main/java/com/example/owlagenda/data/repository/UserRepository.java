@@ -1,5 +1,8 @@
 package com.example.owlagenda.data.repository;
 
+import android.net.Uri;
+
+import com.example.owlagenda.ui.selene.Message;
 import com.facebook.AccessToken;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
@@ -7,11 +10,14 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
+
+import java.util.ArrayList;
 
 public class UserRepository {
     private final FirebaseAuth firebaseAuth;
@@ -36,7 +42,7 @@ public class UserRepository {
                 .addOnCompleteListener(completeListener);
     }
 
-    public void existsUserDatabase(String id, ValueEventListener completeListener) {
+    public void getUserById(String id, ValueEventListener completeListener) {
         databaseUserReference.child(id).addListenerForSingleValueEvent(completeListener);
     }
 
@@ -44,8 +50,14 @@ public class UserRepository {
         firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(completeListener);
     }
 
-    public void uploadProfilePhoto(byte[] imagePath, StorageReference imageStorageReference, OnCompleteListener<UploadTask.TaskSnapshot> completeListener){
-        imageStorageReference.putBytes(imagePath).addOnCompleteListener(completeListener);
+    public void uploadProfilePhoto(byte[] imagePath, String uid, OnCompleteListener<UploadTask.TaskSnapshot> completeListener){
+        FirebaseStorage.getInstance().getReference().child("usuarios").child(uid)
+                .child("foto_perfil.jpg").putBytes(imagePath).addOnCompleteListener(completeListener);
+    }
+
+    public void getDownloadUrlProfileImage(String uid, OnCompleteListener<Uri> completeListener) {
+        FirebaseStorage.getInstance().getReference().child("usuarios").child(uid)
+                .child("foto_perfil.jpg").getDownloadUrl().addOnCompleteListener(completeListener);
     }
 
     public void sendVerificationEmail(){
@@ -55,4 +67,20 @@ public class UserRepository {
     public void deleteUser(OnCompleteListener<Void> completeListener) {
         firebaseAuth.getCurrentUser().delete().addOnCompleteListener(completeListener);
     }
+
+    public void saveMessageHistory(String id, ArrayList<Message> historyMessage, OnCompleteListener<Void> completeListener) {
+        databaseUserReference.child(id).child("historyMessage").setValue(historyMessage)
+                .addOnCompleteListener(completeListener);
+    }
+
+    public void deleteMessageHistory(String id, OnCompleteListener<Void> completeListener) {
+        databaseUserReference.child(id).child("historyMessage").removeValue()
+                .addOnCompleteListener(completeListener);
+    }
+
+    public void getMessageHistory(String id, ChildEventListener childEventListener) {
+        databaseUserReference.child(id).child("historyMessage")
+                .addChildEventListener(childEventListener);
+    }
+
 }

@@ -22,6 +22,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.util.SharedPreferencesUtil;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
@@ -37,6 +38,7 @@ public class ForgotPasswordView extends AppCompatActivity {
     private long timeLeft;
     private LinearProgressIndicator loadingProgress;
     private MaterialButton btnSend;
+    private MaterialToolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,7 @@ public class ForgotPasswordView extends AppCompatActivity {
         message = findViewById(R.id.tv_message_forgot_password);
         loadingProgress = findViewById(R.id.progress_indicator_forgot_password);
         btnSend = findViewById(R.id.btn_send_email);
+        toolbar = findViewById(R.id.toolbar_forgot_password);
 
         SharedPreferencesUtil.init(this);
 
@@ -83,6 +86,8 @@ public class ForgotPasswordView extends AppCompatActivity {
 
         viewModel.getErrorMessage().observe(this, s ->
                 Toast.makeText(this, s, Toast.LENGTH_SHORT).show());
+
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
     }
 
     public void sendEmailResetPassword(View v) {

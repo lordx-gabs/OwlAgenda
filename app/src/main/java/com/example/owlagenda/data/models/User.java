@@ -1,9 +1,10 @@
 package com.example.owlagenda.data.models;
 
-import java.net.URL;
+import com.example.owlagenda.ui.selene.Message;
+
+import java.util.ArrayList;
 
 public class User {
-    
     private String id;
     private String name;
     private String surname;
@@ -13,6 +14,10 @@ public class User {
     private String gender;
     private String urlProfilePhoto;
     private Long phoneNumber;
+    private ArrayList<Message> historyMessage;
+
+    public User() {
+    }
 
     public String getId() {
         return id;
@@ -84,5 +89,13 @@ public class User {
 
     public void setPhoneNumber(Long phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public ArrayList<Message> getHistoryMessage() {
+        return historyMessage;
+    }
+
+    public void setHistoryMessage(ArrayList<Message> historyMessage) {
+        this.historyMessage = historyMessage;
     }
 }

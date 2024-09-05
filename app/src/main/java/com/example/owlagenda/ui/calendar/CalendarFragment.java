@@ -12,10 +12,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.owlagenda.R;
+import com.example.owlagenda.data.models.Task;
+import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.CalendarDayBinding;
 import com.example.owlagenda.databinding.CalendarHeaderBinding;
 import com.example.owlagenda.databinding.FragmentCalendarBinding;
@@ -32,18 +35,21 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import jp.wasabeef.recyclerview.animators.FadeInUpAnimator;
+
 public class CalendarFragment extends Fragment {
 
     private FragmentCalendarBinding binding;
     private LocalDate selectedDate;
-    private TaskAdapter calendarAdapter;
+    private TaskAdapter taskAdapter;
     private Map<LocalDate, List<Task>> tasks;
-
+    private UserViewModel userViewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -54,16 +60,24 @@ public class CalendarFragment extends Fragment {
 
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow);
 
+        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+
         binding.recycleCalendar.setLayoutManager(new LinearLayoutManager(requireContext(),
                 RecyclerView.VERTICAL,
                 false));
 
-        tasks = Task.generateFlights().stream()
-                .collect(Collectors.groupingBy(flight -> flight.getTime().toLocalDate()));
+        tasks = Task.generateTask().stream().collect(Collectors
+                .groupingBy(Task::getDate));
 
-        calendarAdapter = new TaskAdapter();
-        binding.recycleCalendar.setAdapter(calendarAdapter);
-        calendarAdapter.notifyDataSetChanged();
+        taskAdapter = new TaskAdapter(this.getContext(),btnEdit -> {
+
+        }, btnDelete -> {
+
+        }, btnDetails -> {
+
+        });
+        binding.recycleCalendar.setItemAnimator(new FadeInUpAnimator());
+        binding.recycleCalendar.setAdapter(taskAdapter);
 
         List<DayOfWeek> daysOfWeek = ExtensionsKt.daysOfWeek();
         YearMonth currentMonth = YearMonth.now();
@@ -74,7 +88,7 @@ public class CalendarFragment extends Fragment {
         binding.calendar.scrollToMonth(currentMonth);
 
         binding.calendar.setMonthScrollListener(calendarMonth -> {
-            binding.monthYearText.setText( DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()).format(calendarMonth.getYearMonth()));
+            binding.monthYearText.setText(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()).format(calendarMonth.getYearMonth()));
             if (selectedDate != null) {
                 binding.calendar.notifyDateChanged(selectedDate);
                 selectedDate = null;
@@ -102,9 +116,22 @@ public class CalendarFragment extends Fragment {
     }
 
     private void updateAdapterForDate(LocalDate date) {
-        calendarAdapter.getTasks().clear();
-        calendarAdapter.getTasks().addAll(tasks.getOrDefault(date, List.of()));
-        calendarAdapter.notifyDataSetChanged();
+        List<Task> taskBefore = new ArrayList<>(taskAdapter.getTasks());
+        taskAdapter.getTasks().clear();
+        taskAdapter.getTasks().addAll(tasks.getOrDefault(date, List.of()));
+
+        if (taskAdapter.getTasks().size() > taskBefore.size() ) {
+            int index = taskAdapter.getTasks().size() - taskBefore.size();
+            taskAdapter.notifyItemRangeInserted(taskAdapter.getTasks().size(), index);
+            taskAdapter.notifyItemRangeChanged( 0, taskAdapter.getTasks().size() - index);
+
+        } else if(taskAdapter.getTasks().size() < taskBefore.size()) {
+            int index = taskBefore.size() - taskAdapter.getTasks().size();
+            taskAdapter.notifyItemRangeRemoved(taskAdapter.getTasks().size(), index);
+            taskAdapter.notifyItemRangeChanged( 0, taskBefore.size() - index);
+        } else {
+            taskAdapter.notifyItemRangeChanged(0, taskAdapter.getTasks().size());
+        }
     }
 
     private void configureBinders(List<DayOfWeek> daysOfWeek) {
@@ -156,18 +183,17 @@ public class CalendarFragment extends Fragment {
                 flightTopView.setBackground(null);
                 flightBottomView.setBackground(null);
 
-                if(calendarDay.getPosition() == DayPosition.MonthDate){
+                if (calendarDay.getPosition() == DayPosition.MonthDate) {
                     textView.setTextColor(context.getColor(R.color.example_5_text_grey));
 
+                    List<Task> task = CalendarFragment.this.tasks.get(calendarDay.getDate());
 
-                    List<Task> flights = CalendarFragment.this.tasks.get(calendarDay.getDate());
-
-                    if (flights != null) {
-                        if (flights.size() == 1) {
-                            flightBottomView.setBackgroundColor(context.getColor(flights.get(0).getColor()));
+                    if (task != null) {
+                        if (task.size() == 1) {
+                            flightBottomView.setBackgroundColor(context.getColor(task.get(0).getTag().getTagColor()));
                         } else {
-                            flightTopView.setBackgroundColor(context.getColor(flights.get(0).getColor()));
-                            flightBottomView.setBackgroundColor(context.getColor(flights.get(1).getColor()));
+                            flightTopView.setBackgroundColor(context.getColor(task.get(0).getTag().getTagColor()));
+                            flightBottomView.setBackgroundColor(context.getColor(task.get(1).getTag().getTagColor()));
                         }
                     }
 
@@ -177,6 +203,7 @@ public class CalendarFragment extends Fragment {
 
         class MonthViewContainer extends ViewContainer {
             final LinearLayout legendLayout;
+
             public MonthViewContainer(@NonNull View view) {
                 super(view);
                 legendLayout = CalendarHeaderBinding.bind(view).legendLayout.getRoot();
@@ -195,7 +222,7 @@ public class CalendarFragment extends Fragment {
             public void bind(@NonNull ViewContainer container, CalendarMonth calendarMonth) {
                 MonthViewContainer monthViewContainer = (MonthViewContainer) container;
 
-                if(monthViewContainer.legendLayout.getTag() == null){
+                if (monthViewContainer.legendLayout.getTag() == null) {
                     monthViewContainer.legendLayout.setTag(true);
 
                     int childCount = monthViewContainer.legendLayout.getChildCount();
@@ -204,7 +231,7 @@ public class CalendarFragment extends Fragment {
                         View view = monthViewContainer.legendLayout.getChildAt(index);
                         if (view instanceof TextView tv) {
                             tv.setText(daysOfWeek.get(index).getDisplayName(TextStyle.SHORT, Locale.getDefault()).toUpperCase());
-                            tv.setTextColor(monthViewContainer.getView().getContext().getColor(R.color.white)); // setTextColorRes equivalente
+                            tv.setTextColor(monthViewContainer.getView().getContext().getColor(R.color.white));
                             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
                             tv.setTypeface(typeFace);
                         }

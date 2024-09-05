@@ -2,12 +2,10 @@ package com.example.owlagenda.ui.register;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Environment;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.lifecycle.LiveData;
@@ -19,20 +17,15 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.repository.UserRepository;
 import com.example.owlagenda.util.SyncData;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 public class RegisterViewModel extends ViewModel {
     private final FirebaseAuth firebaseAuth;
@@ -47,7 +40,7 @@ public class RegisterViewModel extends ViewModel {
         repository = new UserRepository();
     }
 
-    public MutableLiveData<Boolean> registerUser(User user, Uri imagePath) {
+    public MutableLiveData<Boolean> registerUser(User user, Bitmap imagePath) {
         isLoading.postValue(true);
         MutableLiveData<Boolean> registrationResultLiveData = new MutableLiveData<>();
 
@@ -65,30 +58,32 @@ public class RegisterViewModel extends ViewModel {
         return registrationResultLiveData;
     }
 
-    private void uploadProfileImage(Uri imagePath, User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
+    private void uploadProfileImage(Bitmap imagePath, User user, FirebaseUser firebaseUser, MutableLiveData<Boolean> registrationResultLiveData) {
         byte[] imageBytes = resizeImage(imagePath);
-        StorageReference imageStorageReference = FirebaseStorage.getInstance().getReference()
-                .child("usuarios").child(firebaseUser.getUid()).child("foto_perfil.jpg");
 
-        repository.uploadProfilePhoto(imageBytes, imageStorageReference, task3 -> {
+        repository.uploadProfilePhoto(imageBytes, user.getId(), task3 -> {
             if (task3.isSuccessful()) {
-                imageStorageReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                    user.setUrlProfilePhoto(uri.toString());
-                    repository.sendVerificationEmail();
-                    SyncData.synchronizeUserWithFirebase(user);
-                    registrationResultLiveData.postValue(true);
-                }).addOnFailureListener(e ->
-                        handleImageUploadFailure(e, registrationResultLiveData, firebaseUser));
+                repository.getDownloadUrlProfileImage(user.getId(),task -> {
+                    if (task.isSuccessful()) {
+                        user.setUrlProfilePhoto(task.getResult().toString());
+                        repository.sendVerificationEmail();
+                        SyncData.synchronizeUserWithFirebase(user);
+                        registrationResultLiveData.postValue(true);
+                    } else {
+                        handleImageUploadFailure(task.getException(), registrationResultLiveData, firebaseUser);
+                    }
+                });
             } else {
                 handleImageUploadFailure(task3.getException(), registrationResultLiveData, firebaseUser);
             }
         });
     }
 
-    private byte[] resizeImage(Uri imagePath) {
+    private byte[] resizeImage(Bitmap imageProfile) {
         int imageWidthMax = 300, imageHeightMax = 300;
-        Bitmap bitmapImage = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(imagePath.getPath()), imageWidthMax, imageHeightMax, false);
-        return bitmapToByteArray(bitmapImage);
+        return bitmapToByteArray(
+                Bitmap.createScaledBitmap(imageProfile, imageWidthMax, imageHeightMax, false)
+        );
     }
 
     private void handleRegistrationFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData) {
@@ -118,25 +113,9 @@ public class RegisterViewModel extends ViewModel {
         return byteArrayOutputStream.toByteArray();
     }
 
-    public Uri getImageProfileDefaultUri(Context context) {
-        Bitmap bitmap = ((BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.wallpaper_your_name))
+    public Bitmap getImageProfileDefaultBitmap(Context context) {
+       return ((BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.owl_home_screen))
                 .getBitmap();
-        File outputFile;
-
-        try {
-            outputFile = File.createTempFile(
-                    "avatar",
-                    ".jpeg",
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                    );
-            OutputStream outputStream = new FileOutputStream(outputFile);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-            outputStream.close();
-        } catch (IOException e) {
-            return null;
-        }
-
-        return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", outputFile);
     }
 
     public Uri getImageFile(Context context) {

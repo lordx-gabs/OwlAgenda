@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.corubot.CorubotFragment">
+    tools:context=".ui.selene.SeleneFragment"
+    >
 
     <include
         android:id="@+id/app_bar_tela_principal"
         layout="@layout/toolbar_sofia"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
-
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -21,14 +21,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/app_bar_tela_principal">
 
-        <!-- Conteúdo do ScrollView aqui -->
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycle_balloons"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -40,7 +39,7 @@
         android:id="@+id/linearLayout3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="4dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:orientation="horizontal"
@@ -51,8 +50,8 @@
         <EditText
             android:id="@+id/et_message_user"
             android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginRight="8dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_edittext_sofia"
             android:hint="Fale com a Sofia :)"
@@ -60,17 +59,30 @@
             android:paddingEnd="8dp"
             android:textAlignment="viewStart"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:isScrollContainer="true"/>
 
-        <com.google.android.material.imageview.ShapeableImageView
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/points_animation_view"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/rounded_btn_send_selene"
+            android:visibility="gone"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/points_animation" />
+
+        <ImageButton
             android:id="@+id/btn_send_message"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="bottom"
-            android:background="@color/selector_btn_toolbar_sofia"
-            android:scaleType="centerInside"
-            app:shapeAppearance="@style/circleImageView"
-            app:srcCompat="@drawable/ic_send" />
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/rounded_btn_send_selene"
+            android:backgroundTint="@color/selector_color_theme"
+            android:contentDescription="Enviar mensagem"
+            android:src="@drawable/ic_send"
+            android:visibility="visible"
+            app:tint="?android:attr/colorBackground" />
+
     </LinearLayout>
 
     <include

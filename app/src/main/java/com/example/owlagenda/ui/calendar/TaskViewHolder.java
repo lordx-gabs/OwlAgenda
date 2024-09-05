@@ -7,31 +7,19 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.owlagenda.R;
+import com.google.android.material.button.MaterialButton;
 
 public class TaskViewHolder extends RecyclerView.ViewHolder {
-    private TextView itemFlightDateText;
-    private TextView itemDepartureAirportCodeText;
-    private TextView itemDepartureAirportCityText;
-    private TextView itemDestinationAirportCodeText;
-    private TextView itemDestinationAirportCityText;
+    public TextView nameTaskLayout, dateTaskLayout;
+    public MaterialButton btnEditTaskLayout, btnDeleteTaskLayout, btnDetailsTaskLayout;
 
     public TaskViewHolder(@NonNull View itemView) {
         super(itemView);
-        itemFlightDateText = itemView.findViewById(R.id.itemFlightDateText);
-        itemDepartureAirportCodeText = itemView.findViewById(R.id.itemDepartureAirportCodeText);
-        itemDepartureAirportCityText = itemView.findViewById(R.id.itemDepartureAirportCityText);
-        itemDestinationAirportCodeText = itemView.findViewById(R.id.itemDestinationAirportCodeText);
-        itemDestinationAirportCityText = itemView.findViewById(R.id.itemDestinationAirportCityText);
+        nameTaskLayout = itemView.findViewById(R.id.tv_name_details_task_layout);
+        dateTaskLayout = itemView.findViewById(R.id.tv_date_details_task_layout);
+        btnEditTaskLayout = itemView.findViewById(R.id.btn_details_task_layout_edit);
+        btnDeleteTaskLayout = itemView.findViewById(R.id.btn_details_task_layout_delete);
+        btnDetailsTaskLayout = itemView.findViewById(R.id.btn_details_task_layout_details);
     }
 
-    public void bind(Task task) {
-        itemFlightDateText.setText(Task.flightDateTimeFormatter(task.getTime()));
-        itemFlightDateText.setTextColor(itemView.getContext().getColor(task.getColor()));
-
-        itemDepartureAirportCodeText.setText(task.getDeparture().getCode());
-        itemDepartureAirportCityText.setText(task.getDeparture().getCity());
-
-        itemDestinationAirportCodeText.setText(task.getDestination().getCode());
-        itemDestinationAirportCityText.setText(task.getDestination().getCity());
-    }
 }

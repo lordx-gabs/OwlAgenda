@@ -34,7 +34,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Exclui o arquivo META-INF/DEPENDENCIES
     packaging {
         resources.excludes.add("/META-INF/DEPENDENCIES")
         resources.excludes.add("META-INF/INDEX.LIST")
@@ -68,10 +67,10 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.material)
     implementation(libs.firebase.database)
-    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation(project(":opencv"))
-    implementation ("com.google.api-client:google-api-client:2.6.0")
+    implementation ("com.google.api-client:google-api-client:2.7.0")
     implementation ("com.google.oauth-client:google-oauth-client-jetty:1.36.0")
     implementation ("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
     implementation("com.google.firebase:firebase-auth:23.0.0")
@@ -82,11 +81,12 @@ dependencies {
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
     implementation ("com.github.instacart:truetime-android:3.5")
-    implementation ("com.applandeo:material-calendar-view:1.9.2") // ver outro calendario
     implementation ("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation ("com.mig35:carousellayoutmanager:1.4.6")
     implementation("com.kizitonwose.calendar:compose:2.5.4")
     implementation("com.kizitonwose.calendar:view:2.5.4")
+    implementation ("com.airbnb.android:lottie:6.5.1")
+    implementation("jp.wasabeef:recyclerview-animators:4.0.2")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

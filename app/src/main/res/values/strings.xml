@@ -10,11 +10,6 @@
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="entrar_com_google">Entrar com o Google</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
     <string name="facebook_app_id">1003952164434358</string>
     <string name="facebook_client_token">3177e131dbe796e93c6a363d47774018</string>
     <string name="fb_login_protocol_scheme">fb1003952164434358</string>
@@ -79,5 +74,6 @@
     <string name="menu_calendario">Calendário</string>
     <string name="menu_perfil">Perfil</string>
     <string name="action_settings">Settings</string>
-    <string name="corubot">Corubot</string>
+    <string name="menu_selene">Selene</string>
+    <string name="menu_limpar_historico">Limpar histórico da conversa</string>
 </resources>
