@@ -87,6 +87,8 @@ dependencies {
     implementation("com.kizitonwose.calendar:view:2.5.4")
     implementation ("com.airbnb.android:lottie:6.5.1")
     implementation("jp.wasabeef:recyclerview-animators:4.0.2")
+    implementation ("com.google.firebase:firebase-firestore:25.1.0")
+    implementation("io.grpc:grpc-okhttp:1.66.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

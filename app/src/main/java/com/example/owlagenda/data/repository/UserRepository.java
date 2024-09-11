@@ -2,6 +2,7 @@ package com.example.owlagenda.data.repository;
 
 import android.net.Uri;
 
+import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.ui.selene.Message;
 import com.facebook.AccessToken;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -10,22 +11,24 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class UserRepository {
     private final FirebaseAuth firebaseAuth;
-    public final DatabaseReference databaseUserReference;
+    private final CollectionReference collectionReference;
 
     public UserRepository() {
         this.firebaseAuth = FirebaseAuth.getInstance();
-        databaseUserReference = FirebaseDatabase.getInstance().getReference("Usuario");
+        this.collectionReference = FirebaseFirestore.getInstance().collection("usuario");
     }
 
     public void authUser(OnCompleteListener<AuthResult> completeListener, String email, String password){
@@ -42,8 +45,8 @@ public class UserRepository {
                 .addOnCompleteListener(completeListener);
     }
 
-    public void getUserById(String id, ValueEventListener completeListener) {
-        databaseUserReference.child(id).addListenerForSingleValueEvent(completeListener);
+    public void getUserById(String id, EventListener<DocumentSnapshot> completeListener) {
+        collectionReference.document(id).addSnapshotListener(completeListener);
     }
 
     public void registerUser(String email, String password, OnCompleteListener<AuthResult> completeListener){
@@ -60,27 +63,33 @@ public class UserRepository {
                 .child("foto_perfil.jpg").getDownloadUrl().addOnCompleteListener(completeListener);
     }
 
+    public void addUser(User user, OnCompleteListener<Void> completeListener) {
+        collectionReference.document(user.getId()).set(user).addOnCompleteListener(completeListener);
+    }
+
     public void sendVerificationEmail(){
         firebaseAuth.getCurrentUser().sendEmailVerification();
     }
 
-    public void deleteUser(OnCompleteListener<Void> completeListener) {
+    public void deleteUserAuth(OnCompleteListener<Void> completeListener) {
         firebaseAuth.getCurrentUser().delete().addOnCompleteListener(completeListener);
     }
 
     public void saveMessageHistory(String id, ArrayList<Message> historyMessage, OnCompleteListener<Void> completeListener) {
-        databaseUserReference.child(id).child("historyMessage").setValue(historyMessage)
+        collectionReference.document(id).update(Collections.singletonMap("historyMessage", historyMessage))
                 .addOnCompleteListener(completeListener);
     }
 
     public void deleteMessageHistory(String id, OnCompleteListener<Void> completeListener) {
-        databaseUserReference.child(id).child("historyMessage").removeValue()
+        collectionReference.document(id).update("historyMessage", FieldValue.delete())
                 .addOnCompleteListener(completeListener);
     }
 
-    public void getMessageHistory(String id, ChildEventListener childEventListener) {
-        databaseUserReference.child(id).child("historyMessage")
-                .addChildEventListener(childEventListener);
+    public void getMessageHistory(String id, EventListener<DocumentSnapshot> childEventListener) {
+        collectionReference.document(id).addSnapshotListener(childEventListener);
     }
 
+    public void deleteImageProfile(String uid) {
+        FirebaseStorage.getInstance().getReference().child("usuarios").child(uid).delete();
+    }
 }

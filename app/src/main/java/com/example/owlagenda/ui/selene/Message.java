@@ -4,11 +4,11 @@ import androidx.annotation.NonNull;
 
 public class Message {
     private String text;
-    private int messageType;
+    private long messageType;
     public static final int TYPE_USER_MESSAGE = 0;
     public static final int TYPE_SELENE_MESSAGE = 1;
 
-    public Message(String text, int messageType) {
+    public Message(String text, long messageType) {
         this.text = text;
         this.messageType = messageType;
     }
@@ -21,7 +21,7 @@ public class Message {
         return text;
     }
 
-    public int getMessageType() {
+    public long getMessageType() {
         return messageType;
     }
 

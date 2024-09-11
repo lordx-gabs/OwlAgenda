@@ -66,10 +66,9 @@ public class CalendarFragment extends Fragment {
                 RecyclerView.VERTICAL,
                 false));
 
-        tasks = Task.generateTask().stream().collect(Collectors
-                .groupingBy(Task::getDate));
 
-        taskAdapter = new TaskAdapter(this.getContext(),btnEdit -> {
+
+        taskAdapter = new TaskAdapter(btnEdit -> {
 
         }, btnDelete -> {
 
@@ -190,10 +189,10 @@ public class CalendarFragment extends Fragment {
 
                     if (task != null) {
                         if (task.size() == 1) {
-                            flightBottomView.setBackgroundColor(context.getColor(task.get(0).getTag().getTagColor()));
+                            flightBottomView.setBackgroundColor(context.getColor(R.color.white));
                         } else {
-                            flightTopView.setBackgroundColor(context.getColor(task.get(0).getTag().getTagColor()));
-                            flightBottomView.setBackgroundColor(context.getColor(task.get(1).getTag().getTagColor()));
+                            flightTopView.setBackgroundColor(context.getColor(R.color.white));
+                            flightBottomView.setBackgroundColor(context.getColor(R.color.white));
                         }
                     }
 

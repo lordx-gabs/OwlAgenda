@@ -1,24 +1,19 @@
 package com.example.owlagenda.ui.homescreen;
 
-import androidx.annotation.NonNull;
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.repository.UserRepository;
-import com.example.owlagenda.ui.selene.Message;
-import com.example.owlagenda.util.SyncData;
 import com.facebook.AccessToken;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.ArrayList;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 public class HomeScreenViewModel extends ViewModel {
     private final FirebaseAuth firebaseAuth;
@@ -39,29 +34,36 @@ public class HomeScreenViewModel extends ViewModel {
         repository.authUser(task -> {
             if (task.isSuccessful()) {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                repository.getUserById(firebaseUser.getUid(), new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (!snapshot.exists()) {
-                            user = new User();
-                            user.setEmail(firebaseUser.getEmail());
-                            user.setId(firebaseUser.getUid());
-                            user.setName(account.getGivenName());
-                            user.setSurname(account.getFamilyName());
-                            user.setUrlProfilePhoto(firebaseUser.getPhotoUrl().toString());
-//                            ArrayList<Message> messages = new ArrayList<>();
-//                            messages.add(new Message());
-//                            user.setHistoryMessage(messages);
-                            SyncData.synchronizeUserWithFirebase(user);
-                        }
-                        isSuccessfully.postValue(true);
-                        isLoading.postValue(false);
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+                repository.getUserById(firebaseUser.getUid(), (value, error) -> {
+                    if (error != null) {
                         firebaseUser.delete();
                         handleDatabaseError(error);
+                        Log.e("FirestoreError", "Erro ao obter histórico de mensagens", error);
+                        return;
+                    }
+
+                    if(!value.exists()) {
+                        user = new User();
+                        user.setEmail(firebaseUser.getEmail());
+                        user.setId(firebaseUser.getUid());
+                        user.setName(account.getGivenName());
+                        if(account.getFamilyName() != null){
+                            user.setSurname(account.getFamilyName());
+                        }
+                        user.setUrlProfilePhoto(firebaseUser.getPhotoUrl().toString());
+                        repository.addUser(user, task1 -> {
+                            if(task1.isSuccessful()) {
+                                isSuccessfully.postValue(true);
+                                isLoading.postValue(false);
+                            } else {
+                                isSuccessfully.postValue(false);
+                                isLoading.postValue(false);
+                                handleDatabaseError((FirebaseFirestoreException) task.getException());
+                            }
+                        });
+                    } else {
+                        isSuccessfully.postValue(true);
+                        isLoading.postValue(false);
                     }
                 });
 
@@ -79,31 +81,38 @@ public class HomeScreenViewModel extends ViewModel {
         repository.authUser(task -> {
             if (task.isSuccessful()) {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                repository.getUserById(firebaseUser.getUid(), (value, error) -> {
+                    if (error != null) {
+                        firebaseUser.delete();
+                        handleDatabaseError(error);
+                        Log.e("FirestoreError", "Erro ao obter histórico de mensagens", error);
+                        return;
+                    }
 
-                repository.getUserById(firebaseUser.getUid(), new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (!snapshot.exists()) {
-                            user = new User();
-                            user.setEmail(firebaseUser.getEmail());
-                            user.setId(firebaseUser.getUid());
-                            user.setName(firebaseUser.getDisplayName().split(" ")[0]);
+                    if(!value.exists()) {
+                        user = new User();
+                        user.setEmail(firebaseUser.getEmail());
+                        user.setId(firebaseUser.getUid());
+                        user.setName(firebaseUser.getDisplayName().split(" ")[0]);
+                        if(firebaseUser.getDisplayName().split(" ").length > 1){
                             user.setSurname(firebaseUser.getDisplayName().split(" ")[1]);
-                            user.setUrlProfilePhoto(firebaseUser.getPhotoUrl().toString());
-//                            ArrayList<Message> messages = new ArrayList<>();
-//                            messages.add(new Message());
-//                            user.setHistoryMessage(messages);
-                            SyncData.synchronizeUserWithFirebase(user);
                         }
+                        user.setUrlProfilePhoto(firebaseUser.getPhotoUrl().toString());
+                        repository.addUser(user, task1 -> {
+                            if(task1.isSuccessful()) {
+                                isSuccessfully.postValue(true);
+                                isLoading.postValue(false);
+                            } else {
+                                isSuccessfully.postValue(false);
+                                isLoading.postValue(false);
+                                handleDatabaseError((FirebaseFirestoreException) task1.getException());
+                            }
+                        });
+                    } else {
                         isSuccessfully.postValue(true);
                         isLoading.postValue(false);
                     }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        firebaseUser.delete();
-                        handleDatabaseError(error);
-                    }
                 });
 
             } else {
@@ -124,14 +133,20 @@ public class HomeScreenViewModel extends ViewModel {
         isSuccessfully.setValue(false);
     }
 
-    private void handleDatabaseError(DatabaseError error) {
-        if (error.getCode() == DatabaseError.DISCONNECTED || error.getCode() == DatabaseError.NETWORK_ERROR) {
-            errorMessage.setValue("Erro de conexão. Verifique sua conexão e tente novamente.");
+    private void handleDatabaseError(FirebaseFirestoreException error) {
+        if (error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
+            errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
             isLoading.setValue(false);
+            repository.deleteUserAuth(task -> {
+                isSuccessfully.setValue(false);
+                isLoading.setValue(false);
+            });
             return;
         }
-        isSuccessfully.setValue(false);
-        isLoading.setValue(false);
+        repository.deleteUserAuth(task -> {
+            isSuccessfully.setValue(false);
+            isLoading.setValue(false);
+        });
     }
 
     public LiveData<String> getErrorMessage() {

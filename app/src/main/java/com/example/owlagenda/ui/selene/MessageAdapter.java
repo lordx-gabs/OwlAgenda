@@ -22,7 +22,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemViewType(int position) {
-        return messages.get(position).getMessageType();
+        long messageTypeLong = messages.get(position).getMessageType();
+        return (int) messageTypeLong;
     }
 
     @NonNull

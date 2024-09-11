@@ -1,44 +1,41 @@
 package com.example.owlagenda.data.models;
 
-import com.example.owlagenda.R;
+import com.google.firebase.firestore.DocumentReference;
 
-import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Task {
-    private String id;
-    private String userId;
+    private DocumentReference userId;
     private String title;
     private String description;
-    private LocalDate date;
-    private String TaskClass;
-    private String school;
-    private Tag tag;
+    private String date;
+    private DocumentReference schoolClass;
+    private DocumentReference school;
+    private String tag;
     private boolean isCompleted;
+    private ArrayList<TaskAttachments> taskDocuments;
 
-    public Task(String id,String userId, String title, String description, LocalDate date, String school, String taskClass, Tag tag, boolean isCompleted) {
+    public Task(DocumentReference userId, String title, String description, String date, DocumentReference school, DocumentReference schoolClass, String tag, ArrayList<TaskAttachments> taskDocuments) {
         this.userId = userId;
-        this.id = id;
         this.title = title;
         this.description = description;
         this.date = date;
-        TaskClass = taskClass;
+        this.schoolClass = schoolClass;
         this.tag = tag;
         this.school = school;
-        this.isCompleted = isCompleted;
+        this.isCompleted = false;
+        this.taskDocuments = taskDocuments;
     }
 
     public Task() {
 
     }
 
-    public String getUserId() {
+    public DocumentReference getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(DocumentReference userId) {
         this.userId = userId;
     }
 
@@ -66,113 +63,117 @@ public class Task {
         this.description = description;
     }
 
-    public LocalDate getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(LocalDate date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
-    public String getTaskClass() {
-        return TaskClass;
-    }
-
-    public void setTaskClass(String taskClass) {
-        TaskClass = taskClass;
-    }
-
-    public Tag getTag() {
+    public String getTag() {
         return tag;
     }
 
-    public void setTag(Tag tag) {
+    public void setTag(String tag) {
         this.tag = tag;
     }
 
-    public String getId() {
-        return id;
+    public DocumentReference getSchoolClass() {
+        return schoolClass;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setClass(DocumentReference schoolClass) {
+        this.schoolClass = schoolClass;
     }
 
-    public String getSchool() {
+    public DocumentReference getSchool() {
         return school;
     }
 
-    public void setSchool(String school) {
+    public void setSchool(DocumentReference school) {
         this.school = school;
     }
 
-    public static List<Task> generateTask() {
-        ArrayList<Task> tasks = new ArrayList<>();
-        // Suponha que `currentMonth` seja uma instância de `YearMonth`.
-        YearMonth currentMonth = YearMonth.now(); // Inicialize conforme necessário
-
-        LocalDate date = currentMonth.minusMonths(1).atDay(9);
-
-        tasks.add(
-                new Task(
-                        "tarefaid",
-                        "729394",
-                        "Teste",
-                        "testando",
-                        date,
-                        "Etec Itaquera1",
-                        "1° dsb",
-                    new Tag("1234", "prova", R.color.example_3_blue),
-                        false
-                )
-        );
-
-        date = currentMonth.minusMonths(1).atDay(15);
-
-        tasks.add(
-                new Task(
-                        "tarefaid",
-                        "729394",
-                        "Teste",
-                        "testando",
-                        date,
-                        "Etec Itaquera1",
-                        "2° dsb",
-                        new Tag("1234", "prova", R.color.cor_primaria),
-                        false
-                )
-        );
-
-        date = currentMonth.minusMonths(1).atDay(19);
-
-        tasks.add(
-                new Task(
-                        "tarefaid",
-                        "729394",
-                        "Teste",
-                        "testando",
-                        date,
-                        "Etec Itaquera1",
-                        "3° dsb",
-                        new Tag("1234", "prova", R.color.botao_cor),
-                        false
-                )
-        );
-
-        tasks.add(
-                new Task(
-                        "tarefaid",
-                        "729394",
-                        "Teste",
-                        "testando",
-                        date,
-                        "Etec Itaquera1",
-                        "3° dsb",
-                        new Tag("1234", "prova", R.color.darkLilac),
-                        false
-                )
-        );
-
-        return tasks;
+    public ArrayList<TaskAttachments> getTaskDocuments() {
+        return taskDocuments;
     }
+
+    public void setTaskDocuments(ArrayList<TaskAttachments> taskDocuments) {
+        this.taskDocuments = taskDocuments;
+    }
+
+    //    public static List<Task> generateTask() {
+//        ArrayList<Task> tasks = new ArrayList<>();
+//        // Suponha que `currentMonth` seja uma instância de `YearMonth`.
+//        YearMonth currentMonth = YearMonth.now(); // Inicialize conforme necessário
+//
+//        LocalDate date = currentMonth.minusMonths(1).atDay(9);
+//
+//        tasks.add(
+//                new Task(
+//                        "tarefaid",
+//                        "729394",
+//                        "Teste",
+//                        "testando",
+//                        date,
+//                        "Etec Itaquera1",
+//                        "1° dsb",
+//                    new Tag("1234", "prova", R.color.example_3_blue),
+//                        false,
+//                        ""
+//                )
+//        );
+//
+//        date = currentMonth.minusMonths(1).atDay(15);
+//
+//        tasks.add(
+//                new Task(
+//                        "tarefaid",
+//                        "729394",
+//                        "Teste",
+//                        "testando",
+//                        date,
+//                        "Etec Itaquera1",
+//                        "2° dsb",
+//                        new Tag("1234", "prova", R.color.cor_primaria),
+//                        false,
+//                        ""
+//                )
+//        );
+//
+//        date = currentMonth.minusMonths(1).atDay(19);
+//
+//        tasks.add(
+//                new Task(
+//                        "tarefaid",
+//                        "729394",
+//                        "Teste",
+//                        "testando",
+//                        date,
+//                        "Etec Itaquera1",
+//                        "3° dsb",
+//                        new Tag("1234", "prova", R.color.botao_cor),
+//                        false,
+//                        ""
+//                )
+//        );
+//
+//        tasks.add(
+//                new Task(
+//                        "tarefaid",
+//                        "729394",
+//                        "Teste",
+//                        "testando",
+//                        date,
+//                        "Etec Itaquera1",
+//                        "3° dsb",
+//                        new Tag("1234", "prova", R.color.darkLilac),
+//                        false,
+//                        ""
+//                )
+//        );
+//
+//        return tasks;
+//    }
 }

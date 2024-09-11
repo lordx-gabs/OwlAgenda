@@ -17,6 +17,7 @@ import androidx.credentials.exceptions.GetCredentialException;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.R;
 import com.example.owlagenda.databinding.ActivityHomeScreenBinding;
 import com.example.owlagenda.ui.login.LoginView;
@@ -68,7 +69,8 @@ public class HomeScreenView extends AppCompatActivity {
                 startActivity(new Intent(this, LoginView.class)));
 
         request = new GetCredentialRequest.Builder().addCredentialOption(new GetSignInWithGoogleOption
-                .Builder(getString(R.string.default_web_client_id)).build()).build();
+                .Builder(BuildConfig.tokenGoogle).build()).build();
+
         binding.btnTesteeee.setOnClickListener(v -> loginWithGoogle());
 
         callbackManager = CallbackManager.Factory.create();

@@ -16,12 +16,10 @@ import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.repository.UserRepository;
-import com.example.owlagenda.util.SyncData;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.storage.FirebaseStorage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -67,8 +65,13 @@ public class RegisterViewModel extends ViewModel {
                     if (task.isSuccessful()) {
                         user.setUrlProfilePhoto(task.getResult().toString());
                         repository.sendVerificationEmail();
-                        SyncData.synchronizeUserWithFirebase(user);
-                        registrationResultLiveData.postValue(true);
+                        repository.addUser(user, task2 -> {
+                            if (task2.isSuccessful()) {
+                                registrationResultLiveData.postValue(true);
+                            } else {
+                                handleImageUploadFailure(task.getException(), registrationResultLiveData, firebaseUser);
+                            }
+                        });
                     } else {
                         handleImageUploadFailure(task.getException(), registrationResultLiveData, firebaseUser);
                     }
@@ -99,9 +102,8 @@ public class RegisterViewModel extends ViewModel {
 
     private void handleImageUploadFailure(Exception exception, MutableLiveData<Boolean> registrationResultLiveData, FirebaseUser firebaseUser) {
         errorMessageLiveData.postValue("Erro ao guardar foto de perfil. Erro: " + exception.getMessage());
-        FirebaseStorage.getInstance().getReference().child("usuarios")
-                .child(firebaseUser.getUid()).delete();
-        repository.deleteUser(task -> {
+        repository.deleteImageProfile(firebaseUser.getUid());
+        repository.deleteUserAuth(task -> {
             registrationResultLiveData.postValue(false);
             isLoading.postValue(false);
         });

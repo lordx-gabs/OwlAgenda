@@ -28,7 +28,7 @@
         app:layout_constraintStart_toEndOf="@+id/tv_name_details_task_layout"
         app:layout_constraintTop_toBottomOf="@+id/materialDivider4" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_details_task_layout_edit"
         style="?attr/materialIconButtonFilledStyle"
         android:layout_width="wrap_content"
@@ -41,7 +41,7 @@
         app:layout_constraintStart_toEndOf="@+id/tv_date_details_task_layout"
         app:layout_constraintTop_toBottomOf="@+id/materialDivider4" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_details_task_layout_delete"
         style="?attr/materialIconButtonFilledStyle"
         android:layout_width="wrap_content"
@@ -62,7 +62,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_details_task_layout_details"
         style="?attr/materialIconButtonFilledStyle"
         android:layout_width="wrap_content"
