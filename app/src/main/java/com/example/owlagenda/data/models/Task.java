@@ -5,6 +5,7 @@ import com.google.firebase.firestore.DocumentReference;
 import java.util.ArrayList;
 
 public class Task {
+    private String id;
     private DocumentReference userId;
     private String title;
     private String description;
@@ -13,9 +14,10 @@ public class Task {
     private DocumentReference school;
     private String tag;
     private boolean isCompleted;
+    private Integer notificationBefore;
     private ArrayList<TaskAttachments> taskDocuments;
 
-    public Task(DocumentReference userId, String title, String description, String date, DocumentReference school, DocumentReference schoolClass, String tag, ArrayList<TaskAttachments> taskDocuments) {
+    public Task(DocumentReference userId, String title, String description, String date, DocumentReference school, DocumentReference schoolClass, String tag, ArrayList<TaskAttachments> taskDocuments, Integer notificationBefore) {
         this.userId = userId;
         this.title = title;
         this.description = description;
@@ -25,10 +27,18 @@ public class Task {
         this.school = school;
         this.isCompleted = false;
         this.taskDocuments = taskDocuments;
+        this.notificationBefore = notificationBefore;
     }
 
     public Task() {
+    }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public DocumentReference getUserId() {
@@ -101,6 +111,18 @@ public class Task {
 
     public void setTaskDocuments(ArrayList<TaskAttachments> taskDocuments) {
         this.taskDocuments = taskDocuments;
+    }
+
+    public void setSchoolClass(DocumentReference schoolClass) {
+        this.schoolClass = schoolClass;
+    }
+
+    public Integer getNotificationBefore() {
+        return notificationBefore;
+    }
+
+    public void setNotificationBefore(Integer notificationBefore) {
+        this.notificationBefore = notificationBefore;
     }
 
     //    public static List<Task> generateTask() {

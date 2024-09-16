@@ -2,6 +2,7 @@ package com.example.owlagenda.ui.selene;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.graphics.LinearGradient;
 import android.graphics.Rect;
 import android.graphics.Shader;
@@ -25,6 +26,7 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentCorubotBinding;
+import com.example.owlagenda.ui.task.TaskView;
 
 import java.util.ArrayList;
 

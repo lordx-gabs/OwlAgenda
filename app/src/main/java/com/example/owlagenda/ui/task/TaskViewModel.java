@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -18,16 +17,15 @@ import com.example.owlagenda.data.models.TaskAttachments;
 import com.example.owlagenda.data.repository.ClassRepository;
 import com.example.owlagenda.data.repository.SchoolRepository;
 import com.example.owlagenda.data.repository.TaskRepository;
-import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskViewModel extends ViewModel {
     private final TaskRepository repository;
@@ -39,7 +37,7 @@ public class TaskViewModel extends ViewModel {
     private final MutableLiveData<String> errorMessage;
     private MutableLiveData<ArrayList<School>> schoolsLiveData;
     private MutableLiveData<ArrayList<SchoolClass>> classesLiveData;
-    private FirebaseUser firebaseUser;
+    private final FirebaseUser firebaseUser;
 
     public TaskViewModel() {
         repository = new TaskRepository();
@@ -64,9 +62,8 @@ public class TaskViewModel extends ViewModel {
                 return;
             }
             if (!value.isEmpty()) {
-                ArrayList<Task> tasks = new ArrayList<>();
 
-                tasks.addAll(value.toObjects(Task.class));
+                ArrayList<Task> tasks = new ArrayList<>(value.toObjects(Task.class));
 
                 tasksLiveData.postValue(tasks);
                 isLoading.postValue(false);
@@ -83,63 +80,54 @@ public class TaskViewModel extends ViewModel {
         isLoading.postValue(true);
         isSuccessful = new MutableLiveData<>();
 
-        // Cria uma lista para armazenar as URLs de download
         ArrayList<String> downloadUrls = new ArrayList<>();
-        int totalDocuments = task.getTaskDocuments().size();
-        AtomicInteger completedDocuments = new AtomicInteger(0);
 
-        repository.saveAttachmentsStorage(task.getTaskDocuments(), task12 -> {
-            if (task12.isSuccessful()) {
-                for (TaskAttachments document : task.getTaskDocuments()) {
-                    FirebaseStorage.getInstance().getReference()
-                            .child("usuarios")
-                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                            .child("document")
-                            .child(document.getName())
-                            .getDownloadUrl()
-                            .addOnCompleteListener(task13 -> {
-                                if (task13.isSuccessful()) {
-                                    downloadUrls.add(task13.getResult().toString());
-                                    completedDocuments.incrementAndGet();
+        task.setId(FirebaseFirestore.getInstance().collection("tarefa").document().getId());
 
-                                    // Verifica se todos os documentos foram processados
-                                    if (completedDocuments.get() == totalDocuments) {
-                                        // Define as URLs no objeto Task
-                                        for (int i = 0; i < downloadUrls.size(); i++) {
-                                            task.getTaskDocuments().get(i).setUrl(downloadUrls.get(i));
-                                        }
+        com.google.android.gms.tasks.Task<Void> lastTask = Tasks.forResult(null);
 
-                                        // Adiciona a tarefa
-                                        repository.addTask(task, task1 -> {
-                                            if (task1.isSuccessful()) {
-                                                isSuccessful.postValue(true);
-                                            } else {
-                                                isSuccessful.postValue(false);
-                                            }
-                                            isLoading.postValue(false);
-                                        });
-                                    }
-                                } else {
-                                    // Tratar erro ao obter URL de download
-                                    if (task13.getException() != null) {
-                                        if (task13.getException() instanceof FirebaseNetworkException) {
-                                            errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
-                                        } else {
-                                            errorMessage.postValue("Erro ao obter URL de download. Tente novamente.");
-                                        }
-                                    }
-                                }
-                            });
-                }
-            } else {
-                // Tratar erro ao salvar anexos
-                Log.e("teste", task12.getException().getMessage());
-                isLoading.postValue(false);
-                isSuccessful.postValue(false);
-            }
-        });
+        lastTask = lastTask.continueWithTask(task1 -> repository.saveAttachmentsStorage(task.getTaskDocuments()))
+                .addOnFailureListener(e -> {
+                    if (e instanceof FirebaseNetworkException) {
+                        errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
+                    } else {
+                        isSuccessful.postValue(false);
+                    }
+                    isLoading.postValue(false);
+                });
+
+        lastTask.continueWithTask(task1 -> repository.getAttachmentsUrls(task, downloadUrls))
+                .addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful()) {
+                        for (int i = 0; i < downloadUrls.size(); i++) {
+                            task.getTaskDocuments().get(i).setUrl(downloadUrls.get(i));
+                        }
+
+                        repository.addTask(task, task2 -> {
+                            if (task2.isSuccessful()) {
+                                isSuccessful.postValue(true);
+                            } else {
+                                handleErrorCreateTask(task.getTaskDocuments(), task2.getException());
+                            }
+                        });
+                    } else {
+                        handleErrorCreateTask(task.getTaskDocuments(), task1.getException());
+                    }
+                });
 
         return isSuccessful;
+    }
+
+    private void handleErrorCreateTask(ArrayList<TaskAttachments> documents, Exception exception) {
+        if (exception instanceof FirebaseNetworkException) {
+            errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
+        }
+        repository.deleteAttachmentsStorage(documents, task -> {
+            if (!task.isSuccessful()) {
+                errorMessage.postValue("Erro ao interno, tente novamente. " + exception.getMessage());
+            }
+            isLoading.postValue(false);
+        });
     }
 
 
@@ -147,8 +135,8 @@ public class TaskViewModel extends ViewModel {
         isLoading.postValue(true);
         schoolsLiveData = new MutableLiveData<>();
         schoolRepository.getSchoolsByUserId(firebaseUser.getUid(), (value, error) -> {
-            if(error != null) {
-                if(error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
+            if (error != null) {
+                if (error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
                     errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
                 } else {
                     schoolsLiveData.postValue(null);
@@ -171,12 +159,15 @@ public class TaskViewModel extends ViewModel {
     }
 
     public LiveData<Boolean> saveSchool(School school) {
+        isLoading.postValue(true);
         isSuccessful = new MutableLiveData<>();
         schoolRepository.addSchool(school, task -> {
-            if(task.isSuccessful()) {
+            if (task.isSuccessful()) {
                 isSuccessful.postValue(true);
+                isLoading.postValue(false);
             } else {
                 isSuccessful.postValue(false);
+                isLoading.postValue(false);
             }
         });
         return isSuccessful;
@@ -185,17 +176,16 @@ public class TaskViewModel extends ViewModel {
     public LiveData<ArrayList<SchoolClass>> getClasses() {
         classesLiveData = new MutableLiveData<>();
         classRepository.getClassesByUserId(firebaseUser.getUid(), (value, error) -> {
-            if(error != null) {
-                if(error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
+            if (error != null) {
+                if (error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
                     errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
                 } else {
-                    Log.e("teste", error.getMessage());
                     classesLiveData.postValue(null);
                 }
                 return;
             }
 
-            if(value != null && !value.isEmpty()) {
+            if (value != null && !value.isEmpty()) {
                 List<SchoolClass> schoolClasses = value.toObjects(SchoolClass.class);
                 classesLiveData.postValue(new ArrayList<>(schoolClasses));
                 isLoading.postValue(false);
@@ -212,12 +202,14 @@ public class TaskViewModel extends ViewModel {
 
     public LiveData<Boolean> saveClass(SchoolClass dataSchoolClass) {
         isSuccessful = new MutableLiveData<>();
-
+        isLoading.postValue(true);
         classRepository.addClass(dataSchoolClass, task -> {
-            if(task.isSuccessful()) {
+            if (task.isSuccessful()) {
                 isSuccessful.postValue(true);
+                isLoading.postValue(false);
             } else {
                 isSuccessful.postValue(false);
+                isLoading.postValue(false);
             }
         });
 
@@ -241,6 +233,23 @@ public class TaskViewModel extends ViewModel {
         }
 
         return fileName;
+    }
+
+    public double getFileMbSize(Context context, Uri uri) {
+        long fileSize = 0;
+
+        if (uri != null) {
+            Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+                if (sizeIndex != -1) {
+                    fileSize = cursor.getLong(sizeIndex);
+                }
+                cursor.close();
+            }
+        }
+
+        return (fileSize / (1024.0 * 1024.0));
     }
 
     public LiveData<Boolean> isLoading() {

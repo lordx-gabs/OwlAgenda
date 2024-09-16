@@ -11,7 +11,6 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.TaskAttachments;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DocumentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final ArrayList<TaskAttachments> documents;
@@ -52,7 +51,7 @@ public class DocumentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             if(!typeDocument.isEmpty()) {
 
                 switch (typeDocument) {
-                    case "pdf" -> viewHolder.documentIcon.setImageResource(R.drawable.ic_pdf2);
+                    case "pdf" -> viewHolder.documentIcon.setImageResource(R.drawable.ic_pdf);
                     case "doc", "docx" ->
                             viewHolder.documentIcon.setImageResource(R.drawable.ic_docx);
                     case "xls", "xlsx" ->
