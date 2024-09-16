@@ -45,6 +45,9 @@
         android:theme="@style/Base.Theme.OwlAgenda"
         tools:targetApi="31">
         <activity
+            android:name=".ui.settings.SettingsView"
+            android:exported="false" />
+        <activity
             android:name=".ui.task.TaskView"
             android:exported="false" />
         <activity

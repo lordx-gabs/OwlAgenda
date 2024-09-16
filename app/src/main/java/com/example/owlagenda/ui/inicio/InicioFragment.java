@@ -3,12 +3,15 @@ package com.example.owlagenda.ui.inicio;
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -17,6 +20,7 @@ import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentInicioBinding;
 import com.example.owlagenda.ui.prova.Prova;
+import com.example.owlagenda.ui.settings.SettingsView;
 import com.example.owlagenda.ui.task.TaskView;
 
 public class InicioFragment extends Fragment {
@@ -39,6 +43,14 @@ public class InicioFragment extends Fragment {
 
         binding.btnTestee.setOnClickListener(v ->
                 startActivity(new Intent(getActivity(), Prova.class)));
+
+        binding.appBarTelaPrincipal.toolbar.setOnMenuItemClickListener(item -> {
+            if(item.getItemId() == R.id.action_settings){
+                startActivity(new Intent(getContext(), SettingsView.class));
+            }
+            return false;
+
+        });
 
 //        final String fullText = "Texto que vai aparecendo aos poucoswdadmjidaiduajnusdjasjhdnsadmsd adnzdjuzndzhsjfzhduwseytqwieqwkleqkoerqwklerkojraewadjajnudajhdaawdajdjiadjauwyywyernjasdjhfzsn scbzbycwdqkodj zm";
 //
