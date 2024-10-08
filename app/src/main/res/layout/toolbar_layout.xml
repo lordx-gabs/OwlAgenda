@@ -18,7 +18,7 @@
             android:layout_height="?attr/actionBarSize">
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/title_selene"
+                android:id="@+id/title_owl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/app_name"

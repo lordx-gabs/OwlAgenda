@@ -5,9 +5,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
@@ -46,7 +50,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.TimeZone;
 
 public class TaskView extends AppCompatActivity {
@@ -66,7 +72,8 @@ public class TaskView extends AppCompatActivity {
     private MaterialDatePicker<Long> materialDatePicker;
     private String nameClass, numberOfStudents, period;
     private ArrayAdapter<String> adapterNotification;
-    private int indexNotifications = 0;
+    private int indexNotifications = 1;
+    private ArrayList<String> classesName;
     private final String[] notificationsMinutes = new String[]{"Sem notificação",
             "10 Minutos antes",
             "30 Minutos antes",
@@ -83,7 +90,8 @@ public class TaskView extends AppCompatActivity {
             "Evento Escolar",
             "Reunião com Pais",
             "Preparação de Aula",
-            "Atividade de Desenvolvimento Profissional"};
+            "Atividade de Desenvolvimento Profissional",
+            "Outros"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,7 +136,7 @@ public class TaskView extends AppCompatActivity {
                 Toast.makeText(this, "Não foi possivel carregar as classes.", Toast.LENGTH_SHORT).show();
             } else {
                 this.schoolClasses = classes;
-                ArrayList<String> classesName = new ArrayList<>();
+                classesName = new ArrayList<>();
                 classesName.add("Adicionar nova classe");
                 classes.forEach(schoolClassData -> classesName.add(schoolClassData.getClassName()));
                 adapterClass = new ArrayAdapter<>(this, R.layout.dropdown_layout, classesName);
@@ -138,8 +146,12 @@ public class TaskView extends AppCompatActivity {
         });
 
         binding.autoCompleteClass.setOnItemClickListener((parent, view, position, id) -> {
+            List<String> filteredItems = new ArrayList<>();
+            for (int i = 0; i < binding.autoCompleteClass.getAdapter().getCount(); i++) {
+                filteredItems.add((String) binding.autoCompleteClass.getAdapter().getItem(i));
+            }
             schoolSelected = null;
-            if (position == 0) {
+            if (filteredItems.get(position).equalsIgnoreCase("Adicionar nova classe")) {
                 binding.autoCompleteClass.setText("");
                 bottomSheetDialogClass = new BottomSheetDialog(this);
                 View view5 = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_add_class, (ViewGroup) this.getWindow().getDecorView(), false);
@@ -236,7 +248,11 @@ public class TaskView extends AppCompatActivity {
                 });
 
             } else {
-                this.schoolClassSelected = schoolClasses.get(position - 1);
+                Optional<SchoolClass> schoolClassSelected = schoolClasses.stream()
+                        .filter(schoolClass -> schoolClass.getClassName()
+                                .equalsIgnoreCase(filteredItems.get(position))) // Compare a propriedade
+                        .findFirst(); // Obtém o primeiro resultado
+                this.schoolClassSelected = schoolClassSelected.orElse(null);
             }
         });
 
@@ -319,18 +335,25 @@ public class TaskView extends AppCompatActivity {
             saveTask();
         });
 
-        Calendar calendarStart = Calendar.getInstance();
+        Calendar calendarStart = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
         calendarStart.add(Calendar.DAY_OF_MONTH, 1);
         long dateStart = calendarStart.getTimeInMillis();
 
-        Calendar calendarEnd = Calendar.getInstance();
+        Calendar calendarEnd = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
         calendarEnd.add(Calendar.YEAR, 1);
         long dateEnd = calendarEnd.getTimeInMillis();
+
+        Calendar calendarValidator = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
+        calendarValidator.set(Calendar.HOUR_OF_DAY, 0);
+        calendarValidator.set(Calendar.MINUTE, 0);
+        calendarValidator.set(Calendar.SECOND, 0);
+        calendarValidator.set(Calendar.MILLISECOND, 0);
+        long dateValidator = calendarValidator.getTimeInMillis();
 
         CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder()
                 .setStart(dateStart)
                 .setEnd(dateEnd)
-                .setValidator(DateValidatorPointForward.from(Calendar.getInstance().getTimeInMillis()));
+                .setValidator(DateValidatorPointForward.from(dateValidator));
 
         binding.etDateTask.setOnClickListener(v -> {
             Calendar calendarInitialed = Calendar.getInstance();
@@ -347,9 +370,9 @@ public class TaskView extends AppCompatActivity {
             }
 
             materialDatePicker = MaterialDatePicker.Builder.datePicker()
-                    .setTitleText("Selecione uma data da sua tarefa")
-                    .setCalendarConstraints(constraintsBuilder.build())
+                    .setTitleText("Selecione a data da sua tarefa")
                     .setSelection(calendarInitialed.getTimeInMillis())
+                    .setCalendarConstraints(constraintsBuilder.build())
                     .build();
 
             materialDatePicker.addOnPositiveButtonClickListener(selection -> {
@@ -374,15 +397,17 @@ public class TaskView extends AppCompatActivity {
                 binding.autoCompleteNotifications.showDropDown());
 
         binding.toolbarTask.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
+
     }
 
     private void saveTask() {
-        String txtNameTask = binding.etNameTask.getText().toString();
-        String txtDescriptionTask = binding.etDescriptionTask.getText().toString();
+        String txtNameTask = binding.etNameTask.getText().toString().trim();
+        String txtDescriptionTask = binding.etDescriptionTask.getText().toString().trim();
         String txtDateTask = binding.etDateTask.getText().toString();
         String txtTagTask = binding.autoCompleteTag.getText().toString();
-        if (txtNameTask.isEmpty() && txtDateTask.isEmpty() && schoolClassSelected == null) {
-            Toast.makeText(this, "Preencha todos os campos.", Toast.LENGTH_SHORT).show();
+        if (txtNameTask.isEmpty() || txtDateTask.isEmpty() || schoolClassSelected == null
+                || txtTagTask.isEmpty()) {
+            Toast.makeText(this, "Preencha todos os campos obrigátorios.", Toast.LENGTH_SHORT).show();
         } else {
             DocumentReference userRef = FirebaseFirestore.getInstance().collection("usuario")
                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -413,22 +438,39 @@ public class TaskView extends AppCompatActivity {
             viewModel.addTask(task).observe(this, aBoolean -> {
                 if (aBoolean) {
                     if (notificationBefore != null) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy",
-                                Locale.getDefault());
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        dateFormat.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo")); // Definir o fuso horário
+
                         Calendar calendar = Calendar.getInstance();
                         try {
+                            // Faz o parse da data
                             calendar.setTime(dateFormat.parse(txtDateTask));
+                            calendar.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+
+                            Calendar currentCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
+                            currentCalendar.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+                            calendar.set(Calendar.HOUR_OF_DAY, currentCalendar.get(Calendar.HOUR_OF_DAY));
+                            calendar.set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE));
+                            calendar.set(Calendar.SECOND, currentCalendar.get(Calendar.SECOND));
+
+                            calendar.add(Calendar.MINUTE, - notificationBefore); // Subtrai o tempo de notificação
                         } catch (ParseException e) {
                             Toast.makeText(this, "Erro ao converter data", Toast.LENGTH_SHORT).show();
                         }
-                        calendar.add(Calendar.MINUTE, -notificationBefore);
-                        NotificationUtil.scheduleNotificationApp.scheduleNotification(this,
+
+                        int idNotification = 0;
+                        try {
+                            idNotification = Integer.parseInt(task.getId().replaceAll("[^0-9]", ""));
+                        } catch (Exception ignored) {
+
+                        }
+
+                        NotificationUtil.scheduleNotificationApp.scheduleNotification(getApplicationContext(),
                                 calendar.getTimeInMillis(),
                                 txtNameTask,
-                                txtDescriptionTask);
+                                idNotification);
                     }
-                    Toast.makeText(this, "Tarefa adicionada com sucesso.",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Tarefa adicionada com sucesso.", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
                     Toast.makeText(this, "Erro ao adicionar tarefa.", Toast.LENGTH_SHORT).show();

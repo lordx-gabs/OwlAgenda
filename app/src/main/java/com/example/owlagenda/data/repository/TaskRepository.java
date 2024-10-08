@@ -9,9 +9,11 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -28,14 +30,21 @@ public class TaskRepository {
     }
 
     public void getTasks(String id, EventListener<QuerySnapshot> eventListener) {
-        collectionReference.whereEqualTo("userId", id).addSnapshotListener(eventListener);
+        collectionReference.whereEqualTo("userId",
+                FirebaseFirestore.getInstance().collection("usuario")
+                        .document(id)).addSnapshotListener(eventListener);
     }
 
     public void addTask(Task task, OnCompleteListener<Void> completeListener) {
         collectionReference.document(task.getId()).set(task).addOnCompleteListener(completeListener);
     }
 
-    public void deleteTask(String id, OnCompleteListener<Void> completeListener){
+    public void updateTask(Task task, OnCompleteListener<Void> completeListener) {
+        collectionReference.document(task.getId()).set(task, SetOptions.merge())
+                .addOnCompleteListener(completeListener);
+    }
+
+    public void deleteTask(String id, OnCompleteListener<Void> completeListener) {
         collectionReference.document(id).delete().addOnCompleteListener(completeListener);
     }
 
@@ -45,8 +54,11 @@ public class TaskRepository {
                 .addSnapshotListener(eventListener);
     }
 
-    public void getTaskByIsCompleted(ValueEventListener completeListener) {
+    public void getTaskByNotCompleted(String id, EventListener<QuerySnapshot> eventListener) {
         //TODO:pesquisar por isCompleted
+        collectionReference.whereEqualTo("userId",
+                        FirebaseFirestore.getInstance().collection("usuario").document(id))
+                .whereEqualTo("completed", false).addSnapshotListener(eventListener);
     }
 
     public com.google.android.gms.tasks.Task<Void> saveAttachmentsStorage(ArrayList<TaskAttachments> documents) {
@@ -83,7 +95,7 @@ public class TaskRepository {
         });
     }
 
-    public com.google.android.gms.tasks.Task<Void> getAttachmentsUrls (Task task, ArrayList<String> downloadUrls) {
+    public com.google.android.gms.tasks.Task<Void> getAttachmentsUrls(Task task, ArrayList<String> downloadUrls) {
         List<com.google.android.gms.tasks.Task<?>> urlTasks = new ArrayList<>();
         for (TaskAttachments document : task.getTaskDocuments()) {
             final StorageReference fileRef = FirebaseStorage.getInstance().getReference()

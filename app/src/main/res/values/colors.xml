@@ -19,7 +19,22 @@
     <color name="darkLilac">#8C5FB8</color>
     <color name="activeLilacMedium">#50A997D8</color>
     <color name="activeLilacDark">#508C5FB8</color>
-
+    <color name="green">#66BB6A</color>
+    <color name="red">#EF5350</color>
+    <color name="lilacBackgroundDark">#8766B0</color>
+    <color name="lilacBackgroundLight">#9C81C4</color>
+    // Cores tag
+    <color name="prova_color">#FFCDD2</color>
+    <color name="atividade_avaliativa_color">#F8BBD0</color>
+    <color name="trabalho_de_casa_color">#BBDEFB</color>
+    <color name="relatorio_color">#C5E1A5</color>
+    <color name="projeto_color">#FFE082</color>
+    <color name="atividade_extra_curricular_color">#FFCCBC</color>
+    <color name="evento_escolar_color">#B39DDB</color>
+    <color name="reuniao_com_pais_color">#80DEEA</color>
+    <color name="preparacao_de_aula_color">#AED581</color>
+    <color name="atividade_desenvolvimento_profissional_color">#FFD54F</color>
+    <color name="outros_color">#BDBDBD</color>
 
 </resources>
 

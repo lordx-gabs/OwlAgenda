@@ -22,7 +22,6 @@ public class ChatBot {
     public ChatBot(ChatFutures chatFutures) {
         this.chatFutures = chatFutures;
     }
-    
 
     public void sendMessage(String userMessage, Callback<String> callback) {
         Content.Builder messageContent = new Content.Builder();

@@ -1,5 +1,7 @@
 package com.example.owlagenda.ui.forgotpassword;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -24,11 +26,14 @@ public class ForgotPasswordViewModel extends ViewModel {
         new Thread(() -> {
             try {
                 TrueTime.build().initialize();
+                Log.e("teste", "inicializando...");
             } catch (IOException e) {
                 if (e instanceof UnknownHostException){
                     errorMessage.postValue("Erro de conexão com o servidor, verifique sua conexão");
+                    Log.e("teste", "ERRO CONEXÃO");
                 } else {
                     errorMessage.postValue("Ocorreu um erro, tente novamente mais tarde");
+                    Log.e("teste", "ERRO DESCONHECIDO");
                 }
             }
         }).start();

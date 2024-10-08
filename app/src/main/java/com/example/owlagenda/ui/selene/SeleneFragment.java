@@ -2,10 +2,11 @@ package com.example.owlagenda.ui.selene;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
-import android.content.Intent;
 import android.graphics.LinearGradient;
 import android.graphics.Rect;
 import android.graphics.Shader;
+import android.net.ConnectivityManager;
+import android.net.Network;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,7 +16,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,16 +25,18 @@ import android.widget.Toast;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
-import com.example.owlagenda.databinding.FragmentCorubotBinding;
-import com.example.owlagenda.ui.task.TaskView;
+import com.example.owlagenda.databinding.FragmentSeleneBinding;
+import com.example.owlagenda.util.NetworkUtil;
+import com.google.ai.client.generativeai.type.Content;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SeleneFragment extends Fragment {
 
     private SeleneViewModel viewModel;
     private UserViewModel userViewModel;
-    private FragmentCorubotBinding binding;
+    private FragmentSeleneBinding binding;
     private ArrayList<Message> messages;
     private User currentUser;
     private ValueAnimator animatorText;
@@ -43,7 +45,9 @@ public class SeleneFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = FragmentCorubotBinding.inflate(inflater, container, false);
+        binding = FragmentSeleneBinding.inflate(inflater, container, false);
+
+        // mudar aqui a cor do selene filled
 
         binding.appBarTelaPrincipal.toolbarSofia.inflateMenu(R.menu.menu_overflow);
         binding.recycleBalloons.setLayoutManager(new LinearLayoutManager(requireContext(),
@@ -54,47 +58,102 @@ public class SeleneFragment extends Fragment {
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
         userViewModel.getUser().observe(getViewLifecycleOwner(), user -> {
-            if(user != null) {
+            if (user != null) {
                 currentUser = user;
                 this.messages = new ArrayList<>();
+                if(user.getHistoryMessage() != null) {
+                    List<Content> historyMessage = new ArrayList<>();
+                    Content.Builder contentBuilderUser, contentBuilderChatbot;
+                    contentBuilderUser = new Content.Builder();
+                    contentBuilderChatbot = new Content.Builder();
+                    contentBuilderUser.setRole("user");
+                    contentBuilderChatbot.setRole("model");
+
+                    user.getHistoryMessage().stream()
+                            .filter(message -> message.getMessageType() == Message.TYPE_USER_MESSAGE) // Filtra mensagens do usuário
+                            .forEach(message -> contentBuilderUser.addText(message.getText()));
+                    user.getHistoryMessage().stream()
+                            .filter(message -> message.getMessageType() == Message.TYPE_SELENE_MESSAGE)
+                            .forEach(message -> contentBuilderChatbot.addText(message.getText()));
+                    historyMessage.add(contentBuilderUser.build());
+                    historyMessage.add(contentBuilderChatbot.build());
+                    viewModel.setChatBotSelene(historyMessage);
+                } else {
+                    viewModel.setChatBotSelene(new ArrayList<>());
+                }
+
                 binding.recycleBalloons.setAdapter(new MessageAdapter(this.messages, currentUser.getUrlProfilePhoto()));
             } else {
                 Toast.makeText(getActivity(), "Erro ao carregar foto de perfil.", Toast.LENGTH_SHORT).show();
             }
         });
 
-        userViewModel.getMessages().observe(getViewLifecycleOwner(), messages -> {
-            this.messages = new ArrayList<>();
-            if (messages != null) {
-                this.messages = messages;
+        NetworkUtil.registerNetworkCallback(getContext(), new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                super.onAvailable(network);
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() ->
+                            userViewModel.getUser().observe(getViewLifecycleOwner(), user -> {
+                                if (user != null) {
+                                    currentUser = user;
+                                    userViewModel.getMessages().observe(getViewLifecycleOwner(), messages -> {
+                                        SeleneFragment.this.messages = new ArrayList<>();
+                                        if (messages != null) {
+                                            SeleneFragment.this.messages.addAll(messages);
+
+                                        } else {
+                                            Toast.makeText(getContext(), "Erro ao carregar histórico de mensagens.", Toast.LENGTH_SHORT).show();
+                                        }
+
+                                        binding.recycleBalloons.setAdapter(new MessageAdapter(SeleneFragment.this.messages, currentUser.getUrlProfilePhoto()));
+                                        binding.recycleBalloons.scrollToPosition(SeleneFragment.this.messages.size() - 1);
+                                    });
+
+                                } else {
+                                    Toast.makeText(getContext(), "Erro ao carregar foto de perfil.", Toast.LENGTH_SHORT).show();
+                                }
+                            }));
+                }
             }
 
-            binding.recycleBalloons.setAdapter(new MessageAdapter(this.messages, currentUser.getUrlProfilePhoto()));
-            binding.recycleBalloons.scrollToPosition(this.messages.size() - 1);
+            @Override
+            public void onLost(@NonNull Network network) {
+                super.onLost(network);
+                if (isAdded()) {
+                    Toast.makeText(getContext(), "Sem conexão com a internet.", Toast.LENGTH_SHORT).show();
+                }
+            }
         });
 
         binding.btnSendMessage.setOnClickListener(v -> {
-            if (binding.etMessageUser.getText().toString().isEmpty()) {
-                Toast.makeText(getContext(), "Selene não pode responder mensagens vazias.", Toast.LENGTH_SHORT).show();
-            } else {
-                binding.pointsAnimationView.setVisibility(View.VISIBLE);
-                binding.btnSendMessage.setVisibility(View.GONE);
-                messages.add(new Message(binding.etMessageUser.getText().toString(), Message.TYPE_USER_MESSAGE));
-                binding.recycleBalloons.getAdapter().notifyItemInserted(messages.size() - 1);
-                binding.recycleBalloons.scrollToPosition(messages.size() - 1);
+            if (NetworkUtil.isInternetAvailable(getContext())) {
+                if (binding.etMessageUser.getText().toString().isEmpty()) {
+                    Toast.makeText(getContext(), "Selene não pode responder mensagens vazias.", Toast.LENGTH_SHORT).show();
+                } else {
+                    binding.pointsAnimationView.setVisibility(View.VISIBLE);
+                    binding.btnSendMessage.setVisibility(View.GONE);
+                    messages.add(new Message(binding.etMessageUser.getText().toString(), Message.TYPE_USER_MESSAGE));
+                    binding.recycleBalloons.getAdapter().notifyItemInserted(messages.size() - 1);
+                    binding.recycleBalloons.scrollToPosition(messages.size() - 1);
 
-                viewModel.sendMessage(binding.etMessageUser.getText().toString()).observe(getViewLifecycleOwner(), s -> {
-                    if (s != null) {
-                        messages.add(new Message(s, Message.TYPE_SELENE_MESSAGE));
-                        binding.recycleBalloons.getAdapter().notifyItemInserted(messages.size() - 1);
-                        binding.recycleBalloons.scrollToPosition(messages.size() - 1);
-                        animatedText();
-                    } else {
-                        // vermelho mensagem user
-                        Toast.makeText(getActivity(), "Erro ao enviar mensagem.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                binding.etMessageUser.setText("");
+                    viewModel.sendMessage(binding.etMessageUser.getText().toString().trim()).observe(getViewLifecycleOwner(), s -> {
+                        if (s != null) {
+                            messages.add(new Message(s, Message.TYPE_SELENE_MESSAGE));
+                            binding.recycleBalloons.getAdapter().notifyItemInserted(messages.size() - 1);
+                            binding.recycleBalloons.scrollToPosition(messages.size() - 1);
+                            animatedText();
+                        } else {
+                            // vermelho mensagem user
+                            messages.remove(messages.size() - 1);
+                            binding.recycleBalloons.getAdapter().notifyItemRemoved(messages.size() - 1);
+                            Toast.makeText(getActivity(), "Erro ao enviar mensagem.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    binding.etMessageUser.setText("");
+                }
+            } else {
+                Toast.makeText(getActivity(), "Sem conexão com a internet.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -143,8 +202,6 @@ public class SeleneFragment extends Fragment {
                 messages.clear();
                 viewModel.deleteHistoryMessageUser(currentUser.getId());
                 binding.recycleBalloons.getAdapter().notifyItemRangeRemoved(0, index);
-            } else {
-                viewModel.saveHistoryMessageUser(currentUser, messages);
             }
             return false;
         });
@@ -171,7 +228,8 @@ public class SeleneFragment extends Fragment {
 
             animatorText.addListener(new Animator.AnimatorListener() {
                 @Override
-                public void onAnimationStart(@NonNull Animator animation) {}
+                public void onAnimationStart(@NonNull Animator animation) {
+                }
 
                 @Override
                 public void onAnimationEnd(@NonNull Animator animation) {
@@ -180,10 +238,12 @@ public class SeleneFragment extends Fragment {
                 }
 
                 @Override
-                public void onAnimationCancel(@NonNull Animator animation) {}
+                public void onAnimationCancel(@NonNull Animator animation) {
+                }
 
                 @Override
-                public void onAnimationRepeat(@NonNull Animator animation) {}
+                public void onAnimationRepeat(@NonNull Animator animation) {
+                }
             });
         });
     }
@@ -199,11 +259,18 @@ public class SeleneFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        if (NetworkUtil.isInternetAvailable(getContext())) {
+            viewModel.saveHistoryMessageUser(currentUser, messages);
+
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (binding != null) {
-            binding.getRoot().getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
-        }
+        binding.getRoot().getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
 
         if (animatorText != null && animatorText.isRunning()) {
             animatorText.cancel();

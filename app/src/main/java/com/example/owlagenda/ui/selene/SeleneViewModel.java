@@ -1,5 +1,7 @@
 package com.example.owlagenda.ui.selene;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -8,20 +10,21 @@ import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.repository.UserRepository;
 import com.example.owlagenda.util.ChatBot;
 import com.example.owlagenda.util.ModelChatBotSelene;
+import com.google.ai.client.generativeai.type.Content;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SeleneViewModel extends ViewModel {
-    private MutableLiveData<Boolean> isLoading;
-    private UserRepository userRepository;
+    private final MutableLiveData<Boolean> isLoading;
+    private final UserRepository userRepository;
     private ChatBot chatBotSelene;
-    private MutableLiveData<String> errorMessage;
+    private final MutableLiveData<String> errorMessage;
 
     public SeleneViewModel() {
         errorMessage = new MutableLiveData<>();
         isLoading = new MutableLiveData<>();
         userRepository = new UserRepository();
-        chatBotSelene = new ChatBot(ModelChatBotSelene.createChatbotModelSelene().startChat());
     }
 
     public LiveData<String> sendMessage(String userMessage) {
@@ -37,6 +40,7 @@ public class SeleneViewModel extends ViewModel {
             @Override
             public void onFailure(Throwable t) {
                 messageChatBot.postValue(null);
+                Log.e("SeleneViewModel", "Erro ao enviar mensagem: " + t.getMessage());
                 isLoading.postValue(false);
             }
         });
@@ -59,6 +63,10 @@ public class SeleneViewModel extends ViewModel {
                 errorMessage.postValue("Erro ao excluir histórico da conversa.");
             }
         });
+    }
+
+    public void setChatBotSelene(List<Content> historyMessage) {
+        chatBotSelene = new ChatBot(ModelChatBotSelene.createChatbotModelSelene().startChat(historyMessage));
     }
 
     public LiveData<Boolean> isLoading() {

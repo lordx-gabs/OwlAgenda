@@ -49,7 +49,7 @@
         android:id="@+id/nav_corubot"
         android:name="com.example.owlagenda.ui.selene.SeleneFragment"
         android:label="@string/menu_selene"
-        tools:layout="@layout/fragment_corubot" >
+        tools:layout="@layout/fragment_selene" >
 
         <action
             android:id="@+id/action_nav_corubot_to_nav_inicio"

@@ -54,12 +54,12 @@
             android:text="Seja bem-vindo(a)"
             android:textAlignment="center"
             android:textSize="40sp"
-            app:layout_constraintBottom_toTopOf="@+id/tv_message_forgot_password"
+            app:layout_constraintBottom_toTopOf="@+id/textView233"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
-            android:id="@+id/tv_message_forgot_password"
+            android:id="@+id/textView233"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"

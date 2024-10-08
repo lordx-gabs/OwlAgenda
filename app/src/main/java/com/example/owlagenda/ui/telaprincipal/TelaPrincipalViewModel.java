@@ -6,10 +6,13 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.models.User;
+import com.example.owlagenda.data.repository.TaskRepository;
 import com.example.owlagenda.data.repository.UserRepository;
 import com.example.owlagenda.ui.selene.Message;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
@@ -20,13 +23,17 @@ public class TelaPrincipalViewModel extends ViewModel {
     FirebaseAuth mAuth;
     private MutableLiveData<User> user;
     private UserRepository userRepository;
+    private TaskRepository taskRepository;
+    private MutableLiveData<ArrayList<Task>> tasks;
     private MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
-    private ArrayList<Message> currentMessages = new ArrayList<>();
+    ArrayList<Message> currentMessages;
+    MutableLiveData<ArrayList<Message>> messages;
 
     public TelaPrincipalViewModel() {
         mAuth = FirebaseAuth.getInstance();
         userRepository = new UserRepository();
+        taskRepository = new TaskRepository();
     }
 
     public MutableLiveData<User> getUser(String uid) {
@@ -44,7 +51,7 @@ public class TelaPrincipalViewModel extends ViewModel {
                 Log.e("FirestoreError", "Erro ao obter histórico de mensagens", error);
                 return;
             }
-            if(value.exists()){
+            if (value.exists()) {
                 user.postValue(value.toObject(User.class));
                 isLoading.postValue(false);
                 return;
@@ -56,13 +63,49 @@ public class TelaPrincipalViewModel extends ViewModel {
         return user;
     }
 
-    private final MutableLiveData<ArrayList<Message>> messages = new MutableLiveData<>(new ArrayList<>());
-
-    public LiveData<ArrayList<Message>> getMessages(String uid) {
-        userRepository.getMessageHistory(uid, (value, error) -> {
+    public LiveData<ArrayList<Task>> getTasks(String uid) {
+        tasks = new MutableLiveData<>();
+        taskRepository.getTasks(uid, (value, error) -> {
             if (error != null) {
                 if (error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
                     errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
+                    tasks.postValue(null);
+                } else {
+                    tasks.postValue(null);
+                }
+                isLoading.postValue(false);
+                // Tratar o erro
+                Log.e("FirestoreError", "Erro ao obter histórico de mensagens", error);
+                return;
+            }
+
+            if (value != null && !value.isEmpty()) {
+                ArrayList<Task> tasksObject = new ArrayList<>();
+
+                for (DocumentSnapshot document : value.getDocuments()) {
+                    Task task = document.toObject(Task.class);
+                    if (task != null) {
+                        tasksObject.add(task);
+                        Log.d("Firestore", "Task: " + task.getTitle());
+                    }
+                }
+
+                tasks.postValue(tasksObject);
+            }
+        });
+
+        return tasks;
+    }
+
+    public LiveData<ArrayList<Message>> getMessages(String uid) {
+        messages = new MutableLiveData<>();
+
+        userRepository.getMessageHistory(uid, (value, error) -> {
+            currentMessages = new ArrayList<>();
+            if (error != null) {
+                if (error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
+                    errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
+                    messages.postValue(null);
                 } else {
                     messages.postValue(null);
                 }
@@ -76,23 +119,16 @@ public class TelaPrincipalViewModel extends ViewModel {
                 Object historyMessage = value.get("historyMessage");
 
                 if (historyMessage instanceof List<?> historyMessageList) {
-
                     for (Object item : historyMessageList) {
                         if (item instanceof Map<?, ?> messageMap) {
-                            try {
-                                Message message = new Message((String) messageMap.get("text"), (long) messageMap.get("messageType"));
+                            Message message = new Message((String) messageMap.get("text"), (long) messageMap.get("messageType"));
 
-                                Log.e("teste", message.getText());
-                                currentMessages.add(message);
-                            } catch (Exception e) {
-                                Log.e("teste", "Erro ao converter mapa para Message", e);
-                            }
+                            currentMessages.add(message);
                         }
                     }
-
-                    messages.postValue(currentMessages);
-                    isLoading.postValue(false);
                 }
+                messages.setValue(currentMessages);
+                isLoading.postValue(false);
             }
         });
 
@@ -102,5 +138,9 @@ public class TelaPrincipalViewModel extends ViewModel {
     public void logout() {
         mAuth.signOut();
         Log.d("MyApp", "usuario deslogado");
+    }
+
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
     }
 }

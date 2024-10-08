@@ -3,20 +3,20 @@
     <item
         android:id="@+id/nav_inicio"
         android:title="@string/menu_inicio"
-        android:icon="@drawable/ic_email" />
+        android:icon="@drawable/selector_ic_home" />
 
     <item
         android:id="@+id/nav_calendario"
         android:title="@string/menu_calendario"
-        android:icon="@drawable/ic_calendar" />
+        android:icon="@drawable/selector_ic_calendar" />
 
     <item
         android:id="@+id/nav_corubot"
         android:title="@string/menu_selene"
-        android:icon="@drawable/ic_selene" />
+        android:icon="@drawable/selector_ic_selene" />
 
     <item
         android:id="@+id/nav_perfil"
         android:title="@string/menu_perfil"
-        android:icon="@drawable/ic_pessoa" />
+        android:icon="@drawable/selector_ic_profile" />
 </menu>
