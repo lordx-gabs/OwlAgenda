@@ -1,16 +1,17 @@
 package com.example.owlagenda.data.models;
 
 public class TaskDay {
-    private String idTaskDay, titleTaskDay, ClassTaskDay, tagTaskDay, dateTaskDay;
+    private String idTaskDay, titleTaskDay, ClassTaskDay, tagTaskDay, dateTaskDay, schoolNameTaskDay;
     private boolean checkTaskDay;
 
-    public TaskDay(String idTaskDay, String titleTaskDay, String descriptionTaskDay, String tagTaskDay, String dateTaskDay, boolean checkTaskDay) {
+    public TaskDay(String idTaskDay, String titleTaskDay, String descriptionTaskDay, String tagTaskDay, String dateTaskDay, boolean checkTaskDay, String schoolNameTaskDay) {
         this.titleTaskDay = titleTaskDay;
         this.ClassTaskDay = descriptionTaskDay;
         this.tagTaskDay = tagTaskDay;
         this.dateTaskDay = dateTaskDay;
         this.checkTaskDay = checkTaskDay;
         this.idTaskDay = idTaskDay;
+        this.schoolNameTaskDay = schoolNameTaskDay;
     }
 
     public String getIdTaskDay() {
@@ -59,5 +60,13 @@ public class TaskDay {
 
     public void setCheckTaskDay(boolean checkTaskDay) {
         this.checkTaskDay = checkTaskDay;
+    }
+
+    public String getSchoolNameTaskDay() {
+        return schoolNameTaskDay;
+    }
+
+    public void setSchoolNameTaskDay(String schoolNameTaskDay) {
+        this.schoolNameTaskDay = schoolNameTaskDay;
     }
 }

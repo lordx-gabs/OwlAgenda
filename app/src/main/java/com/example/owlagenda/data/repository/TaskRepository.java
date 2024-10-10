@@ -2,6 +2,8 @@ package com.example.owlagenda.data.repository;
 
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.models.TaskAttachments;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -12,6 +14,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
@@ -19,8 +22,13 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TaskRepository {
     private final CollectionReference collectionReference;
@@ -44,14 +52,56 @@ public class TaskRepository {
                 .addOnCompleteListener(completeListener);
     }
 
+    public void updateTaskFields(DocumentReference task, String newName, String newType,
+                                 DocumentReference school, DocumentReference newClass, String newDescription,
+                                 String newDate, OnCompleteListener<Void> onCompleteListener) {
+        Map<String, Object> updateTask = new HashMap<>();
+
+        if (!newName.isEmpty()) {
+            updateTask.put("title", newName);
+        }
+        if (!newType.isEmpty()) {
+            updateTask.put("tag", newType);
+        }
+        if (newClass != null) {
+            updateTask.put("schoolClass", newClass);
+        }
+        if (school != null) {
+            updateTask.put("school", school);
+        }
+        if (!newDescription.isEmpty()) {
+            updateTask.put("description", newDescription);
+        }
+        if (!newDate.isEmpty()) {
+            updateTask.put("date", newDate);
+        }
+
+        task.update(updateTask).addOnCompleteListener(onCompleteListener);
+    }
+
+    public void getTaskByTitle(String taskTitle, OnCompleteListener<QuerySnapshot> completeListener) {
+        collectionReference.whereEqualTo("title", taskTitle).get().addOnCompleteListener(completeListener);
+    }
+
+    public void getTaskByTitleAndSchoolClass(String taskTitle, DocumentReference schoolClass, OnCompleteListener<QuerySnapshot> completeListener) {
+        collectionReference.whereEqualTo("title", taskTitle)
+                .whereEqualTo("schoolClass", schoolClass).get().addOnCompleteListener(completeListener);
+    }
+
     public void deleteTask(String id, OnCompleteListener<Void> completeListener) {
         collectionReference.document(id).delete().addOnCompleteListener(completeListener);
     }
 
-    public void getTaskByDateToday(String id, EventListener<QuerySnapshot> eventListener) {
+    public void getTaskByDateToday(String id, OnCompleteListener<QuerySnapshot> eventListener) {
         //TODO:arrumar por data
-        collectionReference.whereEqualTo("userId", id).whereEqualTo("date", LocalDate.now())
-                .addSnapshotListener(eventListener);
+        collectionReference.whereEqualTo("userId", id).whereEqualTo("date",
+                        DateTimeFormatter.ofPattern("dd/MM/yyyy").format(LocalDate.now()))
+                .whereEqualTo("completed", false).get().addOnCompleteListener(eventListener);
+    }
+
+    public void getTaskByDateMonth(String id, OnCompleteListener<QuerySnapshot> eventListener) {
+        //TODO:arrumar por data
+        collectionReference.whereEqualTo("userId", id).get().addOnCompleteListener(eventListener);
     }
 
     public void getTaskByNotCompleted(String id, EventListener<QuerySnapshot> eventListener) {

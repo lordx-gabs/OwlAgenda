@@ -40,7 +40,7 @@ public class TaskDayAdapter extends RecyclerView.Adapter<TaskDayViewHolder> {
     public void onBindViewHolder(@NonNull TaskDayViewHolder holder, int position) {
         TaskDay taskDay = taskDays.get(position);
         holder.tvTaskDayTitle.setText(taskDay.getTitleTaskDay());
-        holder.tvTaskDayClass.setText(taskDay.getClassTaskDay());
+        holder.tvTaskDayClass.setText(taskDay.getSchoolNameTaskDay() +  " - " + taskDay.getClassTaskDay());
         holder.tvTaskDayTag.setText(taskDay.getTagTaskDay());
         int positionBefore = position - 1;
         if (positionBefore != -1 && taskDays.get(positionBefore).getDateTaskDay().equals(taskDay.getDateTaskDay())) {

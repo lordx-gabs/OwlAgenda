@@ -22,6 +22,7 @@ import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentInicioBinding;
 import com.example.owlagenda.ui.settings.SettingsView;
 import com.example.owlagenda.ui.task.TaskView;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,6 +43,7 @@ public class InicioFragment extends Fragment {
     private ArrayList<Task> tasks;
     private User currentUser;
     private TaskDayAdapter adapter;
+    List<com.google.android.gms.tasks.Task<Void>> tasksSchool = new ArrayList<>(); // Lista de tarefas Firestore para controle
     List<com.google.android.gms.tasks.Task<Void>> firestoreTasks = new ArrayList<>(); // Lista de tarefas Firestore para controle
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -68,27 +70,47 @@ public class InicioFragment extends Fragment {
                 tasks.sort(Comparator.comparing(task ->
                         LocalDate.parse(task.getDate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 ));
-                if(!tasks.isEmpty()) {
+                if (!tasks.isEmpty()) {
                     binding.recycleTaskDay.setVisibility(View.VISIBLE);
                     binding.tvMessageNoTask.setVisibility(View.GONE);
                     binding.tvTaskDayTitle.setVisibility(View.VISIBLE);
                     for (Task task : tasks) {
-                        com.google.android.gms.tasks.Task<DocumentSnapshot> schoolTask = task.getSchoolClass().get();
+                        com.google.android.gms.tasks.Task<DocumentSnapshot> taskSchool = task.getSchool().get();
+                        com.google.android.gms.tasks.Task<DocumentSnapshot> classTasks = task.getSchoolClass().get();
 
                         // Adicionar à lista de tarefas Firestore para esperar todas
-                        firestoreTasks.add(schoolTask.continueWith(task1 -> {
+                        firestoreTasks.add(classTasks.continueWith(task1 -> {
                             if (task1.isSuccessful()) {
                                 DocumentSnapshot document = task1.getResult();
                                 if (document.exists()) {
                                     // Adicionar uma nova TaskDay à lista
-                                    tasksDay.add(new TaskDay(
-                                            task.getId(),
-                                            task.getTitle(),
-                                            document.getString("className"),
-                                            task.getTag(),
-                                            task.getDate(),
-                                            task.isCompleted()
-                                    ));
+                                    tasksSchool.add(taskSchool.continueWith(task4 -> {
+                                        if(task4.isSuccessful()) {
+                                            document.getDocumentReference("schoolId").get()
+                                                    .addOnCompleteListener(task2 -> {
+                                                                if (task2.isSuccessful()) {
+                                                                    tasksDay.add(new TaskDay(
+                                                                            task.getId(),
+                                                                            task.getTitle(),
+                                                                            document.getString("className"),
+                                                                            task.getTag(),
+                                                                            task.getDate(),
+                                                                            task.isCompleted(),
+                                                                            task2.getResult().getString("schoolName")
+                                                                    ));
+                                                                    adapter.notifyDataSetChanged();
+                                                                } else {
+                                                                    Toast.makeText(getContext(), "Erro ao carregar escola", Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                    );
+                                        } else {
+                                            Toast.makeText(getContext(), "Erro ao carregar escolas", Toast.LENGTH_SHORT).show();
+                                        }
+                                        return null;
+                                    }));
+                                } else {
+                                    Toast.makeText(getContext(), "Erro ao carregar classes", Toast.LENGTH_SHORT).show();
                                 }
                             }
                             return null;
@@ -96,50 +118,56 @@ public class InicioFragment extends Fragment {
 
                         Tasks.whenAllComplete(firestoreTasks).addOnCompleteListener(task7 -> {
                             if (task7.isSuccessful()) {
-                                adapter = new TaskDayAdapter(tasksDay, new TaskDayViewHolder.onClickListener() {
-                                    @Override
-                                    public void onClickCheck(int position) {
-                                        //marcar tarefa como concluida
+                                Tasks.whenAllComplete(taskSchool).addOnCompleteListener(task9 -> {
+                                    if (task9.isSuccessful()) {
+                                        adapter = new TaskDayAdapter(tasksDay, new TaskDayViewHolder.onClickListener() {
+                                            @Override
+                                            public void onClickCheck(int position) {
+                                                //marcar tarefa como concluida
 
-                                        Optional<Task> taskActually = tasks.stream().filter(task -> task.getId()
-                                                .equalsIgnoreCase(tasksDay.get(position).getIdTaskDay())).findFirst();
-                                        taskActually.orElse(null).setCompleted(true);
+                                                Optional<Task> taskActually = tasks.stream().filter(task -> task.getId()
+                                                        .equalsIgnoreCase(tasksDay.get(position).getIdTaskDay())).findFirst();
+                                                taskActually.orElse(null).setCompleted(true);
 
-                                        inicioViewModel.setTaskIsCompleted(taskActually.orElse(null)).observe(getViewLifecycleOwner()
-                                                , aBoolean -> {
-                                                    if (aBoolean) {
-                                                        Snackbar.make(binding.getRoot(), "Tarefa marcada como concluida!",
-                                                                        Snackbar.LENGTH_SHORT).setAction("Desfazer", v -> {
-                                                                    taskActually.orElse(null).setCompleted(false);
-                                                                    inicioViewModel.setTaskIsCompleted(taskActually
-                                                                            .orElse(null));
-                                                                })
-                                                                .setAnchorView(binding.appFab.getRoot()).show();
-                                                    } else {
-                                                        Toast.makeText(getContext(), "Erro ao marcar tarefa como concluida!",
-                                                                Toast.LENGTH_SHORT).show();
-                                                    }
-                                                });
-                                    }
+                                                inicioViewModel.setTaskIsCompleted(taskActually.orElse(null)).observe(getViewLifecycleOwner()
+                                                        , aBoolean -> {
+                                                            if (aBoolean) {
+                                                                Snackbar.make(binding.getRoot(), "Tarefa marcada como concluida!",
+                                                                                Snackbar.LENGTH_SHORT).setAction("Desfazer", v -> {
+                                                                            taskActually.orElse(null).setCompleted(false);
+                                                                            inicioViewModel.setTaskIsCompleted(taskActually
+                                                                                    .orElse(null));
+                                                                        })
+                                                                        .setAnchorView(binding.appFab.getRoot()).show();
+                                                            } else {
+                                                                Toast.makeText(getContext(), "Erro ao marcar tarefa como concluida!",
+                                                                        Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        });
+                                            }
 
-                                    @Override
-                                    public void onClickTask(int position) {
-                                        // detalhes da tarefa
+                                            @Override
+                                            public void onClickTask(int position) {
+                                                // detalhes da tarefa
 
 
+                                            }
+                                        });
+                                        if (isAdded()) {
+                                            binding.recycleTaskDay.setAdapter(adapter);
+                                            binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
+                                        }
+                                    } else {
+                                        Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
                                     }
                                 });
-                                if (isAdded()) {
-                                    binding.recycleTaskDay.setAdapter(adapter);
-                                    binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
-                                }
                             } else {
                                 Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
                 } else {
-                    if(binding.recycleTaskDay.getAdapter() != null) {
+                    if (binding.recycleTaskDay.getAdapter() != null) {
                         binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
                     }
                     binding.recycleTaskDay.setVisibility(View.GONE);

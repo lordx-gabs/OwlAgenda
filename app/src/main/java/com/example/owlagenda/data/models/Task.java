@@ -33,6 +33,15 @@ public class Task {
     public Task() {
     }
 
+    public Task(String taskName, String taskDescription, String taskType, String taskDate, DocumentReference classRef, DocumentReference schoolRef) {
+        this.title = taskName;
+        this.description = taskDescription;
+        this.date = taskDate;
+        this.schoolClass = classRef;
+        this.tag = taskType;
+        this.school = schoolRef;
+    }
+
     public String getId() {
         return id;
     }
