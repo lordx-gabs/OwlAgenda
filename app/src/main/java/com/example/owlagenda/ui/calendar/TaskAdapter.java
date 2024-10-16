@@ -8,22 +8,19 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.data.models.Task;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private final List<Task> tasks;
-    private final View.OnClickListener btnEditListener, btnDeleteListener, btnDetailsListener;
+    private final List<TaskCalendar> tasks;
+    private final TaskViewHolder.OnClickTask onClickTask;
 
-    public TaskAdapter(View.OnClickListener btnEditListener, View.OnClickListener btnDeleteListener
-            ,View.OnClickListener btnDetailsListener) {
-        this.btnEditListener = btnEditListener;
-        this.btnDeleteListener = btnDeleteListener;
-        this.btnDetailsListener = btnDetailsListener;
+    public TaskAdapter(TaskViewHolder.OnClickTask onClickTask) {
         this.tasks = new ArrayList<>();
+        this.onClickTask = onClickTask;
     }
 
     @NonNull
@@ -31,22 +28,18 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new TaskViewHolder(
                 LayoutInflater.from(parent.getContext()).
-                        inflate(R.layout.details_task_view, parent, false)
+                        inflate(R.layout.details_task_view, parent, false), onClickTask
         );
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         TaskViewHolder viewHolder = ((TaskViewHolder) holder);
-        Task task = tasks.get(position);
-        String title = task.getTitle() + "\n" + task.getDescription();
+        TaskCalendar task = tasks.get(position);
+        String title = task.getNameTask() + "\n" + task.getSchoolClass();
         viewHolder.nameTaskLayout.setText(title);
-        viewHolder.dateTaskLayout.setText(DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                .parse(task.getDate()).toString());
-        viewHolder.btnEditTaskLayout.setOnClickListener(btnEditListener);
-        viewHolder.btnDeleteTaskLayout.setOnClickListener(btnDeleteListener);
-        viewHolder.btnDetailsTaskLayout.setOnClickListener(btnDetailsListener);
-
+        viewHolder.dateTaskLayout.setText(LocalDate.parse(task.getDate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n" + task.getTag());
     }
 
     @Override
@@ -54,7 +47,7 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return tasks.size();
     }
 
-    public List<Task> getTasks() {
+    public List<TaskCalendar> getTasks() {
         return tasks;
     }
 

@@ -113,7 +113,7 @@ public class ForgotPasswordView extends AppCompatActivity {
                         } else {
                             new MaterialAlertDialogBuilder(this)
                                     .setTitle("Owl Agenda")
-                                    .setMessage("Aguarde o término da contagem para enviar outro email de redefinição de senha. Tempo restante: " + timeLeft + "segundos")
+                                    .setMessage("Aguarde o término da contagem para enviar outro email de redefinição de senha. Tempo restante: " + timeLeft + " segundos")
                                     .setPositiveButton("Ok", (dialog, which) -> dialog.dismiss())
                                     .show();
                         }

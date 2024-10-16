@@ -5,9 +5,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
@@ -46,8 +50,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 public class TaskView extends AppCompatActivity {
     private static final int REQUEST_CODE_NOTIFICATION = 501;
@@ -66,14 +74,13 @@ public class TaskView extends AppCompatActivity {
     private MaterialDatePicker<Long> materialDatePicker;
     private String nameClass, numberOfStudents, period;
     private ArrayAdapter<String> adapterNotification;
-    private int indexNotifications = 0;
+    private int indexNotifications = 1;
+    private ArrayList<String> classesName;
     private final String[] notificationsMinutes = new String[]{"Sem notificação",
-            "10 Minutos antes",
-            "30 Minutos antes",
-            "1 Hora antes",
-            "6 Horas antes",
             "12 Horas antes",
-            "1 Dia antes"};
+            "1 Dia antes",
+            "2 Dias antes",
+            "3 Dias antes"};
     private final String[] tagsTask = new String[]{"Prova",
             "Atividade Avaliativa",
             "Trabalho de Casa",
@@ -83,7 +90,8 @@ public class TaskView extends AppCompatActivity {
             "Evento Escolar",
             "Reunião com Pais",
             "Preparação de Aula",
-            "Atividade de Desenvolvimento Profissional"};
+            "Atividade de Desenvolvimento Profissional",
+            "Outros"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,29 +125,54 @@ public class TaskView extends AppCompatActivity {
                 schoolsName.add("Nova escola");
 
                 schools.forEach(school -> schoolsName.add(school.getSchoolName()));
-
                 adapterSchool = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, schoolsName);
                 adapterSchool.notifyDataSetChanged();
-            }
-        });
 
-        viewModel.getClasses().observe(this, classes -> {
-            if (classes == null) {
-                Toast.makeText(this, "Não foi possivel carregar as classes.", Toast.LENGTH_SHORT).show();
-            } else {
-                this.schoolClasses = classes;
-                ArrayList<String> classesName = new ArrayList<>();
-                classesName.add("Adicionar nova classe");
-                classes.forEach(schoolClassData -> classesName.add(schoolClassData.getClassName()));
-                adapterClass = new ArrayAdapter<>(this, R.layout.dropdown_layout, classesName);
-                binding.autoCompleteClass.setAdapter(adapterClass);
-                adapterClass.notifyDataSetChanged();
+                viewModel.getClasses().observe(this, classes -> {
+                    if (classes == null) {
+                        Toast.makeText(this, "Não foi possivel carregar as classes.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        this.schoolClasses = classes;
+                        classesName = new ArrayList<>();
+                        classesName.add("Adicionar nova classe");
+                        // Mapeia cada classe para o nome da escola correspondente e coleta os nomes em uma lista
+                        List<String> schoolNames = classes.stream()
+                                .map(classItem -> {
+                                    // Obtém o DocumentReference da escola da classe
+                                    String classSchoolRef = classItem.getSchoolId().getId();
+
+                                    // Encontra a escola correspondente
+                                    return schools.stream()
+                                            .filter(school -> classSchoolRef.equals(school.getId())) // Compara DocumentReferences
+                                            .map(School::getSchoolName) // Mapeia para o nome da escola
+                                            .findFirst() // Pega a primeira ocorrência
+                                            .orElse("Escola Desconhecida"); // Valor padrão caso não encontre
+                                })
+                                .collect(Collectors.toList()); // Coleta os nomes das escolas em uma lista
+
+                        for (int i = 0; i < schoolNames.size(); i++) {
+                            classesName.add(schoolNames.get(i) + " - " + classes.get(i).getClassName());
+                        }
+                        adapterClass = new ArrayAdapter<>(this, R.layout.dropdown_layout, classesName);
+                        binding.autoCompleteClass.setAdapter(adapterClass);
+                        adapterClass.notifyDataSetChanged();
+                    }
+                });
             }
         });
 
         binding.autoCompleteClass.setOnItemClickListener((parent, view, position, id) -> {
+            List<String> filteredItems = new ArrayList<>();
+            for (int i = 0; i < binding.autoCompleteClass.getAdapter().getCount(); i++) {
+                if (binding.autoCompleteClass.getAdapter().getItem(i).toString().contains(" - ")) {
+                    filteredItems.add(binding.autoCompleteClass.getAdapter().getItem(i).toString()
+                            .split(" - ")[1]);
+                } else {
+                    filteredItems.add(binding.autoCompleteClass.getAdapter().getItem(i).toString());
+                }
+            }
             schoolSelected = null;
-            if (position == 0) {
+            if (filteredItems.get(position).equalsIgnoreCase("Adicionar nova classe")) {
                 binding.autoCompleteClass.setText("");
                 bottomSheetDialogClass = new BottomSheetDialog(this);
                 View view5 = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_add_class, (ViewGroup) this.getWindow().getDecorView(), false);
@@ -185,9 +218,11 @@ public class TaskView extends AppCompatActivity {
                         btnAddSchool.setOnClickListener(v -> {
                             School school = new School();
                             school.setSchoolName(etNameSchool.getText().toString());
-                            school.setUserId(FirebaseFirestore.getInstance().collection("usuario").document(
-                                    FirebaseAuth.getInstance().getCurrentUser().getUid()
+                            school.setUserId(FirebaseFirestore.getInstance()
+                                    .collection("usuario").document(
+                                            FirebaseAuth.getInstance().getCurrentUser().getUid()
                             ));
+                            school.setSchoolNameSearch(etNameSchool.getText().toString().toUpperCase());
                             school.setId(FirebaseFirestore.getInstance().collection("escola").document().getId());
                             viewModel.saveSchool(school).observe(this, aBoolean -> {
                                 if (aBoolean) {
@@ -211,6 +246,7 @@ public class TaskView extends AppCompatActivity {
                     if (!etNameClass.getText().toString().isEmpty() && !etNumberOfStudents.getText().toString().isEmpty()
                             && !autoCompletePeriod.getText().toString().isEmpty() && schoolSelected != null) {
                         SchoolClass dataSchoolClass = new SchoolClass();
+                        dataSchoolClass.setClassNameSearch(etNameClass.getText().toString().toUpperCase());
                         dataSchoolClass.setNumberOfStudents(Integer.parseInt(etNumberOfStudents.getText().toString()));
                         dataSchoolClass.setClassName(etNameClass.getText().toString());
                         dataSchoolClass.setPeriod(autoCompletePeriod.getText().toString());
@@ -236,7 +272,11 @@ public class TaskView extends AppCompatActivity {
                 });
 
             } else {
-                this.schoolClassSelected = schoolClasses.get(position - 1);
+                Optional<SchoolClass> schoolClassSelected = schoolClasses.stream()
+                        .filter(schoolClass -> schoolClass.getClassName()
+                                .equalsIgnoreCase(filteredItems.get(position)))
+                        .findFirst();
+                this.schoolClassSelected = schoolClassSelected.orElse(null);
             }
         });
 
@@ -319,18 +359,25 @@ public class TaskView extends AppCompatActivity {
             saveTask();
         });
 
-        Calendar calendarStart = Calendar.getInstance();
+        Calendar calendarStart = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
         calendarStart.add(Calendar.DAY_OF_MONTH, 1);
         long dateStart = calendarStart.getTimeInMillis();
 
-        Calendar calendarEnd = Calendar.getInstance();
+        Calendar calendarEnd = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
         calendarEnd.add(Calendar.YEAR, 1);
         long dateEnd = calendarEnd.getTimeInMillis();
+
+        Calendar calendarValidator = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
+        calendarValidator.set(Calendar.HOUR_OF_DAY, 0);
+        calendarValidator.set(Calendar.MINUTE, 0);
+        calendarValidator.set(Calendar.SECOND, 0);
+        calendarValidator.set(Calendar.MILLISECOND, 0);
+        long dateValidator = calendarValidator.getTimeInMillis();
 
         CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder()
                 .setStart(dateStart)
                 .setEnd(dateEnd)
-                .setValidator(DateValidatorPointForward.from(Calendar.getInstance().getTimeInMillis()));
+                .setValidator(DateValidatorPointForward.from(dateValidator));
 
         binding.etDateTask.setOnClickListener(v -> {
             Calendar calendarInitialed = Calendar.getInstance();
@@ -347,8 +394,7 @@ public class TaskView extends AppCompatActivity {
             }
 
             materialDatePicker = MaterialDatePicker.Builder.datePicker()
-                    .setTitleText("Selecione uma data da sua tarefa")
-                    .setCalendarConstraints(constraintsBuilder.build())
+                    .setTitleText("Selecione a data da sua tarefa")
                     .setSelection(calendarInitialed.getTimeInMillis())
                     .build();
 
@@ -374,15 +420,17 @@ public class TaskView extends AppCompatActivity {
                 binding.autoCompleteNotifications.showDropDown());
 
         binding.toolbarTask.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
+
     }
 
     private void saveTask() {
-        String txtNameTask = binding.etNameTask.getText().toString();
-        String txtDescriptionTask = binding.etDescriptionTask.getText().toString();
+        String txtNameTask = binding.etNameTask.getText().toString().trim();
+        String txtDescriptionTask = binding.etDescriptionTask.getText().toString().trim();
         String txtDateTask = binding.etDateTask.getText().toString();
         String txtTagTask = binding.autoCompleteTag.getText().toString();
-        if (txtNameTask.isEmpty() && txtDateTask.isEmpty() && schoolClassSelected == null) {
-            Toast.makeText(this, "Preencha todos os campos.", Toast.LENGTH_SHORT).show();
+        if (txtNameTask.isEmpty() || txtDateTask.isEmpty() || schoolClassSelected == null
+                || txtTagTask.isEmpty()) {
+            Toast.makeText(this, "Preencha todos os campos obrigátorios.", Toast.LENGTH_SHORT).show();
         } else {
             DocumentReference userRef = FirebaseFirestore.getInstance().collection("usuario")
                     .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -391,17 +439,16 @@ public class TaskView extends AppCompatActivity {
                     .document(schoolClassSelected.getId());
 
             Integer notificationBefore = switch (indexNotifications) {
-                case 1 -> 10;
-                case 2 -> 30;
-                case 3 -> 60;
-                case 4 -> 360;
-                case 5 -> 720;
-                case 6 -> 1440;
+                case 1 -> 720;
+                case 2 -> 1440;
+                case 3 -> 2880;
+                case 4 -> 4320;
                 default -> null;
             };
 
             Task task = new Task(userRef,
                     txtNameTask,
+                    txtNameTask.toUpperCase(),
                     txtDescriptionTask,
                     txtDateTask,
                     schoolRef,
@@ -410,31 +457,60 @@ public class TaskView extends AppCompatActivity {
                     documentAdapter.getDocuments(),
                     notificationBefore
             );
+            Calendar calendar;
+            if(notificationBefore != null) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                dateFormat.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo")); // Definir o fuso horário
+                calendar = Calendar.getInstance();
+                try {
+                    // Faz o parse da data
+                    calendar.setTime(dateFormat.parse(txtDateTask));
+                    calendar.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+
+                    Calendar currentCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
+                    currentCalendar.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+                    calendar.set(Calendar.HOUR_OF_DAY, currentCalendar.get(Calendar.HOUR_OF_DAY));
+                    calendar.set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE));
+                    calendar.set(Calendar.SECOND, currentCalendar.get(Calendar.SECOND));
+
+                    calendar.add(Calendar.MINUTE, -notificationBefore); // Subtrai o tempo de notificação
+                } catch (ParseException e) {
+                    Toast.makeText(this, "Erro ao converter data", Toast.LENGTH_SHORT).show();
+                }
+//                if(isNotificationDateInFuture(calendar)) {
+//                    Toast.makeText(this, "Notificação inválida. Selecione uma notificação válida.", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+            } else {
+                calendar = null;
+            }
+
             viewModel.addTask(task).observe(this, aBoolean -> {
                 if (aBoolean) {
                     if (notificationBefore != null) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy",
-                                Locale.getDefault());
-                        Calendar calendar = Calendar.getInstance();
+
+                        int idNotification = 0;
                         try {
-                            calendar.setTime(dateFormat.parse(txtDateTask));
-                        } catch (ParseException e) {
-                            Toast.makeText(this, "Erro ao converter data", Toast.LENGTH_SHORT).show();
-                        }
-                        calendar.add(Calendar.MINUTE, -notificationBefore);
-                        NotificationUtil.scheduleNotificationApp.scheduleNotification(this,
+                            idNotification = Integer.parseInt(task.getId().replaceAll("[^0-9]", ""));
+                        } catch (Exception ignored) {}
+
+                        NotificationUtil.scheduleNotificationApp.scheduleNotification(getApplicationContext(),
                                 calendar.getTimeInMillis(),
                                 txtNameTask,
-                                txtDescriptionTask);
+                                idNotification);
                     }
-                    Toast.makeText(this, "Tarefa adicionada com sucesso.",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Tarefa adicionada com sucesso.", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
                     Toast.makeText(this, "Erro ao adicionar tarefa.", Toast.LENGTH_SHORT).show();
                 }
             });
         }
+    }
+
+    private boolean isNotificationDateInFuture(Calendar calendar) {
+        Calendar currentDate = Calendar.getInstance();
+        return !calendar.getTime().after(currentDate.getTime());
     }
 
     @Override

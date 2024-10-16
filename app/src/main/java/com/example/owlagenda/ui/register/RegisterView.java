@@ -63,7 +63,7 @@ import java.util.TimeZone;
 
 public class RegisterView extends AppCompatActivity {
     private RegisterViewModel registerViewModel;
-    private static final int PICK_IMAGE_REQUEST = 1;
+    public static final int PICK_IMAGE_REQUEST = 1;
     private final int REQUEST_IMAGE_CAPTURE = 2;
     private User user;
     private ImageView userProfileImage;
@@ -111,11 +111,13 @@ public class RegisterView extends AppCompatActivity {
         genderAutoCompleteTextView.setOnItemClickListener((parent, view, position, id) ->
                 genderSelected = position);
 
-        Calendar calendarEnd = Calendar.getInstance();
+        TimeZone timeZone = TimeZone.getTimeZone("America/Sao_Paulo");
+
+        Calendar calendarEnd = Calendar.getInstance(timeZone);
         calendarEnd.set(1940, Calendar.JANUARY, 1);
         long dateStart = calendarEnd.getTimeInMillis();
 
-        Calendar calendarStart = Calendar.getInstance();
+        Calendar calendarStart = Calendar.getInstance(timeZone);
         calendarStart.add(Calendar.YEAR, -16);
         long dateEnd = calendarStart.getTimeInMillis();
 
@@ -125,7 +127,7 @@ public class RegisterView extends AppCompatActivity {
                 .setValidator(DateValidatorPointBackward.before(dateEnd));
 
         birthdateEditText.setOnClickListener(v -> {
-            Calendar calendarInitialed = Calendar.getInstance();
+            Calendar calendarInitialed = Calendar.getInstance(timeZone);
             if (birthdateEditText.getText().toString().isEmpty()) {
                 calendarInitialed.setTimeInMillis(dateEnd);
             } else {
@@ -221,11 +223,11 @@ public class RegisterView extends AppCompatActivity {
     }
 
     public void registerUser(View view) {
-        String name = (nameEditText.getText()).toString();
-        String surname = (surnameEditText.getText()).toString();
-        String email = (emailEditText.getText()).toString();
-        String password = (passwordEditText.getText()).toString();
-        String confirmPassword = (confirmPasswordEditText.getText()).toString();
+        String name = nameEditText.getText().toString();
+        String surname = surnameEditText.getText().toString();
+        String email = emailEditText.getText().toString();
+        String password = passwordEditText.getText().toString();
+        String confirmPassword = confirmPasswordEditText.getText().toString();
         String birthdate = null;
         String gender = null;
         Long phoneNumber = null;
@@ -245,39 +247,49 @@ public class RegisterView extends AppCompatActivity {
             gender = genderAutoCompleteTextView.getText().toString();
         }
 
-        if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            if (password.equals(confirmPassword)) {
-                user.setName(name);
-                user.setSurname(surname);
-                user.setEmail(email);
-                user.setPassword(password);
-                user.setBirthdate(birthdate);
-                user.setGender(gender);
-                user.setPhoneNumber(phoneNumber);
-                user.setHistoryMessage(new ArrayList<>());
+        if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && !password.isEmpty()
+                && !confirmPassword.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            if(phoneNumberEditText.getText().toString()
+                    .replaceAll("[()\\s-]", "").matches("^[1-9]{2}9[0-9]{8}$")) {
+                if (password.equals(confirmPassword)) {
+                    if(password.length() >= 6) {
+                        user.setName(name);
+                        user.setSurname(surname);
+                        user.setEmail(email);
+                        user.setPassword(password);
+                        user.setBirthdate(birthdate);
+                        user.setGender(gender);
+                        user.setPhoneNumber(phoneNumber);
+                        user.setHistoryMessage(new ArrayList<>());
 
-                if (imageProfileBitmap == null) {
-                    imageProfileBitmap = registerViewModel.getImageProfileDefaultBitmap(this);
-                    if (imageProfileBitmap == null) {
-                        Toast.makeText(this, "Erro ao carregar imagem padrão.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
+                        if (imageProfileBitmap == null) {
+                            imageProfileBitmap = registerViewModel.getImageProfileDefaultBitmap(this);
+                            if (imageProfileBitmap == null) {
+                                Toast.makeText(this, "Erro ao carregar imagem padrão.", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                        }
 
-                registerViewModel.registerUser(user, imageProfileBitmap).observe(this, success -> {
-                    if (success) {
-                        Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(this, LoginView.class)
-                                .putExtra("emailUser", user.getEmail())
-                                .putExtra("firstNameUser", user.getName()));
-                        FirebaseAuth.getInstance().signOut();
-                        finish();
+                        registerViewModel.registerUser(user, imageProfileBitmap).observe(this, success -> {
+                            if (success) {
+                                Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(this, LoginView.class)
+                                        .putExtra("emailUser", user.getEmail())
+                                        .putExtra("firstNameUser", user.getName()));
+                                FirebaseAuth.getInstance().signOut();
+                                finish();
+                            } else {
+                                Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     } else {
-                        Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "A senha precisa ter no mínimo 6 caracteres.", Toast.LENGTH_SHORT).show();
                     }
-                });
+                } else {
+                    Toast.makeText(this, "As senhas precisam ser iguais.", Toast.LENGTH_SHORT).show();
+                }
             } else {
-                Toast.makeText(this, "As senhas precisam ser iguais.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "O número de telefone precisa ser válido.", Toast.LENGTH_SHORT).show();
             }
         } else {
             Toast.makeText(this, "Todos os campos obrigatorios precisam ser preenchidos.", Toast.LENGTH_SHORT).show();

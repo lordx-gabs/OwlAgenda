@@ -11,7 +11,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 public class SchoolRepository {
-    private CollectionReference schoolCollection;
+    private final CollectionReference schoolCollection;
 
     public SchoolRepository() {
         schoolCollection = FirebaseFirestore.getInstance().collection("escola");
@@ -36,6 +36,10 @@ public class SchoolRepository {
                 .collection("usuario")
                 .document(userId);
         schoolCollection.whereEqualTo("userId", userRef).addSnapshotListener(eventListener);
+    }
+
+    public void getSchoolByName(String schoolName, OnCompleteListener<QuerySnapshot> eventListener) {
+        schoolCollection.whereEqualTo("schoolNameSearch", schoolName).get().addOnCompleteListener(eventListener);
     }
 
     public void getSchoolById(String schoolId, EventListener<DocumentSnapshot> eventListener) {

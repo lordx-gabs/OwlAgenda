@@ -1,7 +1,5 @@
 package com.example.owlagenda.ui.selene;
 
-import androidx.annotation.NonNull;
-
 public class Message {
     private String text;
     private long messageType;
@@ -25,8 +23,4 @@ public class Message {
         return messageType;
     }
 
-    @NonNull
-    public String toString() {
-        return text + "////" + messageType;
-    }
 }

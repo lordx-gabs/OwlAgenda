@@ -94,7 +94,9 @@
                   
             <clip-path android:pathData="M77.29,88.62L65.42,67.86L89.16,67.86ZM77.29,88.62"/>
                   
-            <path android:fillColor="#000000" android:fillType="nonZero" android:pathData="M89.16,88.62L65.39,88.62L65.39,67.86L89.16,67.86ZM89.16,88.62"/>
+            <path
+                android:name="testeee"
+                android:fillColor="#000000" android:fillType="nonZero" android:pathData="M89.16,88.62L65.39,88.62L65.39,67.86L89.16,67.86ZM89.16,88.62"/>
                 
         </group>
           
@@ -108,7 +110,9 @@
                   
             <clip-path android:pathData="M94.37,43.79C88.95,43.79 84.56,48.18 84.56,53.59C84.56,59.01 88.95,63.4 94.37,63.4C99.78,63.4 104.17,59.01 104.17,53.59C104.17,48.18 99.78,43.79 94.37,43.79ZM94.37,43.79"/>
                   
-            <path android:fillColor="#000000" android:fillType="nonZero" android:pathData="M84.56,43.79L104.17,43.79L104.17,63.4L84.56,63.4ZM84.56,43.79"/>
+            <path android:fillColor="#000000"
+                android:fillType="nonZero"
+                android:pathData="M84.56,43.79L104.17,43=.79L104.17,63.4L84.56,63.4ZM84.56,43.79"/>
                 
         </group>
           

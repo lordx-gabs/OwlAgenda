@@ -27,4 +27,11 @@ public class NetworkUtil {
         }
         return false;
     }
+
+    public static void registerNetworkCallback(Context context, ConnectivityManager.NetworkCallback callback) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            cm.registerDefaultNetworkCallback(callback);
+        }
+    }
 }

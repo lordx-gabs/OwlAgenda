@@ -10,7 +10,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 public class ClassRepository {
-    private CollectionReference classCollection;
+    private final CollectionReference classCollection;
 
     public ClassRepository() {
         classCollection = FirebaseFirestore.getInstance().collection("turma");
@@ -26,7 +26,7 @@ public class ClassRepository {
     }
 
     public void updateClass(SchoolClass schoolClassData, OnCompleteListener<Void> completeListener) {
-        classCollection.document(String.valueOf(schoolClassData.getId())).set(schoolClassData, SetOptions.merge())
+        classCollection.document(schoolClassData.getId()).set(schoolClassData, SetOptions.merge())
                 .addOnCompleteListener(completeListener);
     }
 
@@ -38,8 +38,17 @@ public class ClassRepository {
         classCollection.whereEqualTo("userId", userRef).addSnapshotListener(eventListener);
     }
 
-    public void getClassesBySchoolId(String schoolId, EventListener<QuerySnapshot> eventListener) {
-        classCollection.whereEqualTo("schoolId", schoolId).addSnapshotListener(eventListener);
+    public void getClassesBySchoolId(DocumentReference schoolId, OnCompleteListener<QuerySnapshot> completeListener) {
+        classCollection.whereEqualTo("schoolId", schoolId).get().addOnCompleteListener(completeListener);
+    }
+
+    public void getClassByName(String name, OnCompleteListener<QuerySnapshot> completeListener) {
+        classCollection.whereEqualTo("classNameSearch", name).get().addOnCompleteListener(completeListener);
+    }
+
+    public void getClassByNameAndSchool(String name, DocumentReference schoolId, OnCompleteListener<QuerySnapshot> completeListener) {
+        classCollection.whereEqualTo("classNameSearch", name)
+                .whereEqualTo("schoolId", schoolId).get().addOnCompleteListener(completeListener);
     }
 
 }

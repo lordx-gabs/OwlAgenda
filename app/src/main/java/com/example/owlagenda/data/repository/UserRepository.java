@@ -16,6 +16,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 
@@ -65,6 +66,11 @@ public class UserRepository {
 
     public void addUser(User user, OnCompleteListener<Void> completeListener) {
         collectionReference.document(user.getId()).set(user).addOnCompleteListener(completeListener);
+    }
+
+    public void updateUser(User user, OnCompleteListener<Void> completeListener) {
+        collectionReference.document(user.getId()).set(user, SetOptions.merge())
+                .addOnCompleteListener(completeListener);
     }
 
     public void sendVerificationEmail(){

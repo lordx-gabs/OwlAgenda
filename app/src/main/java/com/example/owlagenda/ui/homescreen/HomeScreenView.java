@@ -31,6 +31,7 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class HomeScreenView extends AppCompatActivity {
         callbackManager = CallbackManager.Factory.create();
         binding.btnTesteFace.setOnClickListener(v -> {
             LoginManager.getInstance().logInWithReadPermissions(HomeScreenView.this
-            ,Arrays.asList("email", "public_profile"));
+                    , Arrays.asList("email", "public_profile"));
             LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<>() {
                 @Override
                 public void onSuccess(LoginResult loginResult) {
@@ -103,12 +104,21 @@ public class HomeScreenView extends AppCompatActivity {
             });
         });
         viewModel.isLoading().observe(this, aBoolean -> {
-            if(aBoolean) {
+            if (aBoolean) {
                 binding.linearProgressHomeScreen.setVisibility(View.VISIBLE);
             } else {
                 binding.linearProgressHomeScreen.setVisibility(View.INVISIBLE);
             }
         });
+
+        viewModel.getErrorMessageDialog().observe(this, s ->
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Erro")
+                        .setMessage(s)
+                        .setPositiveButton("Ok", (dialog, which) -> {
+                        })
+                        .show()
+        );
 
     }
 
