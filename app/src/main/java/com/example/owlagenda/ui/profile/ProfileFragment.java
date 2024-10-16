@@ -249,6 +249,7 @@ public class ProfileFragment extends Fragment {
                         profileViewModel.saveProfilePhoto(imageProfileBitmap).observe(getViewLifecycleOwner(), url -> {
                             if (url != null) {
                                 user.setUrlProfilePhoto(url);
+                                user.setEmail(oldUser.getEmail());
                                 profileViewModel.updateUser(user).observe(getViewLifecycleOwner(), aBoolean1 -> {
                                     if (aBoolean1) {
                                         Toast.makeText(getContext(), "Usuario salvo", Toast.LENGTH_SHORT).show();
@@ -262,6 +263,7 @@ public class ProfileFragment extends Fragment {
                         });
                     } else {
                         user.setUrlProfilePhoto(oldUser.getUrlProfilePhoto());
+                        user.setEmail(oldUser.getEmail());
                         profileViewModel.updateUser(user).observe(getViewLifecycleOwner(), aBoolean1 -> {
                             if (aBoolean1) {
                                 Toast.makeText(getContext(), "Usuario salvo", Toast.LENGTH_SHORT).show();

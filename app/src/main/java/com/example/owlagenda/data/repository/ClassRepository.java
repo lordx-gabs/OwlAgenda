@@ -43,11 +43,11 @@ public class ClassRepository {
     }
 
     public void getClassByName(String name, OnCompleteListener<QuerySnapshot> completeListener) {
-        classCollection.whereEqualTo("className", name).get().addOnCompleteListener(completeListener);
+        classCollection.whereEqualTo("classNameSearch", name).get().addOnCompleteListener(completeListener);
     }
 
     public void getClassByNameAndSchool(String name, DocumentReference schoolId, OnCompleteListener<QuerySnapshot> completeListener) {
-        classCollection.whereEqualTo("className", name)
+        classCollection.whereEqualTo("classNameSearch", name)
                 .whereEqualTo("schoolId", schoolId).get().addOnCompleteListener(completeListener);
     }
 

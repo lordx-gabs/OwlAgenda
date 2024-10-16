@@ -16,13 +16,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.models.TaskDay;
-import com.example.owlagenda.data.models.TaskViewModel;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentInicioBinding;
 import com.example.owlagenda.ui.settings.SettingsView;
 import com.example.owlagenda.ui.task.TaskView;
-import com.google.android.gms.tasks.OnCompleteListener;
+import com.example.owlagenda.util.NotificationUtil;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -63,6 +62,14 @@ public class InicioFragment extends Fragment {
         binding.recycleTaskDay.setLayoutManager(new LinearLayoutManager(requireContext(),
                 LinearLayoutManager.VERTICAL, false));
 
+        inicioViewModel.isLoading().observe(getViewLifecycleOwner(), aBoolean -> {
+            if (aBoolean) {
+                binding.loadingHome.setVisibility(View.VISIBLE);
+            } else {
+                binding.loadingHome.setVisibility(View.GONE);
+            }
+        });
+
         inicioViewModel.getTasksByNotCompleted(FirebaseAuth.getInstance()
                 .getCurrentUser().getUid()).observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
@@ -74,6 +81,7 @@ public class InicioFragment extends Fragment {
                     binding.recycleTaskDay.setVisibility(View.VISIBLE);
                     binding.tvMessageNoTask.setVisibility(View.GONE);
                     binding.tvTaskDayTitle.setVisibility(View.VISIBLE);
+                    binding.loadingHome.setVisibility(View.VISIBLE);
                     for (Task task : tasks) {
                         com.google.android.gms.tasks.Task<DocumentSnapshot> taskSchool = task.getSchool().get();
                         com.google.android.gms.tasks.Task<DocumentSnapshot> classTasks = task.getSchoolClass().get();
@@ -85,7 +93,7 @@ public class InicioFragment extends Fragment {
                                 if (document.exists()) {
                                     // Adicionar uma nova TaskDay à lista
                                     tasksSchool.add(taskSchool.continueWith(task4 -> {
-                                        if(task4.isSuccessful()) {
+                                        if (task4.isSuccessful()) {
                                             document.getDocumentReference("schoolId").get()
                                                     .addOnCompleteListener(task2 -> {
                                                                 if (task2.isSuccessful()) {
@@ -119,6 +127,7 @@ public class InicioFragment extends Fragment {
                         Tasks.whenAllComplete(firestoreTasks).addOnCompleteListener(task7 -> {
                             if (task7.isSuccessful()) {
                                 Tasks.whenAllComplete(taskSchool).addOnCompleteListener(task9 -> {
+                                    binding.loadingHome.setVisibility(View.GONE);
                                     if (task9.isSuccessful()) {
                                         adapter = new TaskDayAdapter(tasksDay, new TaskDayViewHolder.onClickListener() {
                                             @Override
@@ -132,13 +141,34 @@ public class InicioFragment extends Fragment {
                                                 inicioViewModel.setTaskIsCompleted(taskActually.orElse(null)).observe(getViewLifecycleOwner()
                                                         , aBoolean -> {
                                                             if (aBoolean) {
-                                                                Snackbar.make(binding.getRoot(), "Tarefa marcada como concluida!",
-                                                                                Snackbar.LENGTH_SHORT).setAction("Desfazer", v -> {
+                                                                Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa marcada como concluida!",
+                                                                                Snackbar.LENGTH_SHORT)
+                                                                        .setAction("Desfazer", v -> {
                                                                             taskActually.orElse(null).setCompleted(false);
-                                                                            inicioViewModel.setTaskIsCompleted(taskActually
-                                                                                    .orElse(null));
-                                                                        })
-                                                                        .setAnchorView(binding.appFab.getRoot()).show();
+                                                                            inicioViewModel.setTaskIsCompleted(taskActually.orElse(null));
+                                                                        }).setAnchorView(binding.appFab.getRoot());
+
+                                                                snackbar.addCallback(new Snackbar.Callback() {
+                                                                    @Override
+                                                                    public void onDismissed(Snackbar snackbar, int event) {
+                                                                        if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
+                                                                            int notificationId = 0;
+                                                                            try {
+                                                                                notificationId = Integer.parseInt(taskActually.orElse(null).getId().replaceAll("[^0-9]", ""));
+                                                                            } catch (NumberFormatException ignored) {}
+
+                                                                            Log.d("teste", "" + notificationId);
+                                                                            if (NotificationUtil.scheduleNotificationApp.isAlarmSet(InicioFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
+                                                                                    notificationId)) {
+                                                                                NotificationUtil.scheduleNotificationApp.cancelNotification(InicioFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
+                                                                                        notificationId);
+                                                                                Log.d("testeee", "chegouu");
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+
+                                                                snackbar.show();
                                                             } else {
                                                                 Toast.makeText(getContext(), "Erro ao marcar tarefa como concluida!",
                                                                         Toast.LENGTH_SHORT).show();
@@ -149,7 +179,6 @@ public class InicioFragment extends Fragment {
                                             @Override
                                             public void onClickTask(int position) {
                                                 // detalhes da tarefa
-
 
                                             }
                                         });

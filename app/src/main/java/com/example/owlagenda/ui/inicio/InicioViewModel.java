@@ -48,6 +48,7 @@ public class InicioViewModel extends ViewModel {
     public LiveData<ArrayList<Task>> getTasksByNotCompleted(String uid) {
         tasks = new MutableLiveData<>();
         taskRepository.getTaskByNotCompleted(uid, (value, error) -> {
+            isLoading.postValue(true);
             if (error != null) {
                 if (error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
                     errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
@@ -71,7 +72,7 @@ public class InicioViewModel extends ViewModel {
                         Log.d("Firestore6", "Task: " + task.getTitle());
                     }
                 }
-
+                isLoading.postValue(false);
                 tasks.postValue(tasksObject);
             }
         });
@@ -81,6 +82,10 @@ public class InicioViewModel extends ViewModel {
 
     public LiveData<String> getErrorMessage() {
         return errorMessage;
+    }
+
+    public LiveData<Boolean> isLoading() {
+        return isLoading;
     }
 
     public void logout() {

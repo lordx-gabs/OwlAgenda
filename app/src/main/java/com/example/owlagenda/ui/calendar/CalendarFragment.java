@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -62,6 +63,7 @@ public class CalendarFragment extends Fragment {
     private UserViewModel userViewModel;
     private CalendarViewModel viewModel;
     private ArrayList<TaskCalendar> tasksCalendar;
+    private ArrayList<Task> tasksObject;
     List<com.google.android.gms.tasks.Task<Void>> firestoreTasks = new ArrayList<>(); // Lista de tarefas Firestore para controle
 
 
@@ -84,6 +86,23 @@ public class CalendarFragment extends Fragment {
         binding.appBarTelaPrincipal.toolbar.setTitle("Calendário");
         binding.appBarTelaPrincipal.titleOwl.setVisibility(View.GONE);
 
+        List<DayOfWeek> daysOfWeek = ExtensionsKt.daysOfWeek();
+        YearMonth currentMonth = YearMonth.now();
+        YearMonth startMonth = currentMonth.minusMonths(12);
+        YearMonth endMonth = currentMonth.plusMonths(12);
+        // chamar apos pegar as Tasks
+        tasks = new HashMap<>();
+        tasksCalendar = new ArrayList<>();
+        tasksObject = new ArrayList<>();
+
+        viewModel.getIsLoading().observe(getViewLifecycleOwner(), aBoolean -> {
+            if(aBoolean) {
+                binding.loadingCalendar.setVisibility(View.VISIBLE);
+            } else {
+                binding.loadingCalendar.setVisibility(View.GONE);
+            }
+        });
+
         taskAdapter = new TaskAdapter(new TaskViewHolder.OnClickTask() {
             @Override
             public void onClickBtnEdit(int position) {
@@ -92,14 +111,25 @@ public class CalendarFragment extends Fragment {
 
             @Override
             public void onClickBtnDelete(int position) {
-                viewModel.deleteTask(taskAdapter.getTasks().get(position), getActivity().getApplicationContext())
-                        .observe(getViewLifecycleOwner(), aBoolean -> {
-                            if(aBoolean) {
-                                Toast.makeText(requireContext(), "Tarefa deletada com sucesso", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(requireContext(), "Erro ao deletar tarefa", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                List<TaskCalendar> task = tasks.get(selectedDate);
+                Optional<Task> taskOptional = tasksObject.stream()
+                        .filter(task7 -> task7.getTitle().equalsIgnoreCase(task.get(position).getNameTask()))
+                        .findFirst();
+
+                if (taskOptional.isPresent()) {
+                    // Tarefa encontrada, faça algo com ela
+                    viewModel.deleteTask(taskOptional.get(), getActivity().getApplicationContext())
+                            .observe(getViewLifecycleOwner(), aBoolean -> {
+                                if(aBoolean) {
+                                    Toast.makeText(requireContext(), "Tarefa deletada com sucesso", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(requireContext(), "Erro ao deletar tarefa", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                } else {
+                    // Tarefa não encontrada
+                   Log.d("teste","Tarefa não encontrada.");
+                }
             }
 
             @Override
@@ -109,21 +139,21 @@ public class CalendarFragment extends Fragment {
         });
         binding.recycleCalendar.setItemAnimator(new FadeInUpAnimator());
         binding.recycleCalendar.setAdapter(taskAdapter);
-
-        List<DayOfWeek> daysOfWeek = ExtensionsKt.daysOfWeek();
-        YearMonth currentMonth = YearMonth.now();
-        YearMonth startMonth = currentMonth.minusMonths(12);
-        YearMonth endMonth = currentMonth.plusMonths(12);
-        // chamar apos pegar as Tasks
-        tasks = new HashMap<>();
-        tasksCalendar = new ArrayList<>();
+        if(isAdded()) {
+            configureBinders(daysOfWeek);
+            binding.calendar.setup(startMonth, endMonth, daysOfWeek.get(0));
+            binding.calendar.scrollToMonth(YearMonth.now());
+        }
 
         viewModel.getTasks().observe(getViewLifecycleOwner(), tasks -> {
             if(tasks != null) {
                 if(!tasks.isEmpty()) {
+                    Log.d("teste", "" + tasks.size());
+                    tasksObject.clear();
+                    tasksObject.addAll(tasks);
                     for (Task task : tasks) {
                         com.google.android.gms.tasks.Task<DocumentSnapshot> schoolTask = task.getSchoolClass().get();
-
+                        tasksCalendar.clear();
                         // Adicionar à lista de tarefas Firestore para esperar todas
                         firestoreTasks.add(schoolTask.continueWith(task1 -> {
                             if (task1.isSuccessful()) {
@@ -144,17 +174,21 @@ public class CalendarFragment extends Fragment {
                         Tasks.whenAllComplete(firestoreTasks).addOnCompleteListener(task7 -> {
                             if (task7.isSuccessful()) {
                                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                                this.tasks.clear();
                                 this.tasks.putAll(
                                         tasksCalendar.stream().collect(Collectors.groupingBy(task5 ->
                                                         LocalDate.parse(task5.getDate(), formatter),
                                                 Collectors.toList()))
                                 );
-
                                 Log.e("teste", "" + this.tasks.size());
-
-                                binding.calendar.setup(startMonth, endMonth, daysOfWeek.get(0));
-                                binding.calendar.scrollToMonth(YearMonth.now());
-                                configureBinders(daysOfWeek);
+                                if(isAdded()) {
+                                    if(selectedDate != null) {
+                                        updateAdapterForDate(selectedDate);
+                                    } else {
+                                        updateAdapterForDate(null);
+                                    }
+                                    configureBinders(daysOfWeek);
+                                }
                             } else {
                                 Toast.makeText(requireContext(), "Erro ao carregar as tarefas", Toast.LENGTH_SHORT).show();
                             }
@@ -162,9 +196,14 @@ public class CalendarFragment extends Fragment {
                     }
                 } else {
                     this.tasks.clear();
-                    binding.calendar.setup(startMonth, endMonth, daysOfWeek.get(0));
-                    binding.calendar.scrollToMonth(YearMonth.now());
-                    configureBinders(daysOfWeek);
+                    if(isAdded()) {
+                        if(selectedDate != null) {
+                            updateAdapterForDate(selectedDate);
+                        } else {
+                            updateAdapterForDate(null);
+                        }
+                        configureBinders(daysOfWeek);
+                    }
                 }
 
             } else {

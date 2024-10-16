@@ -17,6 +17,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.calendar.CalendarFragment;
+import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
 
 public class NotificationUtil extends BroadcastReceiver {
     public static final String CHANNEL_ID = "canal_notificacao_owl";
@@ -31,7 +32,17 @@ public class NotificationUtil extends BroadcastReceiver {
     }
 
     public static Notification createNotification(Context context, String title, int requestCode) {
-        Intent intent = new Intent(context.getApplicationContext(), CalendarFragment.class);
+        Intent completeTaskIntent = new Intent(context, CompleteTaskReceiver.class);
+        completeTaskIntent.putExtra("taskId", title);
+        completeTaskIntent.putExtra("requestCode", requestCode);
+        PendingIntent completeTaskPendingIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                completeTaskIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT
+        );
+
+        Intent intent = new Intent(context.getApplicationContext(), TelaPrincipalView.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context.getApplicationContext(), requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext(), NotificationUtil.CHANNEL_ID)
@@ -42,6 +53,7 @@ public class NotificationUtil extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .setColor(context.getColor(R.color.selector_notification))
+                .addAction(R.drawable.ic_check, "Concluir Tarefa", completeTaskPendingIntent)
                 .setVibrate(new long[]{0, 500, 1000, 500});
 
         return builder.build();
@@ -63,7 +75,6 @@ public class NotificationUtil extends BroadcastReceiver {
             Intent intent = new Intent(context, NotificationUtil.class);
             intent.putExtra("title", title);
             intent.putExtra("requestCode", requestCode);
-            Log.d("taaaa", "" + triggerAtMillis);
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null) {
@@ -72,11 +83,11 @@ public class NotificationUtil extends BroadcastReceiver {
                             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                     if (alarmManager.canScheduleExactAlarms()) {
                         alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+                        Log.d("agendou", "horas " + triggerAtMillis);
                     } else {
                         alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
                     }
                 } else {
-                    Log.e("aqui ta", "eita");
                     PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent,
                             PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
@@ -104,7 +115,6 @@ public class NotificationUtil extends BroadcastReceiver {
             if (alarmManager != null) {
                 // Cancela o alarme
                 alarmManager.cancel(pendingIntent);
-                Log.d("teste", "" + alarmManager.getNextAlarmClock().getTriggerTime());
                 Log.d("AlarmManager", "Alarme cancelado");
             }
         }

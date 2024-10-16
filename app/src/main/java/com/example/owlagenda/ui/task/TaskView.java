@@ -50,6 +50,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -76,12 +77,10 @@ public class TaskView extends AppCompatActivity {
     private int indexNotifications = 1;
     private ArrayList<String> classesName;
     private final String[] notificationsMinutes = new String[]{"Sem notificação",
-            "10 Minutos antes",
-            "30 Minutos antes",
-            "1 Hora antes",
-            "6 Horas antes",
             "12 Horas antes",
-            "1 Dia antes"};
+            "1 Dia antes",
+            "2 Dias antes",
+            "3 Dias antes"};
     private final String[] tagsTask = new String[]{"Prova",
             "Atividade Avaliativa",
             "Trabalho de Casa",
@@ -219,9 +218,11 @@ public class TaskView extends AppCompatActivity {
                         btnAddSchool.setOnClickListener(v -> {
                             School school = new School();
                             school.setSchoolName(etNameSchool.getText().toString());
-                            school.setUserId(FirebaseFirestore.getInstance().collection("usuario").document(
-                                    FirebaseAuth.getInstance().getCurrentUser().getUid()
+                            school.setUserId(FirebaseFirestore.getInstance()
+                                    .collection("usuario").document(
+                                            FirebaseAuth.getInstance().getCurrentUser().getUid()
                             ));
+                            school.setSchoolNameSearch(etNameSchool.getText().toString().toUpperCase());
                             school.setId(FirebaseFirestore.getInstance().collection("escola").document().getId());
                             viewModel.saveSchool(school).observe(this, aBoolean -> {
                                 if (aBoolean) {
@@ -245,6 +246,7 @@ public class TaskView extends AppCompatActivity {
                     if (!etNameClass.getText().toString().isEmpty() && !etNumberOfStudents.getText().toString().isEmpty()
                             && !autoCompletePeriod.getText().toString().isEmpty() && schoolSelected != null) {
                         SchoolClass dataSchoolClass = new SchoolClass();
+                        dataSchoolClass.setClassNameSearch(etNameClass.getText().toString().toUpperCase());
                         dataSchoolClass.setNumberOfStudents(Integer.parseInt(etNumberOfStudents.getText().toString()));
                         dataSchoolClass.setClassName(etNameClass.getText().toString());
                         dataSchoolClass.setPeriod(autoCompletePeriod.getText().toString());
@@ -394,7 +396,6 @@ public class TaskView extends AppCompatActivity {
             materialDatePicker = MaterialDatePicker.Builder.datePicker()
                     .setTitleText("Selecione a data da sua tarefa")
                     .setSelection(calendarInitialed.getTimeInMillis())
-                    .setCalendarConstraints(constraintsBuilder.build())
                     .build();
 
             materialDatePicker.addOnPositiveButtonClickListener(selection -> {
@@ -438,17 +439,16 @@ public class TaskView extends AppCompatActivity {
                     .document(schoolClassSelected.getId());
 
             Integer notificationBefore = switch (indexNotifications) {
-                case 1 -> 10;
-                case 2 -> 30;
-                case 3 -> 60;
-                case 4 -> 360;
-                case 5 -> 720;
-                case 6 -> 1440;
+                case 1 -> 720;
+                case 2 -> 1440;
+                case 3 -> 2880;
+                case 4 -> 4320;
                 default -> null;
             };
 
             Task task = new Task(userRef,
                     txtNameTask,
+                    txtNameTask.toUpperCase(),
                     txtDescriptionTask,
                     txtDateTask,
                     schoolRef,
@@ -457,35 +457,42 @@ public class TaskView extends AppCompatActivity {
                     documentAdapter.getDocuments(),
                     notificationBefore
             );
+            Calendar calendar;
+            if(notificationBefore != null) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                dateFormat.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo")); // Definir o fuso horário
+                calendar = Calendar.getInstance();
+                try {
+                    // Faz o parse da data
+                    calendar.setTime(dateFormat.parse(txtDateTask));
+                    calendar.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+
+                    Calendar currentCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
+                    currentCalendar.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
+                    calendar.set(Calendar.HOUR_OF_DAY, currentCalendar.get(Calendar.HOUR_OF_DAY));
+                    calendar.set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE));
+                    calendar.set(Calendar.SECOND, currentCalendar.get(Calendar.SECOND));
+
+                    calendar.add(Calendar.MINUTE, -notificationBefore); // Subtrai o tempo de notificação
+                } catch (ParseException e) {
+                    Toast.makeText(this, "Erro ao converter data", Toast.LENGTH_SHORT).show();
+                }
+//                if(isNotificationDateInFuture(calendar)) {
+//                    Toast.makeText(this, "Notificação inválida. Selecione uma notificação válida.", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+            } else {
+                calendar = null;
+            }
+
             viewModel.addTask(task).observe(this, aBoolean -> {
                 if (aBoolean) {
                     if (notificationBefore != null) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                        dateFormat.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo")); // Definir o fuso horário
-
-                        Calendar calendar = Calendar.getInstance();
-                        try {
-                            // Faz o parse da data
-                            calendar.setTime(dateFormat.parse(txtDateTask));
-                            calendar.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
-
-                            Calendar currentCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
-                            currentCalendar.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo"));
-                            calendar.set(Calendar.HOUR_OF_DAY, currentCalendar.get(Calendar.HOUR_OF_DAY));
-                            calendar.set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE));
-                            calendar.set(Calendar.SECOND, currentCalendar.get(Calendar.SECOND));
-
-                            calendar.add(Calendar.MINUTE, -notificationBefore); // Subtrai o tempo de notificação
-                        } catch (ParseException e) {
-                            Toast.makeText(this, "Erro ao converter data", Toast.LENGTH_SHORT).show();
-                        }
 
                         int idNotification = 0;
                         try {
                             idNotification = Integer.parseInt(task.getId().replaceAll("[^0-9]", ""));
-                        } catch (Exception ignored) {
-
-                        }
+                        } catch (Exception ignored) {}
 
                         NotificationUtil.scheduleNotificationApp.scheduleNotification(getApplicationContext(),
                                 calendar.getTimeInMillis(),
@@ -499,6 +506,11 @@ public class TaskView extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private boolean isNotificationDateInFuture(Calendar calendar) {
+        Calendar currentDate = Calendar.getInstance();
+        return !calendar.getTime().after(currentDate.getTime());
     }
 
     @Override

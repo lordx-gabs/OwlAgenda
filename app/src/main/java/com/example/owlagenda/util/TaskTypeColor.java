@@ -40,6 +40,6 @@ public enum TaskTypeColor {
                 return taskType;
             }
         }
-        throw new IllegalArgumentException("Unknown tag name: " + tagName);
+        return OUTROS;
     }
 }

@@ -39,7 +39,7 @@ public class SchoolRepository {
     }
 
     public void getSchoolByName(String schoolName, OnCompleteListener<QuerySnapshot> eventListener) {
-        schoolCollection.whereEqualTo("schoolName", schoolName).get().addOnCompleteListener(eventListener);
+        schoolCollection.whereEqualTo("schoolNameSearch", schoolName).get().addOnCompleteListener(eventListener);
     }
 
     public void getSchoolById(String schoolId, EventListener<DocumentSnapshot> eventListener) {

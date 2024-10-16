@@ -128,6 +128,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_tag"
+                    android:focusable="false"
                     android:drawablePadding="8dp"
                     android:inputType="none"
                     android:singleLine="true" />
@@ -246,6 +247,7 @@
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ic_tag"
                 android:drawablePadding="8dp"
+                android:focusable="false"
                 android:inputType="text|textAutoComplete|textAutoCorrect" />
 
         </com.google.android.material.textfield.TextInputLayout>

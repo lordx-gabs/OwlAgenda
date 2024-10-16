@@ -6,6 +6,15 @@ public class School {
     private String id;
     private DocumentReference userId;
     private String schoolName;
+    private String schoolNameSearch;
+
+    public String getSchoolNameSearch() {
+        return schoolNameSearch;
+    }
+
+    public void setSchoolNameSearch(String schoolNameSearch) {
+        this.schoolNameSearch = schoolNameSearch;
+    }
 
     public String getId() {
         return id;

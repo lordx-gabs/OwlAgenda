@@ -59,6 +59,7 @@ public class TaskRepository {
 
         if (!newName.isEmpty()) {
             updateTask.put("title", newName);
+            updateTask.put("titleSearch", newName.toUpperCase());
         }
         if (!newType.isEmpty()) {
             updateTask.put("tag", newType);
@@ -80,11 +81,11 @@ public class TaskRepository {
     }
 
     public void getTaskByTitle(String taskTitle, OnCompleteListener<QuerySnapshot> completeListener) {
-        collectionReference.whereEqualTo("title", taskTitle).get().addOnCompleteListener(completeListener);
+        collectionReference.whereEqualTo("titleSearch", taskTitle).get().addOnCompleteListener(completeListener);
     }
 
     public void getTaskByTitleAndSchoolClass(String taskTitle, DocumentReference schoolClass, OnCompleteListener<QuerySnapshot> completeListener) {
-        collectionReference.whereEqualTo("title", taskTitle)
+        collectionReference.whereEqualTo("titleSearch", taskTitle)
                 .whereEqualTo("schoolClass", schoolClass).get().addOnCompleteListener(completeListener);
     }
 
@@ -101,7 +102,9 @@ public class TaskRepository {
 
     public void getTaskByDateMonth(String id, OnCompleteListener<QuerySnapshot> eventListener) {
         //TODO:arrumar por data
-        collectionReference.whereEqualTo("userId", id).get().addOnCompleteListener(eventListener);
+        collectionReference.whereEqualTo("userId",
+                FirebaseFirestore.getInstance().collection("usuario").document(id))
+                .get().addOnCompleteListener(eventListener);
     }
 
     public void getTaskByNotCompleted(String id, EventListener<QuerySnapshot> eventListener) {

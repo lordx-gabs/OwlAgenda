@@ -8,6 +8,7 @@ public class Task {
     private String id;
     private DocumentReference userId;
     private String title;
+    private String titleSearch;
     private String description;
     private String date;
     private DocumentReference schoolClass;
@@ -17,7 +18,7 @@ public class Task {
     private Integer notificationBefore;
     private ArrayList<TaskAttachments> taskDocuments;
 
-    public Task(DocumentReference userId, String title, String description, String date, DocumentReference school, DocumentReference schoolClass, String tag, ArrayList<TaskAttachments> taskDocuments, Integer notificationBefore) {
+    public Task(DocumentReference userId, String title, String titleSearch, String description, String date, DocumentReference school, DocumentReference schoolClass, String tag, ArrayList<TaskAttachments> taskDocuments, Integer notificationBefore) {
         this.userId = userId;
         this.title = title;
         this.description = description;
@@ -28,18 +29,21 @@ public class Task {
         this.isCompleted = false;
         this.taskDocuments = taskDocuments;
         this.notificationBefore = notificationBefore;
+        this.titleSearch = titleSearch;
     }
 
     public Task() {
     }
 
-    public Task(String taskName, String taskDescription, String taskType, String taskDate, DocumentReference classRef, DocumentReference schoolRef) {
+    public Task(DocumentReference userId, String taskName, String titleSearch, String taskDescription, String taskType, String taskDate, DocumentReference classRef, DocumentReference schoolRef) {
         this.title = taskName;
         this.description = taskDescription;
         this.date = taskDate;
         this.schoolClass = classRef;
         this.tag = taskType;
         this.school = schoolRef;
+        this.titleSearch = titleSearch;
+        this.userId = userId;
     }
 
     public String getId() {
@@ -134,77 +138,11 @@ public class Task {
         this.notificationBefore = notificationBefore;
     }
 
-    //    public static List<Task> generateTask() {
-//        ArrayList<Task> tasks = new ArrayList<>();
-//        // Suponha que `currentMonth` seja uma instância de `YearMonth`.
-//        YearMonth currentMonth = YearMonth.now(); // Inicialize conforme necessário
-//
-//        LocalDate date = currentMonth.minusMonths(1).atDay(9);
-//
-//        tasks.add(
-//                new Task(
-//                        "tarefaid",
-//                        "729394",
-//                        "Teste",
-//                        "testando",
-//                        date,
-//                        "Etec Itaquera1",
-//                        "1° dsb",
-//                    new Tag("1234", "prova", R.color.example_3_blue),
-//                        false,
-//                        ""
-//                )
-//        );
-//
-//        date = currentMonth.minusMonths(1).atDay(15);
-//
-//        tasks.add(
-//                new Task(
-//                        "tarefaid",
-//                        "729394",
-//                        "Teste",
-//                        "testando",
-//                        date,
-//                        "Etec Itaquera1",
-//                        "2° dsb",
-//                        new Tag("1234", "prova", R.color.cor_primaria),
-//                        false,
-//                        ""
-//                )
-//        );
-//
-//        date = currentMonth.minusMonths(1).atDay(19);
-//
-//        tasks.add(
-//                new Task(
-//                        "tarefaid",
-//                        "729394",
-//                        "Teste",
-//                        "testando",
-//                        date,
-//                        "Etec Itaquera1",
-//                        "3° dsb",
-//                        new Tag("1234", "prova", R.color.botao_cor),
-//                        false,
-//                        ""
-//                )
-//        );
-//
-//        tasks.add(
-//                new Task(
-//                        "tarefaid",
-//                        "729394",
-//                        "Teste",
-//                        "testando",
-//                        date,
-//                        "Etec Itaquera1",
-//                        "3° dsb",
-//                        new Tag("1234", "prova", R.color.darkLilac),
-//                        false,
-//                        ""
-//                )
-//        );
-//
-//        return tasks;
-//    }
+    public String getTitleSearch() {
+        return titleSearch;
+    }
+
+    public void setTitleSearch(String titleSearch) {
+        this.titleSearch = titleSearch;
+    }
 }

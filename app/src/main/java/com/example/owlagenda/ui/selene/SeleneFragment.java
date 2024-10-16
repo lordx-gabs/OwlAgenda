@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,7 +62,7 @@ public class SeleneFragment extends Fragment {
             if (user != null) {
                 currentUser = user;
                 this.messages = new ArrayList<>();
-                if(user.getHistoryMessage() != null) {
+                if(user.getHistoryMessage() != null && !user.getHistoryMessage().isEmpty()) {
                     List<Content> historyMessage = new ArrayList<>();
                     Content.Builder contentBuilderUser, contentBuilderChatbot;
                     contentBuilderUser = new Content.Builder();
@@ -137,7 +138,7 @@ public class SeleneFragment extends Fragment {
                     binding.recycleBalloons.getAdapter().notifyItemInserted(messages.size() - 1);
                     binding.recycleBalloons.scrollToPosition(messages.size() - 1);
 
-                    viewModel.sendMessage(binding.etMessageUser.getText().toString().trim()).observe(getViewLifecycleOwner(), s -> {
+                    viewModel.sendMessage(binding.etMessageUser.getText().toString().trim(), getContext()).observe(getViewLifecycleOwner(), s -> {
                         if (s != null) {
                             messages.add(new Message(s, Message.TYPE_SELENE_MESSAGE));
                             binding.recycleBalloons.getAdapter().notifyItemInserted(messages.size() - 1);

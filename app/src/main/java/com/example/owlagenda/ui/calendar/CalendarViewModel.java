@@ -69,27 +69,28 @@ public class CalendarViewModel extends ViewModel {
         return tasks;
     }
 
-    public LiveData<Boolean> deleteTask(TaskCalendar taskCalendar, Context context) {
+    public LiveData<Boolean> deleteTask(Task taskCalendar, Context context) {
         isDeleted = new MutableLiveData<>();
         isLoading.setValue(true);
 
         taskRepository.deleteTask(taskCalendar.getId(), task -> {
             if(task.isSuccessful()) {
-                int notificationId = 0;
-                try {
-                    notificationId = Integer.parseInt(taskCalendar.getId().replaceAll("[^0-9]", ""));
-                } catch (NumberFormatException ignored) {
-
+                if(taskCalendar.getTaskDocuments() != null && !taskCalendar.getTaskDocuments().isEmpty()) {
+                    taskRepository.deleteAttachmentsStorage(taskCalendar.getTaskDocuments(), task1 -> {
+                        if(task1.isSuccessful()) {
+                            deleteNotification(taskCalendar, context);
+                            isDeleted.setValue(true);
+                            isLoading.setValue(false);
+                        } else {
+                            errorMessage.postValue("Não foi possivel excluir os documentos dessa tarefa.");
+                            isLoading.setValue(false);
+                        }
+                    });
+                } else {
+                    deleteNotification(taskCalendar, context);
+                    isDeleted.setValue(true);
+                    isLoading.setValue(false);
                 }
-                Log.d("teste", "" + notificationId);
-                if (NotificationUtil.scheduleNotificationApp.isAlarmSet(context, taskCalendar.getNameTask(),
-                        notificationId)) {
-                    NotificationUtil.scheduleNotificationApp.cancelNotification(context, taskCalendar.getNameTask(),
-                            notificationId);
-                    Log.d("testeee", "chegouu");
-                }
-                isDeleted.setValue(true);
-                isLoading.setValue(false);
             } else {
                 isDeleted.setValue(false);
                 isLoading.setValue(false);
@@ -97,6 +98,22 @@ public class CalendarViewModel extends ViewModel {
         });
 
         return isDeleted;
+    }
+
+    private static void deleteNotification(Task taskCalendar, Context context) {
+        int notificationId = 0;
+        try {
+            notificationId = Integer.parseInt(taskCalendar.getId().replaceAll("[^0-9]", ""));
+        } catch (NumberFormatException ignored) {
+
+        }
+        Log.d("teste", "" + notificationId);
+        if (NotificationUtil.scheduleNotificationApp.isAlarmSet(context, taskCalendar.getTitle(),
+                notificationId)) {
+            NotificationUtil.scheduleNotificationApp.cancelNotification(context, taskCalendar.getTitle(),
+                    notificationId);
+            Log.d("testeee", "chegouu");
+        }
     }
 
     public LiveData<Boolean> getIsLoading() {

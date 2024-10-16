@@ -7,8 +7,17 @@ public class SchoolClass {
     private DocumentReference userId;
     private DocumentReference schoolId;
     private String className;
+    private String classNameSearch;
     private String period;
     private int numberOfStudents;
+
+    public String getClassNameSearch() {
+        return classNameSearch;
+    }
+
+    public void setClassNameSearch(String classNameSearch) {
+        this.classNameSearch = classNameSearch;
+    }
 
     public String getId() {
         return id;
