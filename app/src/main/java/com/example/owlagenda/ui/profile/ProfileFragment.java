@@ -37,6 +37,7 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentProfileBinding;
+import com.example.owlagenda.ui.resetemail.ResetEmail;
 import com.example.owlagenda.util.FormatPhoneNumber;
 import com.example.owlagenda.util.NetworkUtil;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -135,6 +136,8 @@ public class ProfileFragment extends Fragment {
                 binding.barraCarregandoProfile.setVisibility(View.GONE);
             }
         });
+
+        binding.btnUpdateEmail.setOnClickListener(v -> startActivity(new Intent(getActivity(), ResetEmail.class)));
 
         NetworkUtil.registerNetworkCallback(getContext(), new ConnectivityManager.NetworkCallback() {
             @Override

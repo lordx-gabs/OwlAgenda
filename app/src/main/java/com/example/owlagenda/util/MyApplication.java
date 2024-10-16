@@ -11,11 +11,14 @@ import android.provider.Settings;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
+import com.example.owlagenda.data.models.UserViewModel;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class MyApplication extends Application {
+    private UserViewModel viewModel;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -27,6 +30,7 @@ public class MyApplication extends Application {
         );
 
         NotificationUtil.createNotificationChannel(getApplicationContext());
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!isExactAlarmPermissionGranted()) {

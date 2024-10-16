@@ -70,6 +70,7 @@ public class InicioFragment extends Fragment {
             }
         });
 
+
         inicioViewModel.getTasksByNotCompleted(FirebaseAuth.getInstance()
                 .getCurrentUser().getUid()).observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
