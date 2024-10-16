@@ -22,6 +22,7 @@ public class HomeScreenViewModel extends ViewModel {
     private final UserRepository repository;
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final MutableLiveData<String> errorMessageDialog = new MutableLiveData<>();
 
     public HomeScreenViewModel() {
         firebaseAuth = FirebaseAuth.getInstance();
@@ -85,7 +86,6 @@ public class HomeScreenViewModel extends ViewModel {
                     if (error != null) {
                         firebaseUser.delete();
                         handleDatabaseError(error);
-                        Log.e("FirestoreError", "Erro ao obter histórico de mensagens", error);
                         return;
                     }
 
@@ -129,6 +129,13 @@ public class HomeScreenViewModel extends ViewModel {
             isLoading.setValue(false);
             return;
         }
+
+        if(exception.getMessage() != null && exception.getMessage().contains("already exists")) {
+            errorMessageDialog.setValue("Já existe uma conta com esse email mas utilizando outro provedor de autenticação." +
+                    " Por favor, faça login usando o provedor de autenticação que está utilizando nesse email. ");
+            isLoading.setValue(false);
+            return;
+        }
         isLoading.setValue(false);
         isSuccessfully.setValue(false);
     }
@@ -147,6 +154,10 @@ public class HomeScreenViewModel extends ViewModel {
             isSuccessfully.setValue(false);
             isLoading.setValue(false);
         });
+    }
+
+    public LiveData<String> getErrorMessageDialog() {
+        return errorMessageDialog;
     }
 
     public LiveData<String> getErrorMessage() {
