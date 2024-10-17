@@ -54,6 +54,9 @@
             android:name=".ui.settings.SettingsView"
             android:exported="false" />
         <activity
+            android:name=".ui.resetemail.ResetEmail"
+            android:exported="false" />
+        <activity
             android:name=".ui.task.TaskView"
             android:exported="false" />
         <activity
