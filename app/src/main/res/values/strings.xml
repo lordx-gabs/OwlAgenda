@@ -73,7 +73,9 @@
     <string name="menu_inicio">Início</string>
     <string name="menu_calendario">Calendário</string>
     <string name="menu_perfil">Perfil</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_about_us">Sobre nós</string>
+    <string name="action_logout">Sair</string>
     <string name="menu_selene">Selene</string>
     <string name="menu_limpar_historico">Limpar histórico da conversa</string>
+    <string name="theme">Tema</string>
 </resources>

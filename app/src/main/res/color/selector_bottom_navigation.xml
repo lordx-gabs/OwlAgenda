@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:color="@color/selector_navigation_bottom_icon" android:state_checked="true" />
+    <!-- Ícone selecionado no modo claro -->
+    <item android:color="@color/color_icon_bottom" android:state_checked="true"  />
 
-    <item android:color="@color/white" android:state_checked="false" />
+    <!-- Ícone não selecionado no modo claro -->
+    <item android:color="@color/icons_color" android:state_checked="false"  />
+
 </selector>

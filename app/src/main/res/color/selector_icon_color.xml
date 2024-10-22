@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-        <!-- Modo escuro -->
-        <item android:color="@color/white" android:state_enabled="true"/>
-        <!-- Modo claro -->
-        <item android:color="#1C1C1C"/>
-</selector>

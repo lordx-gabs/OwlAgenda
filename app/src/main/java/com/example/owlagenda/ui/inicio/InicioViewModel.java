@@ -9,14 +9,12 @@ import androidx.lifecycle.ViewModel;
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.repository.TaskRepository;
 import com.google.firebase.FirebaseNetworkException;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 
 public class InicioViewModel extends ViewModel {
-    private final FirebaseAuth mAuth;
     private MutableLiveData<Boolean> isSuccessfully;
     private final MutableLiveData<String> errorMessage;
     private final TaskRepository taskRepository;
@@ -24,7 +22,6 @@ public class InicioViewModel extends ViewModel {
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
 
     public InicioViewModel() {
-        mAuth = FirebaseAuth.getInstance();
         taskRepository = new TaskRepository();
         errorMessage = new MutableLiveData<>();
     }
@@ -86,10 +83,6 @@ public class InicioViewModel extends ViewModel {
 
     public LiveData<Boolean> isLoading() {
         return isLoading;
-    }
-
-    public void logout() {
-        mAuth.signOut();
     }
 
 }

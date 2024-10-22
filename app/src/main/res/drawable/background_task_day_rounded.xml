@@ -1,5 +1,0 @@
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@color/selector_notification"/> <!-- Cor de fundo do balão -->
-    <corners android:radius="8dp"/>
-</shape>

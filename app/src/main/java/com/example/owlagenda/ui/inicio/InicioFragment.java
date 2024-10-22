@@ -1,14 +1,19 @@
 package com.example.owlagenda.ui.inicio;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -19,9 +24,9 @@ import com.example.owlagenda.data.models.TaskDay;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentInicioBinding;
-import com.example.owlagenda.ui.settings.SettingsView;
 import com.example.owlagenda.ui.task.TaskView;
 import com.example.owlagenda.util.NotificationUtil;
+import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -39,7 +44,6 @@ public class InicioFragment extends Fragment {
     private FragmentInicioBinding binding;
     private UserViewModel userViewModel;
     private ArrayList<TaskDay> tasksDay;
-    private ArrayList<Task> tasks;
     private User currentUser;
     private TaskDayAdapter adapter;
     List<com.google.android.gms.tasks.Task<Void>> tasksSchool = new ArrayList<>(); // Lista de tarefas Firestore para controle
@@ -213,6 +217,17 @@ public class InicioFragment extends Fragment {
 
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow);
 
+        // Verificar o tema atual e ajustar o ícone
+        int currentNightMode = getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK;
+
+        MenuItem themeItem = binding.appBarTelaPrincipal.toolbar.getMenu().findItem(R.id.action_theme);
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            themeItem.setIcon(R.drawable.ic_theme_light);  // Ícone para o tema claro
+        } else {
+            themeItem.setIcon(R.drawable.ic_theme_dark);   // Ícone para o tema escuro
+        }
+
 //        binding.btnTestee.setOnClickListener(v ->
 //                startActivity(new Intent(getActivity(), Prova.class)));
 
@@ -220,13 +235,23 @@ public class InicioFragment extends Fragment {
                 Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show());
 
         binding.appBarTelaPrincipal.toolbar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_settings) {
-                startActivity(new Intent(getContext(), SettingsView.class));
-                requireActivity().finish();
+            if (item.getItemId() == R.id.action_theme) {
+                if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+                    // Mudar para o tema claro
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    item.setIcon(R.drawable.ic_theme_dark);  // Atualizar o ícone para tema escuro
+                    SharedPreferencesUtil.saveInt(SharedPreferencesUtil.KEY_USER_THEME, AppCompatDelegate.MODE_NIGHT_NO);
+                } else {
+                    // Mudar para o tema escuro
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    item.setIcon(R.drawable.ic_theme_light);  // Atualizar o ícone para tema claro
+                    SharedPreferencesUtil.saveInt(SharedPreferencesUtil.KEY_USER_THEME, AppCompatDelegate.MODE_NIGHT_YES);
+                }
+
+                requireActivity().recreate();
                 return true;
             }
             return false;
-
         });
 
         return root;

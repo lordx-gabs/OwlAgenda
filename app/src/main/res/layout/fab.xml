@@ -15,7 +15,7 @@
         android:src="@drawable/ic_fab"
         android:tint="@color/black"
         android:tintMode="multiply"
-        app:backgroundTint="@color/selector_navigation_bottom_icon"
+        app:backgroundTint="@color/lilac"
         app:fabSize="normal" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

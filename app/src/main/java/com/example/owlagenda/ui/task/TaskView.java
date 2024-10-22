@@ -5,13 +5,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.InputFilter;
-import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
@@ -50,7 +46,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -59,7 +54,7 @@ import java.util.stream.Collectors;
 
 public class TaskView extends AppCompatActivity {
     private static final int REQUEST_CODE_NOTIFICATION = 501;
-    private final int PICK_IMAGE_REQUEST = 78;
+    private final int PICK_DOCUMENT_REQUEST = 64;
     private ActivityResultLauncher<Intent> pickImageLauncher;
     private TaskViewModel viewModel;
     private ActivityTaskBinding binding;
@@ -221,7 +216,7 @@ public class TaskView extends AppCompatActivity {
                             school.setUserId(FirebaseFirestore.getInstance()
                                     .collection("usuario").document(
                                             FirebaseAuth.getInstance().getCurrentUser().getUid()
-                            ));
+                                    ));
                             school.setSchoolNameSearch(etNameSchool.getText().toString().toUpperCase());
                             school.setId(FirebaseFirestore.getInstance().collection("escola").document().getId());
                             viewModel.saveSchool(school).observe(this, aBoolean -> {
@@ -311,23 +306,10 @@ public class TaskView extends AppCompatActivity {
                 }
         );
 
-        documentAdapter = new DocumentAdapter(position -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        documentAdapter = new DocumentAdapter(position ->
                 pickImageLauncher.launch(Intent.createChooser(
-                        new Intent(Intent.ACTION_GET_CONTENT).setType("*/*")
-                        , "Selecione um arquivo")
-                );
-            } else {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PICK_IMAGE_REQUEST);
-                } else {
-                    pickImageLauncher.launch(Intent.createChooser(
-                            new Intent(Intent.ACTION_PICK).setType("*/*")
-                            , "Selecione um arquivo")
-                    );
-                }
-            }
-        }, position -> {
+                new Intent(Intent.ACTION_GET_CONTENT).setType("*/*"), "Selecione um arquivo")
+        ), position -> {
             bottomSheetDialogClass = new BottomSheetDialog(this);
             View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_delete_document, (ViewGroup) this.getWindow().getDecorView(), false);
             bottomSheetDialogClass.setContentView(view);
@@ -348,7 +330,7 @@ public class TaskView extends AppCompatActivity {
                 indexNotifications = position);
 
         binding.btnSaveTask.setOnClickListener(v -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !binding.autoCompleteNotifications.getText().toString().isEmpty()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && indexNotifications != 0) {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_NOTIFICATION);
                     return;
@@ -396,6 +378,7 @@ public class TaskView extends AppCompatActivity {
             materialDatePicker = MaterialDatePicker.Builder.datePicker()
                     .setTitleText("Selecione a data da sua tarefa")
                     .setSelection(calendarInitialed.getTimeInMillis())
+                    .setCalendarConstraints(constraintsBuilder.build())
                     .build();
 
             materialDatePicker.addOnPositiveButtonClickListener(selection -> {
@@ -458,7 +441,7 @@ public class TaskView extends AppCompatActivity {
                     notificationBefore
             );
             Calendar calendar;
-            if(notificationBefore != null) {
+            if (notificationBefore != null) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                 dateFormat.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo")); // Definir o fuso horário
                 calendar = Calendar.getInstance();
@@ -477,10 +460,10 @@ public class TaskView extends AppCompatActivity {
                 } catch (ParseException e) {
                     Toast.makeText(this, "Erro ao converter data", Toast.LENGTH_SHORT).show();
                 }
-//                if(isNotificationDateInFuture(calendar)) {
-//                    Toast.makeText(this, "Notificação inválida. Selecione uma notificação válida.", Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
+                if (isNotificationDateInFuture(calendar)) {
+                    Toast.makeText(this, "Notificação inválida. Selecione uma notificação válida.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
             } else {
                 calendar = null;
             }
@@ -492,7 +475,8 @@ public class TaskView extends AppCompatActivity {
                         int idNotification = 0;
                         try {
                             idNotification = Integer.parseInt(task.getId().replaceAll("[^0-9]", ""));
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                        }
 
                         NotificationUtil.scheduleNotificationApp.scheduleNotification(getApplicationContext(),
                                 calendar.getTimeInMillis(),
@@ -521,7 +505,7 @@ public class TaskView extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 saveTask();
             } else {
-                Toast.makeText(this, "Permissão necessária para notificação da tarefa..", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Permissão necessária, coloque 'Sem Notificação' no campo de notificação.", Toast.LENGTH_LONG).show();
             }
         }
     }

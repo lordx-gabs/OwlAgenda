@@ -1,5 +1,6 @@
 package com.example.owlagenda.ui.task;
 
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,8 @@ public class DocumentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if(getItemViewType(position) == VIEW_TYPE_ADD) {
             viewHolder.documentName.setVisibility(View.GONE);
             viewHolder.documentIcon.setImageResource(R.drawable.ic_fab);
+            viewHolder.documentIcon.setImageTintList(ColorStateList.valueOf(viewHolder.itemView
+                    .getContext().getColor(R.color.icons_color)));
             viewHolder.itemView.setOnClickListener(v ->
                     clickListenerAddDocument.onItemClick(position));
             ViewGroup.LayoutParams layoutParams = viewHolder.cardView.getLayoutParams();

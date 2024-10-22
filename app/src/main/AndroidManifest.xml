@@ -21,7 +21,7 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission
         android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
@@ -46,19 +46,25 @@
         android:supportsRtl="true"
         android:theme="@style/Base.Theme.OwlAgenda"
         tools:targetApi="31">
+        <activity
+            android:name=".ui.taskdetails.TaskDetailsView"
+            android:exported="false" />
 
         <receiver android:name=".util.NotificationUtil" />
-        <receiver android:name=".util.CompleteTaskReceiver" android:exported="false"/>
+        <receiver
+            android:name=".util.CompleteTaskReceiver"
+            android:exported="false" />
 
         <activity
             android:name=".ui.settings.SettingsView"
             android:exported="false" />
         <activity
-            android:name=".ui.resetemail.ResetEmail"
+            android:name=".ui.updateemail.UpdateEmail"
             android:exported="false" />
         <activity
             android:name=".ui.task.TaskView"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.homescreen.HomeScreenView"
             android:exported="true"

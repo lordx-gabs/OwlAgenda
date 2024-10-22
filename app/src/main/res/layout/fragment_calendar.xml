@@ -54,7 +54,7 @@
                     android:id="@+id/app_bar_calendar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/rounded_edittext_sofia">
+                    android:background="@drawable/rounded_calendar">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
@@ -70,15 +70,13 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_previous_mouth"
-                            app:tint="@color/white" />
+                            app:srcCompat="@drawable/ic_previous_mouth" />
 
                         <TextView
                             android:id="@+id/month_year_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-medium"
-                            android:textColor="@color/white"
                             android:textSize="22sp"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@id/next_month_image"
@@ -94,8 +92,7 @@
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_next_mouth"
-                            app:tint="@color/white" />
+                            app:srcCompat="@drawable/ic_next_mouth" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

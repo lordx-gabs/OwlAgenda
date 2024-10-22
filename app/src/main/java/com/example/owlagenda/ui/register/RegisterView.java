@@ -223,9 +223,9 @@ public class RegisterView extends AppCompatActivity {
     }
 
     public void registerUser(View view) {
-        String name = nameEditText.getText().toString();
-        String surname = surnameEditText.getText().toString();
-        String email = emailEditText.getText().toString();
+        String name = nameEditText.getText().toString().trim();
+        String surname = surnameEditText.getText().toString().trim();
+        String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString();
         String confirmPassword = confirmPasswordEditText.getText().toString();
         String birthdate = null;
@@ -246,45 +246,43 @@ public class RegisterView extends AppCompatActivity {
         if (genderSelected > -1) {
             gender = genderAutoCompleteTextView.getText().toString();
         }
-
-        if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && !password.isEmpty()
-                && !confirmPassword.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            if(phoneNumberEditText.getText().toString()
+        if (password.length() < 6 || confirmPassword.length() < 6) {
+            Toast.makeText(this, "A senha precisa ter no mínimo 6 caracteres.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!name.isEmpty() && !surname.isEmpty() && !email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            if (phoneNumberEditText.getText().toString().isEmpty() || phoneNumberEditText.getText().toString()
                     .replaceAll("[()\\s-]", "").matches("^[1-9]{2}9[0-9]{8}$")) {
                 if (password.equals(confirmPassword)) {
-                    if(password.length() >= 6) {
-                        user.setName(name);
-                        user.setSurname(surname);
-                        user.setEmail(email);
-                        user.setPassword(password);
-                        user.setBirthdate(birthdate);
-                        user.setGender(gender);
-                        user.setPhoneNumber(phoneNumber);
-                        user.setHistoryMessage(new ArrayList<>());
+                    user.setName(name);
+                    user.setSurname(surname);
+                    user.setEmail(email);
+                    user.setPassword(password);
+                    user.setBirthdate(birthdate);
+                    user.setGender(gender);
+                    user.setPhoneNumber(phoneNumber);
+                    user.setHistoryMessage(new ArrayList<>());
 
+                    if (imageProfileBitmap == null) {
+                        imageProfileBitmap = registerViewModel.getImageProfileDefaultBitmap(this);
                         if (imageProfileBitmap == null) {
-                            imageProfileBitmap = registerViewModel.getImageProfileDefaultBitmap(this);
-                            if (imageProfileBitmap == null) {
-                                Toast.makeText(this, "Erro ao carregar imagem padrão.", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
+                            Toast.makeText(this, "Erro ao carregar imagem padrão.", Toast.LENGTH_SHORT).show();
+                            return;
                         }
-
-                        registerViewModel.registerUser(user, imageProfileBitmap).observe(this, success -> {
-                            if (success) {
-                                Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(this, LoginView.class)
-                                        .putExtra("emailUser", user.getEmail())
-                                        .putExtra("firstNameUser", user.getName()));
-                                FirebaseAuth.getInstance().signOut();
-                                finish();
-                            } else {
-                                Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    } else {
-                        Toast.makeText(this, "A senha precisa ter no mínimo 6 caracteres.", Toast.LENGTH_SHORT).show();
                     }
+
+                    registerViewModel.registerUser(user, imageProfileBitmap).observe(this, success -> {
+                        if (success) {
+                            Toast.makeText(this, "Cadastro realizado com success!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(this, LoginView.class)
+                                    .putExtra("emailUser", user.getEmail())
+                                    .putExtra("firstNameUser", user.getName()));
+                            FirebaseAuth.getInstance().signOut();
+                            finish();
+                        } else {
+                            Toast.makeText(this, "Erro ao cadastrar o usuário. Por favor, tente novamente.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } else {
                     Toast.makeText(this, "As senhas precisam ser iguais.", Toast.LENGTH_SHORT).show();
                 }

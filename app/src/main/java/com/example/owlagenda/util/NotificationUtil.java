@@ -52,7 +52,7 @@ public class NotificationUtil extends BroadcastReceiver {
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setColor(context.getColor(R.color.selector_notification))
+                .setColor(context.getColor(R.color.lilac))
                 .addAction(R.drawable.ic_check, "Concluir Tarefa", completeTaskPendingIntent)
                 .setVibrate(new long[]{0, 500, 1000, 500});
 

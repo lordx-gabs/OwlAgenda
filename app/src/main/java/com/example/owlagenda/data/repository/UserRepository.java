@@ -46,8 +46,12 @@ public class UserRepository {
                 .addOnCompleteListener(completeListener);
     }
 
-    public void getUserById(String id, EventListener<DocumentSnapshot> completeListener) {
-        collectionReference.document(id).addSnapshotListener(completeListener);
+    public void getUserById(String id, OnCompleteListener<DocumentSnapshot> completeListener) {
+        collectionReference.document(id).get().addOnCompleteListener(completeListener);
+    }
+
+    public void getUserById(String id, EventListener<DocumentSnapshot> childEventListener) {
+        collectionReference.document(id).addSnapshotListener(childEventListener);
     }
 
     public void registerUser(String email, String password, OnCompleteListener<AuthResult> completeListener){

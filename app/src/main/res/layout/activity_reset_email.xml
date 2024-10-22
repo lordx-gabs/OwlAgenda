@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.resetemail.ResetEmail">
+    tools:context=".ui.updateemail.UpdateEmail">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/et_email_layout_current_email"

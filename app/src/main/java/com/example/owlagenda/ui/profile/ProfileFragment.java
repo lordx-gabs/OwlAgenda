@@ -3,11 +3,11 @@ package com.example.owlagenda.ui.profile;
 import static android.app.Activity.RESULT_OK;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
-import static com.example.owlagenda.ui.register.RegisterView.PICK_IMAGE_REQUEST;
-
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
@@ -17,17 +17,20 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -37,14 +40,16 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentProfileBinding;
+import com.example.owlagenda.ui.homescreen.HomeScreenView;
+import com.example.owlagenda.ui.updateemail.UpdateEmail;
 import com.example.owlagenda.util.FormatPhoneNumber;
 import com.example.owlagenda.util.NetworkUtil;
+import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointBackward;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.firebase.auth.FirebaseAuth;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
@@ -68,6 +73,8 @@ public class ProfileFragment extends Fragment {
     private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
     private final String[] genderOptions = {"Masculino", "Feminino", "Outros", "Prefiro não informar"};
     private ActivityResultLauncher<Intent> cropActivityResultLauncher;
+    private ActivityResultLauncher<String> requestStoragePermissionLauncher;
+    private ActivityResultLauncher<String> requestCameraPermissionLauncher;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -124,9 +131,10 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        profileViewModel.getErrorMessage().observe(getViewLifecycleOwner(), s -> {
-            Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show();
-        });
+        profileViewModel.getErrorMessage().observe(getViewLifecycleOwner(), s ->
+                Toast.makeText(getActivity(), s, Toast.LENGTH_SHORT).show());
+
+        profileViewModel.isLoading.setValue(false);
 
         profileViewModel.isLoading().observe(getViewLifecycleOwner(), aBoolean -> {
             if (aBoolean) {
@@ -143,24 +151,26 @@ public class ProfileFragment extends Fragment {
                 if (isAdded()) {
                     requireActivity().runOnUiThread(() ->
                             userViewModel.getUser().observe(getViewLifecycleOwner(), user -> {
-                                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, genderOptions);
-                                binding.etGenderProfile.setAdapter(adapter);
-                                oldUser = user;
-                                binding.etNomeProfile.setText(user.getName());
-                                binding.etDataNascimentoProfile.setText(user.getBirthdate());
-                                if (user.getPhoneNumber() != null) {
+                                if (user != null) {
+                                    ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, genderOptions);
+                                    binding.etGenderProfile.setAdapter(adapter);
+                                    oldUser = user;
+                                    binding.etNomeProfile.setText(user.getName());
+                                    binding.etDataNascimentoProfile.setText(user.getBirthdate());
+                                    if (user.getPhoneNumber() != null) {
+                                        binding.etTelefoneProfile.setText(String.valueOf(user.getPhoneNumber()));
+                                    }
+
                                     binding.etTelefoneProfile.setText(String.valueOf(user.getPhoneNumber()));
+                                    binding.etGenderProfile.setText(user.getGender(), false);
+                                    binding.etSobrenomeProfile.setText(user.getSurname());
+
+                                    Glide.with(getContext())
+                                            .load(user.getUrlProfilePhoto())
+                                            .placeholder(R.drawable.owl_home_screen)
+                                            .circleCrop()
+                                            .into(binding.imagePhotoProfile);
                                 }
-
-                                binding.etTelefoneProfile.setText(String.valueOf(user.getPhoneNumber()));
-                                binding.etGenderProfile.setText(user.getGender(), false);
-                                binding.etSobrenomeProfile.setText(user.getSurname());
-
-                                Glide.with(getContext())
-                                        .load(user.getUrlProfilePhoto())
-                                        .placeholder(R.drawable.owl_home_screen)
-                                        .circleCrop()
-                                        .into(binding.imagePhotoProfile);
                             })
                     );
                 }
@@ -196,21 +206,23 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        binding.etTelefoneProfile.addTextChangedListener(new FormatPhoneNumber(binding.etTelefoneProfile));
+        binding.btnUpdateEmail.setOnClickListener(v -> startActivity(new Intent(getActivity(), UpdateEmail.class)));
 
-        binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow); // Define o menu overflow na fragment
+        binding.etTelefoneProfile.addTextChangedListener(new FormatPhoneNumber(binding.etTelefoneProfile));
 
         binding.btnSaveUser.setOnClickListener(v -> {
             if (NetworkUtil.isInternetAvailable(getContext())) {
-                if (binding.etTelefoneProfile.getText().toString().replaceAll("[()\\s-]", "")
-                        .matches("^[1-9]{2}9[0-9]{8}$")) {
+                if (binding.etTelefoneProfile.getText().toString().isEmpty() || binding.etTelefoneProfile.getText().toString().replaceAll("[()\\s-]", "")
+                        .matches("^[1-9]{2}9[0-9]{7,8}$")) {
+                    hideKeyboard();
+
                     User user = new User();
 
                     String date = binding.etDataNascimentoProfile.getText().toString();
                     String gender = binding.etGenderProfile.getText().toString();
-                    String name = binding.etNomeProfile.getText().toString();
+                    String name = binding.etNomeProfile.getText().toString().trim();
                     String phone = binding.etTelefoneProfile.getText().toString();
-                    String surname = binding.etSobrenomeProfile.getText().toString();
+                    String surname = binding.etSobrenomeProfile.getText().toString().trim();
 
                     user.setId(oldUser.getId());
                     user.setHistoryMessage(oldUser.getHistoryMessage());
@@ -240,7 +252,9 @@ public class ProfileFragment extends Fragment {
                     }
 
                     if (!phone.equals(String.valueOf(oldUser.getPhoneNumber()))) {
-                        user.setPhoneNumber(Long.valueOf(phone.replaceAll("[()\\s-]", "")));
+                        if(!phone.isEmpty()) {
+                            user.setPhoneNumber(Long.valueOf(phone.replaceAll("[()\\s-]", "")));
+                        }
                     } else {
                         user.setPhoneNumber(oldUser.getPhoneNumber());
                     }
@@ -273,7 +287,7 @@ public class ProfileFragment extends Fragment {
                         });
                     }
                 } else {
-                    Toast.makeText(getContext(), "Email ou número de telefone incorretos.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Número de telefone inválido.", Toast.LENGTH_SHORT).show();
                 }
             } else {
                 Toast.makeText(getContext(), "Sem conexão com a internet.", Toast.LENGTH_SHORT).show();
@@ -336,7 +350,11 @@ public class ProfileFragment extends Fragment {
             btnChangeImage.setOnClickListener(v1 -> this.pickImage());
 
             btnDeleteImage.setOnClickListener(v12 -> {
-                binding.imagePhotoProfile.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.avatar_1));
+                Glide.with(getContext())
+                        .load(oldUser.getUrlProfilePhoto())
+                        .placeholder(R.drawable.owl_home_screen)
+                        .circleCrop()
+                        .into(binding.imagePhotoProfile);
                 imageProfileBitmap = null;
                 bottomSheetDialog.dismiss();
             });
@@ -359,7 +377,81 @@ public class ProfileFragment extends Fragment {
 
         binding.getRoot().getViewTreeObserver().addOnGlobalLayoutListener(keyboardListener);
 
+        binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_profile);
+
+        int currentNightMode = getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK;
+
+        MenuItem themeItem = binding.appBarTelaPrincipal.toolbar.getMenu().findItem(R.id.action_theme);
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            themeItem.setIcon(R.drawable.ic_theme_light);  // Ícone para o tema claro
+        } else {
+            themeItem.setIcon(R.drawable.ic_theme_dark);   // Ícone para o tema escuro
+        }
+
+        binding.appBarTelaPrincipal.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_settings) {
+                Toast.makeText(getContext(), "Settings clicked", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (item.getItemId() == R.id.action_logout) {
+                profileViewModel.logout();
+                SharedPreferencesUtil.init(getContext());
+                SharedPreferencesUtil.clearAll();
+                startActivity(new Intent(getActivity(), HomeScreenView.class));
+                requireActivity().finishAffinity();
+                return true;
+            } else if (item.getItemId() == R.id.action_theme) {
+                if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+                    // Mudar para o tema claro
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    item.setIcon(R.drawable.ic_theme_dark);  // Atualizar o ícone para tema escuro
+                    SharedPreferencesUtil.saveInt(SharedPreferencesUtil.KEY_USER_THEME, AppCompatDelegate.MODE_NIGHT_NO);
+                } else {
+                    // Mudar para o tema escuro
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    item.setIcon(R.drawable.ic_theme_light);  // Atualizar o ícone para tema claro
+                    SharedPreferencesUtil.saveInt(SharedPreferencesUtil.KEY_USER_THEME, AppCompatDelegate.MODE_NIGHT_YES);
+                }
+
+                requireActivity().recreate();
+                return true;
+            }
+            return false;
+        });
+
+        requestStoragePermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        pickImage();
+                    } else {
+                        Toast.makeText(getContext(), "Permissão necessária para acessar o armazenamento.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        // Inicialize o launcher para a permissão da câmera
+        requestCameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        takePhoto();
+                    } else {
+                        Toast.makeText(getContext(), "Permissão necessária para tirar foto.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
         return binding.getRoot();
+    }
+
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager)
+                getView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+        }
     }
 
     private void pickImage() {
@@ -367,7 +459,7 @@ public class ProfileFragment extends Fragment {
             pickImageLauncher.launch(new Intent(Intent.ACTION_GET_CONTENT).setType("image/*"));
         } else {
             if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PICK_IMAGE_REQUEST);
+                requestStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
             } else {
                 pickImageLauncher.launch(new Intent(Intent.ACTION_PICK).setType("image/*"));
             }
@@ -376,7 +468,7 @@ public class ProfileFragment extends Fragment {
 
     private void takePhoto() {
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) != PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, PICK_IMAGE_REQUEST);
+            requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA);
         } else {
             fileDestination = profileViewModel.getImageFile(getContext());
             if (fileDestination == null) {
@@ -391,7 +483,6 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-
     private void cutImage(Uri imagePath) {
         UCrop.Options options = new UCrop.Options();
         options.setToolbarColor(ContextCompat.getColor(getContext(), R.color.white));
@@ -404,25 +495,6 @@ public class ProfileFragment extends Fragment {
         Intent intent = uCrop.getIntent(getContext());
         cropActivityResultLauncher.launch(intent);
         bottomSheetDialog.dismiss();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PICK_IMAGE_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
-                pickImage();
-            } else {
-                Toast.makeText(getContext(), "Permissão necessária para acessar o armazenamento.", Toast.LENGTH_SHORT).show();
-            }
-        }
-        if (requestCode == PICK_IMAGE_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
-                takePhoto();
-            } else {
-                Toast.makeText(getContext(), "Permissão necessária para tirar foto.", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 
     private void onHideKeyboard() {

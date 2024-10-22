@@ -5,7 +5,7 @@
     android:width="200dp">
 
     <path
-        android:fillColor="@color/selector_ballons_background_user"
+        android:fillColor="@color/balloons_background_user"
         android:fillType="evenOdd"
         android:pathData="M422.69,57.69C422.69,25.79 396.9,0 365.0,0L0,0L0,423L58.69,423C78.29,423 96.69,415.1 110.91,400.88L400.51,111.28C414.73,97.06 422.69,78.66 422.69,58.38Z"/>
 </vector>

@@ -52,4 +52,9 @@ public class SharedPreferencesUtil {
         return sharedPreferences.getInt(key, defaultValue);
     }
 
+    public static void clearAll() {
+        editor.clear();
+        editor.apply();
+    }
+
 }

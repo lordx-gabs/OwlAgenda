@@ -25,7 +25,7 @@
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
             android:layout_height="130dp"
-            android:background="@color/selector_balloons_background_selene"
+            android:background="@color/lilac"
             android:orientation="horizontal"
             app:layout_constraintBottom_toTopOf="@+id/title_selene"
             app:layout_constraintEnd_toEndOf="parent"

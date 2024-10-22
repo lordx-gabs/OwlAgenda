@@ -27,7 +27,7 @@ public class ProfileViewModel extends ViewModel {
     private MutableLiveData<Boolean> isSuccessful;
     private final UserRepository userRepository;
     private final MutableLiveData<String> errorMessageLiveData;
-    private final MutableLiveData<Boolean> isLoading;
+    public final MutableLiveData<Boolean> isLoading;
 
     public ProfileViewModel() {
         userRepository = new UserRepository();
@@ -110,9 +110,14 @@ public class ProfileViewModel extends ViewModel {
         return byteArrayOutputStream.toByteArray();
     }
 
+    public void logout() {
+        FirebaseAuth.getInstance().signOut();
+    }
+
     public LiveData<Boolean> isLoading() {
         return isLoading;
     }
+
 
     public LiveData<String> getErrorMessage() {
         return errorMessageLiveData;

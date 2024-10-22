@@ -1,7 +1,6 @@
 package com.example.owlagenda.ui.homescreen;
 
-import android.util.Log;
-
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -9,10 +8,13 @@ import androidx.lifecycle.ViewModel;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.repository.UserRepository;
 import com.facebook.AccessToken;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
 public class HomeScreenViewModel extends ViewModel {
@@ -35,15 +37,8 @@ public class HomeScreenViewModel extends ViewModel {
         repository.authUser(task -> {
             if (task.isSuccessful()) {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                repository.getUserById(firebaseUser.getUid(), (value, error) -> {
-                    if (error != null) {
-                        firebaseUser.delete();
-                        handleDatabaseError(error);
-                        Log.e("FirestoreError", "Erro ao obter histórico de mensagens", error);
-                        return;
-                    }
-
-                    if(!value.exists()) {
+                repository.getUserById(firebaseUser.getUid(), task12 -> {
+                    if(!task12.getResult().exists()) {
                         user = new User();
                         user.setEmail(firebaseUser.getEmail());
                         user.setId(firebaseUser.getUid());
@@ -59,7 +54,7 @@ public class HomeScreenViewModel extends ViewModel {
                             } else {
                                 isSuccessfully.postValue(false);
                                 isLoading.postValue(false);
-                                handleDatabaseError((FirebaseFirestoreException) task.getException());
+                                handleDatabaseError((FirebaseFirestoreException) task12.getException());
                             }
                         });
                     } else {
@@ -82,37 +77,33 @@ public class HomeScreenViewModel extends ViewModel {
         repository.authUser(task -> {
             if (task.isSuccessful()) {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                repository.getUserById(firebaseUser.getUid(), (value, error) -> {
-                    if (error != null) {
-                        firebaseUser.delete();
-                        handleDatabaseError(error);
-                        return;
-                    }
-
-                    if(!value.exists()) {
-                        user = new User();
-                        user.setEmail(firebaseUser.getEmail());
-                        user.setId(firebaseUser.getUid());
-                        user.setName(firebaseUser.getDisplayName().split(" ")[0]);
-                        if(firebaseUser.getDisplayName().split(" ").length > 1){
-                            user.setSurname(firebaseUser.getDisplayName().split(" ")[1]);
-                        }
-                        user.setUrlProfilePhoto(firebaseUser.getPhotoUrl().toString());
-                        repository.addUser(user, task1 -> {
-                            if(task1.isSuccessful()) {
-                                isSuccessfully.postValue(true);
-                                isLoading.postValue(false);
-                            } else {
-                                isSuccessfully.postValue(false);
-                                isLoading.postValue(false);
-                                handleDatabaseError((FirebaseFirestoreException) task1.getException());
+                repository.getUserById(firebaseUser.getUid(), new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if(!task.getResult().exists()) {
+                            user = new User();
+                            user.setEmail(firebaseUser.getEmail());
+                            user.setId(firebaseUser.getUid());
+                            user.setName(firebaseUser.getDisplayName().split(" ")[0]);
+                            if(firebaseUser.getDisplayName().split(" ").length > 1){
+                                user.setSurname(firebaseUser.getDisplayName().split(" ")[1]);
                             }
-                        });
-                    } else {
-                        isSuccessfully.postValue(true);
-                        isLoading.postValue(false);
+                            user.setUrlProfilePhoto(firebaseUser.getPhotoUrl().toString());
+                            repository.addUser(user, task1 -> {
+                                if(task1.isSuccessful()) {
+                                    isSuccessfully.postValue(true);
+                                    isLoading.postValue(false);
+                                } else {
+                                    isSuccessfully.postValue(false);
+                                    isLoading.postValue(false);
+                                    handleDatabaseError((FirebaseFirestoreException) task1.getException());
+                                }
+                            });
+                        } else {
+                            isSuccessfully.postValue(true);
+                            isLoading.postValue(false);
+                        }
                     }
-
                 });
 
             } else {

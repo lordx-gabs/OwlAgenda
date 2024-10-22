@@ -35,15 +35,15 @@
     <color name="preparacao_de_aula_color">#AED581</color>
     <color name="atividade_desenvolvimento_profissional_color">#FFD54F</color>
     <color name="outros_color">#BDBDBD</color>
-    <color name="balloons_background_user">#C5C5C5</color>
-    <color name="lilac">#A997D8</color>
-    <color name="icons_color">#000000</color>
-    <color name="bottom_navigation_color_background">#50A997D8</color>
-    <color name="calendar_day_color">#FFFFFF</color>
-    <color name="theme_color">#A997D8</color>
-    <color name="et_sofia">#EAEAEA</color>
-    <color name="color_icon_bottom">#8C5FB8</color>
-    <color name="calendar_background_color">#F5F5F5</color>
+    <color name="balloons_background_user">#373737</color>
+    <color name="lilac">#8C5FB8</color>
+    <color name="icons_color">#FFFFFF</color>
+    <color name="bottom_navigation_color_background">#508C5FB8</color>
+    <color name="calendar_day_color">#101010</color>
+    <color name="theme_color">#8C5FB8</color>
+    <color name="et_sofia">#2E2E2E</color>
+    <color name="color_icon_bottom">#A997D8</color>
+    <color name="calendar_background_color">#2C2C2C</color>
 
 </resources>
 

@@ -2,7 +2,6 @@ package com.example.owlagenda.ui.login;
 
 import static com.example.owlagenda.util.SharedPreferencesUtil.KEY_USER_REMEMBER_ME;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -25,7 +24,6 @@ import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.dialog.MaterialDialogs;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -34,9 +32,7 @@ public class LoginView extends AppCompatActivity {
     private MaterialButton btnLogin;
     private EditText emailEditText, passwordEditText;
     private CheckBox rememberMeCheckBox;
-    private TextView forgotPasswordTextView;
     private LinearProgressIndicator loadingProgress;
-    private MaterialToolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,12 +44,12 @@ public class LoginView extends AppCompatActivity {
 
         SharedPreferencesUtil.init(this);
 
-        toolbar = findViewById(R.id.toolbar_login);
+        MaterialToolbar toolbar = findViewById(R.id.toolbar_login);
         rememberMeCheckBox = findViewById(R.id.cb_lembraruser);
         loadingProgress = findViewById(R.id.loadingBarLogin);
         emailEditText = findViewById(R.id.et_email_login);
         passwordEditText = findViewById(R.id.et_senha_login);
-        forgotPasswordTextView = findViewById(R.id.tv_esqueci_senha);
+        TextView forgotPasswordTextView = findViewById(R.id.tv_esqueci_senha);
         btnLogin = findViewById(R.id.btn_login);
 
         String email = getIntent().getStringExtra("emailUser");
@@ -130,8 +126,10 @@ public class LoginView extends AppCompatActivity {
     }
 
     private void nextView() {
-        this.startActivity(new Intent(this, TelaPrincipalView.class));
-        this.finish();
+        Intent intent = new Intent(getApplicationContext(), TelaPrincipalView.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
     }
 
     private void keepsUserLogged(boolean value) {

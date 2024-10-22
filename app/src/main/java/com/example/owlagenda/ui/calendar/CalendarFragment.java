@@ -1,11 +1,14 @@
 package com.example.owlagenda.ui.calendar;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -13,19 +16,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.Task;
-import com.example.owlagenda.data.models.TaskDay;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.CalendarDayBinding;
 import com.example.owlagenda.databinding.CalendarHeaderBinding;
 import com.example.owlagenda.databinding.FragmentCalendarBinding;
+import com.example.owlagenda.ui.task.TaskView;
+import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.example.owlagenda.util.TaskTypeColor;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -48,7 +52,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 
@@ -86,6 +89,8 @@ public class CalendarFragment extends Fragment {
         binding.appBarTelaPrincipal.toolbar.setTitle("Calendário");
         binding.appBarTelaPrincipal.titleOwl.setVisibility(View.GONE);
 
+        binding.appFab.fab.setOnClickListener(v -> startActivity(new Intent(getActivity(), TaskView.class)));
+
         List<DayOfWeek> daysOfWeek = ExtensionsKt.daysOfWeek();
         YearMonth currentMonth = YearMonth.now();
         YearMonth startMonth = currentMonth.minusMonths(12);
@@ -94,14 +99,6 @@ public class CalendarFragment extends Fragment {
         tasks = new HashMap<>();
         tasksCalendar = new ArrayList<>();
         tasksObject = new ArrayList<>();
-
-        viewModel.getIsLoading().observe(getViewLifecycleOwner(), aBoolean -> {
-            if(aBoolean) {
-                binding.loadingCalendar.setVisibility(View.VISIBLE);
-            } else {
-                binding.loadingCalendar.setVisibility(View.GONE);
-            }
-        });
 
         taskAdapter = new TaskAdapter(new TaskViewHolder.OnClickTask() {
             @Override
@@ -117,7 +114,7 @@ public class CalendarFragment extends Fragment {
                         .findFirst();
 
                 if (taskOptional.isPresent()) {
-                    // Tarefa encontrada, faça algo com ela
+                    // Tarefa encontrada
                     viewModel.deleteTask(taskOptional.get(), getActivity().getApplicationContext())
                             .observe(getViewLifecycleOwner(), aBoolean -> {
                                 if(aBoolean) {
@@ -146,6 +143,7 @@ public class CalendarFragment extends Fragment {
         }
 
         viewModel.getTasks().observe(getViewLifecycleOwner(), tasks -> {
+            binding.loadingCalendar.setVisibility(View.VISIBLE);
             if(tasks != null) {
                 if(!tasks.isEmpty()) {
                     Log.d("teste", "" + tasks.size());
@@ -188,13 +186,16 @@ public class CalendarFragment extends Fragment {
                                         updateAdapterForDate(null);
                                     }
                                     configureBinders(daysOfWeek);
+                                    binding.loadingCalendar.setVisibility(View.GONE);
                                 }
                             } else {
+                                binding.loadingCalendar.setVisibility(View.GONE);
                                 Toast.makeText(requireContext(), "Erro ao carregar as tarefas", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
                 } else {
+                    binding.loadingCalendar.setVisibility(View.GONE);
                     this.tasks.clear();
                     if(isAdded()) {
                         if(selectedDate != null) {
@@ -207,18 +208,22 @@ public class CalendarFragment extends Fragment {
                 }
 
             } else {
+                binding.loadingCalendar.setVisibility(View.GONE);
                 Toast.makeText(requireContext(), "Erro ao carregar as tarefas", Toast.LENGTH_SHORT).show();
             }
         });
 
         binding.calendar.setMonthScrollListener(calendarMonth -> {
-            binding.monthYearText.setText(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()).format(calendarMonth.getYearMonth()));
-            if (selectedDate != null) {
-                binding.calendar.notifyDateChanged(selectedDate);
-                selectedDate = null;
-                updateAdapterForDate(null);
-            }
+            if(isAdded()) {
+                binding.monthYearText.setText(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()).format(calendarMonth.getYearMonth()));
+                if (selectedDate != null) {
+                    binding.calendar.notifyDateChanged(selectedDate);
+                    selectedDate = null;
+                    updateAdapterForDate(null);
+                }
 
+                return null;
+            }
             return null;
         });
 
@@ -234,6 +239,36 @@ public class CalendarFragment extends Fragment {
             if (firstVisibleMonth != null) {
                 binding.calendar.smoothScrollToMonth(ExtensionsKt.getPreviousMonth(firstVisibleMonth.getYearMonth()));
             }
+        });
+
+        int currentNightMode = getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK;
+
+        MenuItem themeItem = binding.appBarTelaPrincipal.toolbar.getMenu().findItem(R.id.action_theme);
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            themeItem.setIcon(R.drawable.ic_theme_light);  // Ícone para o tema claro
+        } else {
+            themeItem.setIcon(R.drawable.ic_theme_dark);   // Ícone para o tema escuro
+        }
+
+        binding.appBarTelaPrincipal.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_theme) {
+                if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+                    // Mudar para o tema claro
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    item.setIcon(R.drawable.ic_theme_dark);  // Atualizar o ícone para tema escuro
+                    SharedPreferencesUtil.saveInt(SharedPreferencesUtil.KEY_USER_THEME, AppCompatDelegate.MODE_NIGHT_NO);
+                } else {
+                    // Mudar para o tema escuro
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    item.setIcon(R.drawable.ic_theme_light);  // Atualizar o ícone para tema claro
+                    SharedPreferencesUtil.saveInt(SharedPreferencesUtil.KEY_USER_THEME, AppCompatDelegate.MODE_NIGHT_YES);
+                }
+
+                requireActivity().recreate();
+                return true;
+            }
+            return false;
         });
 
         return binding.getRoot();
@@ -311,8 +346,6 @@ public class CalendarFragment extends Fragment {
 
                     List<TaskCalendar> task = CalendarFragment.this.tasks.get(calendarDay.getDate());
 
-                    textView.setTextColor(context.getColor(R.color.example_5_text_grey));
-
                     if (task != null) {
                         if (task.size() == 1) {
                             flightBottomView.setBackgroundColor(context.getColor(TaskTypeColor
@@ -359,7 +392,6 @@ public class CalendarFragment extends Fragment {
                         View view = monthViewContainer.legendLayout.getChildAt(index);
                         if (view instanceof TextView tv) {
                             tv.setText(daysOfWeek.get(index).getDisplayName(TextStyle.SHORT, Locale.getDefault()).toUpperCase());
-                            tv.setTextColor(monthViewContainer.getView().getContext().getColor(R.color.white));
                             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
                             tv.setTypeface(typeFace);
                         }

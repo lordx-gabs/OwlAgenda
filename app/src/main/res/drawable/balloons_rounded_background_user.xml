@@ -1,5 +1,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/selector_ballons_background_user"/> <!-- Cor de fundo do balão -->
+    <solid android:color="@color/balloons_background_user"/> <!-- Cor de fundo do balão -->
     <corners android:radius="8dp"/>
 </shape>

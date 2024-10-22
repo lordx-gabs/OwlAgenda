@@ -39,11 +39,11 @@
                 android:id="@+id/btn_change_photo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginTop="16dp"
                 android:text="Alterar Foto"
-                app:layout_constraintBottom_toTopOf="@+id/et_nome_layout_profile"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintEnd_toStartOf="@+id/btn_update_email"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/image_photo_profile" />
 
 
             <com.google.android.material.imageview.ShapeableImageView
@@ -51,9 +51,7 @@
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp"
                 android:scaleType="centerCrop"
-                app:layout_constraintBottom_toTopOf="@+id/btn_change_photo"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -252,8 +250,16 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <Button
+                android:id="@+id/btn_update_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="48dp"
+                android:text="Alterar Email"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/image_photo_profile" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 
     </ScrollView>
