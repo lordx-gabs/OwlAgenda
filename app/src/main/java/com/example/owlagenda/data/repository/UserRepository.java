@@ -54,6 +54,10 @@ public class UserRepository {
         collectionReference.document(id).addSnapshotListener(childEventListener);
     }
 
+    public void updateEmail(String id, String email, OnCompleteListener<Void> completeListener) {
+        collectionReference.document(id).update("email", email).addOnCompleteListener(completeListener);
+    }
+
     public void registerUser(String email, String password, OnCompleteListener<AuthResult> completeListener){
         firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(completeListener);
     }

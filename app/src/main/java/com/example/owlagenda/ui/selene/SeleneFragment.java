@@ -2,6 +2,8 @@ package com.example.owlagenda.ui.selene;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
+import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.LinearGradient;
 import android.graphics.Rect;
 import android.graphics.Shader;
@@ -11,12 +13,14 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -26,7 +30,9 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentSeleneBinding;
+import com.example.owlagenda.ui.homescreen.HomeScreenView;
 import com.example.owlagenda.util.NetworkUtil;
+import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.ai.client.generativeai.type.Content;
 
 import java.util.ArrayList;
@@ -196,12 +202,37 @@ public class SeleneFragment extends Fragment {
 
         binding.getRoot().getViewTreeObserver().addOnGlobalLayoutListener(keyboardListener);
 
+        int currentNightMode = getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK;
+
+        MenuItem themeItem = binding.appBarTelaPrincipal.toolbarSofia.getMenu().findItem(R.id.action_theme);
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            themeItem.setIcon(R.drawable.ic_theme_light);  // Ícone para o tema claro
+        } else {
+            themeItem.setIcon(R.drawable.ic_theme_dark);   // Ícone para o tema escuro
+        }
+
         binding.appBarTelaPrincipal.toolbarSofia.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.menu_clear_history_message) {
                 int index = messages.size();
                 messages.clear();
                 viewModel.deleteHistoryMessageUser(currentUser.getId());
                 binding.recycleBalloons.getAdapter().notifyItemRangeRemoved(0, index);
+            } else if (item.getItemId() == R.id.action_theme) {
+                if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+                    // Mudar para o tema claro
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    item.setIcon(R.drawable.ic_theme_dark);  // Atualizar o ícone para tema escuro
+                    SharedPreferencesUtil.saveInt(SharedPreferencesUtil.KEY_USER_THEME, AppCompatDelegate.MODE_NIGHT_NO);
+                } else {
+                    // Mudar para o tema escuro
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    item.setIcon(R.drawable.ic_theme_light);  // Atualizar o ícone para tema claro
+                    SharedPreferencesUtil.saveInt(SharedPreferencesUtil.KEY_USER_THEME, AppCompatDelegate.MODE_NIGHT_YES);
+                }
+
+                requireActivity().recreate();
+                return true;
             }
             return false;
         });

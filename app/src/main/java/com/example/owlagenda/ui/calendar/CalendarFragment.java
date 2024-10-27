@@ -29,9 +29,12 @@ import com.example.owlagenda.databinding.CalendarDayBinding;
 import com.example.owlagenda.databinding.CalendarHeaderBinding;
 import com.example.owlagenda.databinding.FragmentCalendarBinding;
 import com.example.owlagenda.ui.task.TaskView;
+import com.example.owlagenda.ui.taskdetails.TaskDetailsView;
+import com.example.owlagenda.util.NotificationUtil;
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.example.owlagenda.util.TaskTypeColor;
 import com.google.android.gms.tasks.Tasks;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.kizitonwose.calendar.core.CalendarDay;
 import com.kizitonwose.calendar.core.CalendarMonth;
@@ -110,33 +113,82 @@ public class CalendarFragment extends Fragment {
             public void onClickBtnDelete(int position) {
                 List<TaskCalendar> task = tasks.get(selectedDate);
                 Optional<Task> taskOptional = tasksObject.stream()
-                        .filter(task7 -> task7.getTitle().equalsIgnoreCase(task.get(position).getNameTask()))
+                        .filter(task7 -> task7.getId().equalsIgnoreCase(task.get(position).getId()))
                         .findFirst();
 
                 if (taskOptional.isPresent()) {
                     // Tarefa encontrada
-                    viewModel.deleteTask(taskOptional.get(), getActivity().getApplicationContext())
+                    viewModel.deleteTask(taskOptional.get())
                             .observe(getViewLifecycleOwner(), aBoolean -> {
-                                if(aBoolean) {
-                                    Toast.makeText(requireContext(), "Tarefa deletada com sucesso", Toast.LENGTH_SHORT).show();
+                                if (aBoolean) {
+                                    Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa Excluída",
+                                            Snackbar.LENGTH_SHORT).setAction("Desfazer", v3 ->
+                                            viewModel.addTask(taskOptional.get()).observe(getViewLifecycleOwner(),
+                                                    aBoolean1 -> {
+                                                        if (aBoolean1) {
+                                                            Toast.makeText(getContext(), "Tarefa restaurada com sucesso", Toast.LENGTH_SHORT).show();
+                                                        } else {
+                                                            Toast.makeText(getContext(), "Falha ao restaurar tarefa", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }
+                                            )
+                                    );
+
+                                    snackbar.addCallback(new Snackbar.Callback() {
+                                        @Override
+                                        public void onDismissed(Snackbar snackbar, int event) {
+                                            if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
+                                                int notificationId = 0;
+                                                try {
+                                                    notificationId = Integer.parseInt(taskOptional.get().getId()
+                                                            .replaceAll("[^0-9]", ""));
+                                                } catch (NumberFormatException ignored) {
+                                                }
+
+                                                Log.d("teste", "" + notificationId);
+                                                if (NotificationUtil.scheduleNotificationApp.isAlarmSet(getActivity().getApplicationContext(),
+                                                        taskOptional.get().getTitle(), notificationId)) {
+                                                    NotificationUtil.scheduleNotificationApp
+                                                            .cancelNotification(getActivity().getApplicationContext(),
+                                                                    taskOptional.get().getTitle(), notificationId);
+                                                    Log.d("testeee", "chegouu");
+                                                }
+                                            }
+                                            binding.loadingCalendar.setVisibility(View.GONE);
+                                        }
+                                    });
+
+                                    snackbar.show();
                                 } else {
                                     Toast.makeText(requireContext(), "Erro ao deletar tarefa", Toast.LENGTH_SHORT).show();
                                 }
+                                binding.loadingCalendar.setVisibility(View.GONE);
                             });
                 } else {
                     // Tarefa não encontrada
-                   Log.d("teste","Tarefa não encontrada.");
+                    Toast.makeText(requireContext(), "Erro interno. Contante o suporte", Toast.LENGTH_SHORT).show();
+                    Log.d("teste", "Tarefa não encontrada.");
                 }
             }
 
             @Override
             public void onClickBtnDetails(int position) {
-
+                Intent intent = new Intent(getActivity(), TaskDetailsView.class);
+                List<TaskCalendar> task = tasks.get(selectedDate);
+                Optional<Task> taskOptional = tasksObject.stream()
+                        .filter(task7 -> task7.getId().equalsIgnoreCase(task.get(position).getId()))
+                        .findFirst();
+                if (taskOptional.isPresent()) {
+                    intent.putExtra("taskId", taskOptional.get().getId());
+                    startActivity(intent);
+                } else {
+                    Log.d("teste", "Tarefa não encontrada.");
+                }
             }
         });
         binding.recycleCalendar.setItemAnimator(new FadeInUpAnimator());
         binding.recycleCalendar.setAdapter(taskAdapter);
-        if(isAdded()) {
+        if (isAdded()) {
             configureBinders(daysOfWeek);
             binding.calendar.setup(startMonth, endMonth, daysOfWeek.get(0));
             binding.calendar.scrollToMonth(YearMonth.now());
@@ -144,8 +196,8 @@ public class CalendarFragment extends Fragment {
 
         viewModel.getTasks().observe(getViewLifecycleOwner(), tasks -> {
             binding.loadingCalendar.setVisibility(View.VISIBLE);
-            if(tasks != null) {
-                if(!tasks.isEmpty()) {
+            if (tasks != null) {
+                if (!tasks.isEmpty()) {
                     Log.d("teste", "" + tasks.size());
                     tasksObject.clear();
                     tasksObject.addAll(tasks);
@@ -179,8 +231,8 @@ public class CalendarFragment extends Fragment {
                                                 Collectors.toList()))
                                 );
                                 Log.e("teste", "" + this.tasks.size());
-                                if(isAdded()) {
-                                    if(selectedDate != null) {
+                                if (isAdded()) {
+                                    if (selectedDate != null) {
                                         updateAdapterForDate(selectedDate);
                                     } else {
                                         updateAdapterForDate(null);
@@ -197,8 +249,8 @@ public class CalendarFragment extends Fragment {
                 } else {
                     binding.loadingCalendar.setVisibility(View.GONE);
                     this.tasks.clear();
-                    if(isAdded()) {
-                        if(selectedDate != null) {
+                    if (isAdded()) {
+                        if (selectedDate != null) {
                             updateAdapterForDate(selectedDate);
                         } else {
                             updateAdapterForDate(null);
@@ -214,7 +266,7 @@ public class CalendarFragment extends Fragment {
         });
 
         binding.calendar.setMonthScrollListener(calendarMonth -> {
-            if(isAdded()) {
+            if (isAdded()) {
                 binding.monthYearText.setText(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()).format(calendarMonth.getYearMonth()));
                 if (selectedDate != null) {
                     binding.calendar.notifyDateChanged(selectedDate);
@@ -241,8 +293,7 @@ public class CalendarFragment extends Fragment {
             }
         });
 
-        int currentNightMode = getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK;
+        int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
 
         MenuItem themeItem = binding.appBarTelaPrincipal.toolbar.getMenu().findItem(R.id.action_theme);
         if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
@@ -279,15 +330,15 @@ public class CalendarFragment extends Fragment {
         taskAdapter.getTasks().clear();
         taskAdapter.getTasks().addAll(tasks.getOrDefault(date, List.of()));
 
-        if (taskAdapter.getTasks().size() > taskBefore.size() ) {
+        if (taskAdapter.getTasks().size() > taskBefore.size()) {
             int index = taskAdapter.getTasks().size() - taskBefore.size();
             taskAdapter.notifyItemRangeInserted(taskAdapter.getTasks().size(), index);
-            taskAdapter.notifyItemRangeChanged( 0, taskAdapter.getTasks().size() - index);
+            taskAdapter.notifyItemRangeChanged(0, taskAdapter.getTasks().size() - index);
 
-        } else if(taskAdapter.getTasks().size() < taskBefore.size()) {
+        } else if (taskAdapter.getTasks().size() < taskBefore.size()) {
             int index = taskBefore.size() - taskAdapter.getTasks().size();
             taskAdapter.notifyItemRangeRemoved(taskAdapter.getTasks().size(), index);
-            taskAdapter.notifyItemRangeChanged( 0, taskBefore.size() - index);
+            taskAdapter.notifyItemRangeChanged(0, taskBefore.size() - index);
         } else {
             taskAdapter.notifyItemRangeChanged(0, taskAdapter.getTasks().size());
         }

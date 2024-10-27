@@ -9,11 +9,15 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.owlagenda.data.models.Task;
+import com.example.owlagenda.data.models.TaskAttachments;
 import com.example.owlagenda.data.repository.TaskRepository;
 import com.example.owlagenda.util.NotificationUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
@@ -24,6 +28,7 @@ public class CalendarViewModel extends ViewModel {
     private final MutableLiveData<Boolean> isLoading;
     private final MutableLiveData<String> errorMessage;
     private MutableLiveData<Boolean> isDeleted;
+    private MutableLiveData<Boolean> isSuccessfully;
 
     public CalendarViewModel() {
         taskRepository = new TaskRepository();
@@ -69,7 +74,7 @@ public class CalendarViewModel extends ViewModel {
         return tasks;
     }
 
-    public LiveData<Boolean> deleteTask(Task taskCalendar, Context context) {
+    public LiveData<Boolean> deleteTask(Task taskCalendar) {
         isDeleted = new MutableLiveData<>();
         isLoading.setValue(true);
 
@@ -78,7 +83,6 @@ public class CalendarViewModel extends ViewModel {
                 if(taskCalendar.getTaskDocuments() != null && !taskCalendar.getTaskDocuments().isEmpty()) {
                     taskRepository.deleteAttachmentsStorage(taskCalendar.getTaskDocuments(), task1 -> {
                         if(task1.isSuccessful()) {
-                            deleteNotification(taskCalendar, context);
                             isDeleted.setValue(true);
                             isLoading.setValue(false);
                         } else {
@@ -87,7 +91,6 @@ public class CalendarViewModel extends ViewModel {
                         }
                     });
                 } else {
-                    deleteNotification(taskCalendar, context);
                     isDeleted.setValue(true);
                     isLoading.setValue(false);
                 }
@@ -100,7 +103,62 @@ public class CalendarViewModel extends ViewModel {
         return isDeleted;
     }
 
-    private static void deleteNotification(Task taskCalendar, Context context) {
+    public LiveData<Boolean> addTask(Task task) {
+        isLoading.postValue(true);
+        isSuccessfully = new MutableLiveData<>();
+
+        ArrayList<String> downloadUrls = new ArrayList<>();
+
+        task.setId(FirebaseFirestore.getInstance().collection("tarefa").document().getId());
+
+        com.google.android.gms.tasks.Task<Void> lastTask = Tasks.forResult(null);
+
+        lastTask = lastTask.continueWithTask(task1 -> taskRepository.saveAttachmentsStorage(task.getTaskDocuments()))
+                .addOnFailureListener(e -> {
+                    if (e instanceof FirebaseNetworkException) {
+                        errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
+                    } else {
+                        isSuccessfully.postValue(false);
+                    }
+                    isLoading.postValue(false);
+                });
+
+        lastTask.continueWithTask(task1 -> taskRepository.getAttachmentsUrls(task, downloadUrls))
+                .addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful()) {
+                        for (int i = 0; i < downloadUrls.size(); i++) {
+                            task.getTaskDocuments().get(i).setUrl(downloadUrls.get(i));
+                        }
+
+                        taskRepository.addTask(task, task2 -> {
+                            if (task2.isSuccessful()) {
+                                isSuccessfully.postValue(true);
+                            } else {
+                                handleErrorCreateTask(task.getTaskDocuments(), task2.getException());
+                            }
+                        });
+                    } else {
+                        handleErrorCreateTask(task.getTaskDocuments(), task1.getException());
+                    }
+                });
+
+        return isSuccessfully;
+    }
+
+    private void handleErrorCreateTask(ArrayList<TaskAttachments> documents, Exception exception) {
+        if (exception instanceof FirebaseNetworkException) {
+            errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
+        }
+        taskRepository.deleteAttachmentsStorage(documents, task -> {
+            if (!task.isSuccessful()) {
+                errorMessage.postValue("Erro ao interno, tente novamente. " + exception.getMessage());
+            }
+            isLoading.postValue(false);
+        });
+    }
+
+
+    public static void deleteNotification(Task taskCalendar, Context context) {
         int notificationId = 0;
         try {
             notificationId = Integer.parseInt(taskCalendar.getId().replaceAll("[^0-9]", ""));

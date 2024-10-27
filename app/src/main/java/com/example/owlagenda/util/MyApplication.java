@@ -40,6 +40,7 @@ public class MyApplication extends Application {
                 Log.e("taaa", "aqui foi4444");
             }
         }
+        
     }
 
     @Override

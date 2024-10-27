@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -35,6 +36,10 @@ public class TaskRepository {
 
     public TaskRepository() {
         collectionReference = FirebaseFirestore.getInstance().collection("tarefa");
+    }
+
+    public void getTaskById (String id, OnCompleteListener<DocumentSnapshot> completeListener) {
+        collectionReference.document(id).get().addOnCompleteListener(completeListener);
     }
 
     public void getTasks(String id, EventListener<QuerySnapshot> eventListener) {
@@ -112,6 +117,11 @@ public class TaskRepository {
         collectionReference.whereEqualTo("userId",
                         FirebaseFirestore.getInstance().collection("usuario").document(id))
                 .whereEqualTo("completed", false).addSnapshotListener(eventListener);
+    }
+
+    public void getAllTaskById(String id, EventListener<QuerySnapshot> eventListener) {
+        collectionReference.whereEqualTo("userId", FirebaseFirestore.getInstance()
+                .collection("usuario").document(id)).addSnapshotListener(eventListener);
     }
 
     public com.google.android.gms.tasks.Task<Void> saveAttachmentsStorage(ArrayList<TaskAttachments> documents) {

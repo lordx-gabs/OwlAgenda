@@ -36,7 +36,7 @@ public class NotificationUtil extends BroadcastReceiver {
         completeTaskIntent.putExtra("taskId", title);
         completeTaskIntent.putExtra("requestCode", requestCode);
         PendingIntent completeTaskPendingIntent = PendingIntent.getBroadcast(
-                context,
+                context.getApplicationContext(),
                 0,
                 completeTaskIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT
@@ -72,14 +72,14 @@ public class NotificationUtil extends BroadcastReceiver {
     public static class scheduleNotificationApp {
 
         public static void scheduleNotification(Context context, long triggerAtMillis, String title, int requestCode) {
-            Intent intent = new Intent(context, NotificationUtil.class);
+            Intent intent = new Intent(context.getApplicationContext(), NotificationUtil.class);
             intent.putExtra("title", title);
             intent.putExtra("requestCode", requestCode);
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent,
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context.getApplicationContext(), requestCode, intent,
                             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                     if (alarmManager.canScheduleExactAlarms()) {
                         alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
@@ -88,7 +88,7 @@ public class NotificationUtil extends BroadcastReceiver {
                         alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
                     }
                 } else {
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent,
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context.getApplicationContext(), requestCode, intent,
                             PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
                 }
@@ -96,17 +96,17 @@ public class NotificationUtil extends BroadcastReceiver {
         }
 
         public static void cancelNotification(Context context, String title, int requestCode) {
-            Intent intent = new Intent(context, NotificationUtil.class);
+            Intent intent = new Intent(context.getApplicationContext(), NotificationUtil.class);
             intent.putExtra("title", title);
             intent.putExtra("requestCode", requestCode);
 
             // Recria o mesmo PendingIntent que foi usado para agendar o alarme
             PendingIntent pendingIntent;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent,
+                pendingIntent = PendingIntent.getBroadcast(context.getApplicationContext(), requestCode, intent,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             } else {
-                pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent,
+                pendingIntent = PendingIntent.getBroadcast(context.getApplicationContext(), requestCode, intent,
                         PendingIntent.FLAG_UPDATE_CURRENT);
             }
 
@@ -122,21 +122,21 @@ public class NotificationUtil extends BroadcastReceiver {
         @SuppressLint("UnspecifiedImmutableFlag")
         public static boolean isAlarmSet(Context context, String title, int requestCode) {
             // Crie um Intent para o seu BroadcastReceiver
-            Intent intent = new Intent(context, NotificationUtil.class);
+            Intent intent = new Intent(context.getApplicationContext(), NotificationUtil.class);
             intent.putExtra("title", title);
             intent.putExtra("requestCode", requestCode);
             PendingIntent pendingIntent;
             // Crie o PendingIntent com o mesmo requestCode
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 pendingIntent = PendingIntent.getBroadcast(
-                        context,
+                        context.getApplicationContext(),
                         requestCode,
                         intent,
                         PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE // Use FLAG_NO_CREATE para verificar se já existe
                 );
             } else {
                 pendingIntent = PendingIntent.getBroadcast(
-                        context,
+                        context.getApplicationContext(),
                         requestCode,
                         intent,
                         PendingIntent.FLAG_NO_CREATE);

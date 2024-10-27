@@ -46,18 +46,16 @@ public class UpdateEmailViewModel extends ViewModel {
                         updateTask.getException() instanceof FirebaseAuthInvalidUserException) {
                     Log.d("teste", "Reautenticação necessária.");
                     for (UserInfo userInfo : firebaseAuth.getCurrentUser().getProviderData()) {
-                        String providerId = userInfo.getProviderId();
-
-                        if (providerId.equals(GoogleAuthProvider.PROVIDER_ID)) {
-                            // Usuário logado com Google
-                            isReauthenticationRequired.postValue(GoogleAuthProvider.PROVIDER_ID);
-                        } else if (providerId.equals(FacebookAuthProvider.PROVIDER_ID)) {
-                            // Usuário logado com Facebook
-                            isReauthenticationRequired.postValue(FacebookAuthProvider.PROVIDER_ID);
-                        } else if (providerId.equals(EmailAuthProvider.PROVIDER_ID)) {
-                            // Usuário logado com email e senha
-                            isReauthenticationRequired.postValue(EmailAuthProvider.PROVIDER_ID);
-
+                        switch (userInfo.getProviderId()) {
+                            case GoogleAuthProvider.PROVIDER_ID ->
+                                // Usuário logado com Google
+                                    isReauthenticationRequired.postValue(GoogleAuthProvider.PROVIDER_ID);
+                            case FacebookAuthProvider.PROVIDER_ID ->
+                                // Usuário logado com Facebook
+                                    isReauthenticationRequired.postValue(FacebookAuthProvider.PROVIDER_ID);
+                            case EmailAuthProvider.PROVIDER_ID ->
+                                // Usuário logado com email e senha
+                                    isReauthenticationRequired.postValue(EmailAuthProvider.PROVIDER_ID);
                         }
                     }
                     return;
@@ -153,5 +151,9 @@ public class UpdateEmailViewModel extends ViewModel {
 
     public LiveData<String> getErrorMessage() {
         return errorMessage;
+    }
+
+    public MutableLiveData<Boolean> getIsLoading() {
+        return isLoading;
     }
 }

@@ -97,6 +97,22 @@ public class TelaPrincipalViewModel extends ViewModel {
         return tasks;
     }
 
+    public LiveData<Boolean> updateEmail(String id, String email) {
+        MutableLiveData<Boolean> success = new MutableLiveData<>();
+        isLoading.postValue(true);
+        userRepository.updateEmail(id, email, task -> {
+            if(task.isSuccessful()) {
+                success.postValue(true);
+                isLoading.postValue(false);
+            } else {
+                Log.e("UpdateError", "Erro ao atualizar email: " + task.getException());
+                success.postValue(false); // Notifique o fracasso sem tentar novamente
+
+            }
+        });
+        return success;
+    }
+
     public LiveData<ArrayList<Message>> getMessages(String uid) {
         messages = new MutableLiveData<>();
 

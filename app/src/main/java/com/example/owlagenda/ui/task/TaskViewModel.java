@@ -130,7 +130,6 @@ public class TaskViewModel extends ViewModel {
         });
     }
 
-
     public LiveData<ArrayList<School>> getSchools() {
         isLoading.postValue(true);
         schoolsLiveData = new MutableLiveData<>();

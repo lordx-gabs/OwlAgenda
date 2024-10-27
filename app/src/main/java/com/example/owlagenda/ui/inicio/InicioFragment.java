@@ -24,7 +24,9 @@ import com.example.owlagenda.data.models.TaskDay;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentInicioBinding;
+import com.example.owlagenda.ui.filtertask.FilterTaskView;
 import com.example.owlagenda.ui.task.TaskView;
+import com.example.owlagenda.ui.taskdetails.TaskDetailsView;
 import com.example.owlagenda.util.NotificationUtil;
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.android.gms.tasks.Tasks;
@@ -73,6 +75,9 @@ public class InicioFragment extends Fragment {
                 binding.loadingHome.setVisibility(View.GONE);
             }
         });
+
+        binding.btnAllTask.setOnClickListener(v ->
+                startActivity(new Intent(getActivity(), FilterTaskView.class)));
 
         inicioViewModel.getTasksByNotCompleted(FirebaseAuth.getInstance()
                 .getCurrentUser().getUid()).observe(getViewLifecycleOwner(), tasks -> {
@@ -131,67 +136,72 @@ public class InicioFragment extends Fragment {
                         Tasks.whenAllComplete(firestoreTasks).addOnCompleteListener(task7 -> {
                             if (task7.isSuccessful()) {
                                 Tasks.whenAllComplete(taskSchool).addOnCompleteListener(task9 -> {
-                                    binding.loadingHome.setVisibility(View.GONE);
-                                    if (task9.isSuccessful()) {
-                                        adapter = new TaskDayAdapter(tasksDay, new TaskDayViewHolder.onClickListener() {
-                                            @Override
-                                            public void onClickCheck(int position) {
-                                                //marcar tarefa como concluida
+                                    if(isAdded()) {
+                                        binding.loadingHome.setVisibility(View.GONE);
+                                        if (task9.isSuccessful()) {
+                                            adapter = new TaskDayAdapter(tasksDay, new TaskDayViewHolder.onClickListener() {
+                                                @Override
+                                                public void onClickCheck(int position) {
+                                                    //marcar tarefa como concluida
 
-                                                Optional<Task> taskActually = tasks.stream().filter(task -> task.getId()
-                                                        .equalsIgnoreCase(tasksDay.get(position).getIdTaskDay())).findFirst();
-                                                taskActually.orElse(null).setCompleted(true);
+                                                    Optional<Task> taskActually = tasks.stream().filter(task -> task.getId()
+                                                            .equalsIgnoreCase(tasksDay.get(position).getIdTaskDay())).findFirst();
+                                                    taskActually.orElse(null).setCompleted(true);
 
-                                                inicioViewModel.setTaskIsCompleted(taskActually.orElse(null)).observe(getViewLifecycleOwner()
-                                                        , aBoolean -> {
-                                                            if (aBoolean) {
-                                                                Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa marcada como concluida!",
-                                                                                Snackbar.LENGTH_SHORT)
-                                                                        .setAction("Desfazer", v -> {
-                                                                            taskActually.orElse(null).setCompleted(false);
-                                                                            inicioViewModel.setTaskIsCompleted(taskActually.orElse(null));
-                                                                        }).setAnchorView(binding.appFab.getRoot());
+                                                    inicioViewModel.setTaskIsCompleted(taskActually.orElse(null)).observe(getViewLifecycleOwner()
+                                                            , aBoolean -> {
+                                                                if (aBoolean) {
+                                                                    Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa marcada como concluida!",
+                                                                                    Snackbar.LENGTH_SHORT)
+                                                                            .setAction("Desfazer", v -> {
+                                                                                taskActually.orElse(null).setCompleted(false);
+                                                                                inicioViewModel.setTaskIsCompleted(taskActually.orElse(null));
+                                                                            }).setAnchorView(binding.appFab.getRoot());
 
-                                                                snackbar.addCallback(new Snackbar.Callback() {
-                                                                    @Override
-                                                                    public void onDismissed(Snackbar snackbar, int event) {
-                                                                        if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
-                                                                            int notificationId = 0;
-                                                                            try {
-                                                                                notificationId = Integer.parseInt(taskActually.orElse(null).getId().replaceAll("[^0-9]", ""));
-                                                                            } catch (NumberFormatException ignored) {}
+                                                                    snackbar.addCallback(new Snackbar.Callback() {
+                                                                        @Override
+                                                                        public void onDismissed(Snackbar snackbar, int event) {
+                                                                            if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
+                                                                                int notificationId = 0;
+                                                                                try {
+                                                                                    notificationId = Integer.parseInt(taskActually.orElse(null).getId().replaceAll("[^0-9]", ""));
+                                                                                } catch (
+                                                                                        NumberFormatException ignored) {
+                                                                                }
 
-                                                                            Log.d("teste", "" + notificationId);
-                                                                            if (NotificationUtil.scheduleNotificationApp.isAlarmSet(InicioFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
-                                                                                    notificationId)) {
-                                                                                NotificationUtil.scheduleNotificationApp.cancelNotification(InicioFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
-                                                                                        notificationId);
-                                                                                Log.d("testeee", "chegouu");
+                                                                                Log.d("teste", "" + notificationId);
+                                                                                if (NotificationUtil.scheduleNotificationApp.isAlarmSet(InicioFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
+                                                                                        notificationId)) {
+                                                                                    NotificationUtil.scheduleNotificationApp.cancelNotification(InicioFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
+                                                                                            notificationId);
+                                                                                    Log.d("testeee", "chegouu");
+                                                                                }
                                                                             }
                                                                         }
-                                                                    }
-                                                                });
+                                                                    });
 
-                                                                snackbar.show();
-                                                            } else {
-                                                                Toast.makeText(getContext(), "Erro ao marcar tarefa como concluida!",
-                                                                        Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        });
+                                                                    snackbar.show();
+                                                                } else {
+                                                                    Toast.makeText(getContext(), "Erro ao marcar tarefa como concluida!",
+                                                                            Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            });
+                                                }
+
+                                                @Override
+                                                public void onClickTask(int position) {
+                                                    Intent intent = new Intent(getActivity(), TaskDetailsView.class);
+                                                    intent.putExtra("taskId", tasksDay.get(position).getIdTaskDay());
+                                                    startActivity(intent);
+                                                }
+                                            });
+                                            if (isAdded()) {
+                                                binding.recycleTaskDay.setAdapter(adapter);
+                                                binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
                                             }
-
-                                            @Override
-                                            public void onClickTask(int position) {
-                                                // detalhes da tarefa
-
-                                            }
-                                        });
-                                        if (isAdded()) {
-                                            binding.recycleTaskDay.setAdapter(adapter);
-                                            binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
+                                        } else {
+                                            Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
                                         }
-                                    } else {
-                                        Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             } else {
