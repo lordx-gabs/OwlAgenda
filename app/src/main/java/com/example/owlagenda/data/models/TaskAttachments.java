@@ -5,6 +5,8 @@ public class TaskAttachments {
     private String name;
     private String url;
     private String uri;
+    private boolean isLoading;
+    private int percent;
 
     public TaskAttachments() {
 
@@ -45,5 +47,25 @@ public class TaskAttachments {
             return name.substring(dotIndex + 1);
         }
         return "";
+    }
+
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
+    public boolean isLoading() {
+        return isLoading;
+    }
+
+    public void setLoading(boolean loading) {
+        isLoading = loading;
+    }
+
+    public int getPercent() {
+        return percent;
+    }
+
+    public void setPercent(int percent) {
+        this.percent = percent;
     }
 }

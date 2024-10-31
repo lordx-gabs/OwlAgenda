@@ -1,6 +1,5 @@
 package com.example.owlagenda.ui.taskdetails;
 
-import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,36 +26,50 @@ public class DocumentTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new DocumentViewHolder(
+        return new DocumentTaskDetailsViewHolder(
                 LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.layout_document, parent, false)
+                        .inflate(R.layout.layout_document_task_details, parent, false)
         );
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        DocumentViewHolder viewHolder = ((DocumentViewHolder) holder);
+        DocumentTaskDetailsViewHolder viewHolder = ((DocumentTaskDetailsViewHolder) holder);
         TaskAttachments document = documents.get(position);
         viewHolder.documentName.setText(document.getName());
         String typeDocument = document.getExtension();
 
-        if (!typeDocument.isEmpty()) {
-            switch (typeDocument) {
-                case "pdf" -> viewHolder.documentIcon.setImageResource(R.drawable.ic_pdf);
-                case "doc", "docx" -> viewHolder.documentIcon.setImageResource(R.drawable.ic_docx);
-                case "xls", "xlsx" -> viewHolder.documentIcon.setImageResource(R.drawable.ic_xls);
-                case "ppt", "pptx" -> viewHolder.documentIcon.setImageResource(R.drawable.ic_pptx);
-                case "jpg", "jpeg", "png" ->
-                        viewHolder.documentIcon.setImageResource(R.drawable.ic_img);
+        if (!document.isLoading()) {
+            viewHolder.loading.setVisibility(View.GONE);
+            viewHolder.documentIcon.setVisibility(View.VISIBLE);
+            viewHolder.documentName.setVisibility(View.VISIBLE);
+            if (!typeDocument.isEmpty()) {
+                switch (typeDocument) {
+                    case "pdf" -> viewHolder.documentIcon.setImageResource(R.drawable.ic_pdf);
+                    case "doc", "docx" ->
+                            viewHolder.documentIcon.setImageResource(R.drawable.ic_docx);
+                    case "xls", "xlsx" ->
+                            viewHolder.documentIcon.setImageResource(R.drawable.ic_xls);
+                    case "ppt", "pptx" ->
+                            viewHolder.documentIcon.setImageResource(R.drawable.ic_pptx);
+                    case "jpg", "jpeg", "png" ->
+                            viewHolder.documentIcon.setImageResource(R.drawable.ic_img);
 
-                default -> viewHolder.documentIcon.setImageResource(R.drawable.ic_document);
+                    default -> viewHolder.documentIcon.setImageResource(R.drawable.ic_document);
+                }
+
+            } else {
+                viewHolder.documentIcon.setImageResource(R.drawable.ic_document);
             }
-
         } else {
-            viewHolder.documentIcon.setImageResource(R.drawable.ic_document);
+            viewHolder.loading.setVisibility(View.VISIBLE);
+            viewHolder.documentIcon.setVisibility(View.GONE);
+            viewHolder.documentName.setVisibility(View.GONE);
+            viewHolder.loading.setProgress(document.getPercent());
         }
-        viewHolder.itemView.setOnClickListener(v ->
-                clickListenerDocument.onItemClick(position));
+
+        viewHolder.itemView.setOnClickListener(v -> clickListenerDocument.onItemClick(position));
+
     }
 
     @Override

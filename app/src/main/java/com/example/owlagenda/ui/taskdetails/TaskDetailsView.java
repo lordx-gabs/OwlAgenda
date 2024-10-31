@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
@@ -26,7 +27,6 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -34,7 +34,6 @@ import com.example.owlagenda.data.models.School;
 import com.example.owlagenda.data.models.SchoolClass;
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.databinding.ActivityTaskDetailsViewBinding;
-import com.example.owlagenda.ui.inicio.InicioFragment;
 import com.example.owlagenda.util.NotificationUtil;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -48,6 +47,9 @@ public class TaskDetailsView extends AppCompatActivity {
     private String taskId;
     private int positionDocument;
     private Task task;
+    private BroadcastReceiver downloadReceiver;
+    private Handler handler;
+    private Runnable runnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -243,7 +245,7 @@ public class TaskDetailsView extends AppCompatActivity {
     private void downloadFile(String fileUrl, String fileName) {
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(fileUrl));
 
-        request.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, fileName);
+        request.setDestinationInExternalFilesDir(this, getExternalCacheDir().getAbsolutePath(), fileName);
 
         request.setTitle("Baixando " + fileName);
         request.setDescription("Aguarde...");
@@ -264,16 +266,36 @@ public class TaskDetailsView extends AppCompatActivity {
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
                         int statusColumnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+
                         if (statusColumnIndex >= 0) { // Verifica se o índice é válido
                             int status = cursor.getInt(statusColumnIndex);
+                            int downloadedColumnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);
+                            int totalBytesColumnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES);
                             // Aqui você pode usar o status como quiser
                             if (status == DownloadManager.STATUS_SUCCESSFUL) {
-
                                 isDownloaded = true;
-                                openDownloadedFile(downloadId);
+                                runOnUiThread(() -> {
+                                    adapter.getDocuments().get(positionDocument).setLoading(false);
+                                    adapter.notifyItemChanged(positionDocument);
+                                    openDownloadedFile(downloadId);
+                                });
                             } else if (status == DownloadManager.STATUS_FAILED) {
                                 isDownloaded = true;
                                 Toast.makeText(this, "Erro ao baixar o arquivo", Toast.LENGTH_SHORT).show();
+                            } else if (status == DownloadManager.STATUS_RUNNING) {
+                                int bytesDownloaded = cursor.getInt(downloadedColumnIndex);
+                                int totalBytes = cursor.getInt(totalBytesColumnIndex);
+                                if (totalBytes > 0) {
+                                    int progress = (int) ((bytesDownloaded * 100L) / totalBytes);
+                                    Log.d("DownloadProgress", "Progresso: " + progress + "%");
+                                    runOnUiThread(() -> {
+                                        adapter.getDocuments().get(positionDocument).setLoading(true);
+                                        adapter.getDocuments().get(positionDocument).setPercent(progress);
+                                        adapter.notifyItemChanged(positionDocument);
+                                    });
+                                } else {
+                                    Log.e("Error", "Coluna TOTAL_SIZE_BYTES não encontrada");
+                                }
                             }
                         } else {
                             Log.e("Error", "Coluna STATUS não encontrada");
@@ -287,7 +309,7 @@ public class TaskDetailsView extends AppCompatActivity {
                 }
                 // Espera um pouco antes de verificar novamente
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                 } catch (InterruptedException ignored) {
                 }
             }
@@ -313,7 +335,8 @@ public class TaskDetailsView extends AppCompatActivity {
         String fileName = adapter.getDocuments().get(positionDocument).getName();
 
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+        request.setDestinationInExternalPublicDir(getExternalCacheDir().getAbsolutePath(), fileName);
+
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         request.setTitle("Baixando " + fileName);
         request.setDescription("Aguarde...");
@@ -322,18 +345,67 @@ public class TaskDetailsView extends AppCompatActivity {
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         long downloadId = downloadManager.enqueue(request);
 
-        // Registrar o BroadcastReceiver para escutar quando o download for concluído
-        registerReceiver(new BroadcastReceiver() {
+        BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
                 if (downloadId == id) {
-                    // O download foi concluído, abra o arquivo
+                    // O download foi concluído, abrir o arquivo
                     openDownloadedFile(fileName);
-                    unregisterReceiver(this); // Não esquecer de cancelar o registro
+                    // Não esquecer de cancelar o registro
+                    unregisterReceiver(this);
+                    adapter.getDocuments().get(positionDocument).setLoading(false);
+                    adapter.notifyItemChanged(positionDocument);
                 }
             }
-        }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_VISIBLE_TO_INSTANT_APPS);
+        };
+
+        registerReceiver(downloadReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                DownloadManager.Query query = new DownloadManager.Query();
+                query.setFilterById(downloadId);
+                Cursor cursor = downloadManager.query(query);
+                if (cursor != null && cursor.moveToFirst()) {
+
+                    int downloadedColumnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);
+                    int totalBytesColumnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES);
+
+                    if (downloadedColumnIndex != -1 && totalBytesColumnIndex != -1) {
+                        int bytesDownloaded = cursor.getInt(downloadedColumnIndex);
+                        int totalBytes = cursor.getInt(totalBytesColumnIndex);
+
+                        if (totalBytes > 0) {
+                            int progress = (int) ((bytesDownloaded * 100L) / totalBytes);
+                            runOnUiThread(() -> {
+                                adapter.getDocuments().get(positionDocument).setLoading(true);
+                                adapter.getDocuments().get(positionDocument).setPercent(progress);
+                                adapter.notifyItemChanged(positionDocument);
+                            });
+                            Log.d("DownloadProgress", "Progresso: " + progress + "%");
+                        }
+                    }
+
+                    // Continue verificando enquanto o download não for concluído
+                    int statusColumnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                    if (statusColumnIndex != -1 && cursor.getInt(statusColumnIndex) == DownloadManager.STATUS_RUNNING) {
+                        handler.postDelayed(this, 1000); // Verifica a cada segundo
+                    } else if (statusColumnIndex != -1 && cursor.getInt(statusColumnIndex) == DownloadManager.STATUS_SUCCESSFUL) {
+                        // O download foi concluído, abrir o arquivo
+                        openDownloadedFile(fileName);
+                        unregisterReceiver(downloadReceiver); // Cancela o registro
+                    }
+                }
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        };
+
+        handler.postDelayed(runnable, 1000);
     }
 
     @Override
