@@ -1,29 +1,63 @@
 [versions]
-agp = "8.5.0"
+agp = "8.5.2"
+carousellayoutmanager = "1.4.6"
+compose = "2.6.0"
+facebookLogin = "17.0.2"
+firebaseAuth = "23.1.0"
+firebaseBom = "33.5.1"
+firebaseFirestore = "25.1.1"
+firebaseStorage = "21.0.1"
+generativeai = "0.9.0"
+glide = "4.16.0"
+googleApiClient = "2.7.0"
+googleApiServicesCalendar = "v3-rev20220715-2.0.0"
+googleid = "1.1.1"
+googleOauthClientJetty = "1.36.0"
+grpcOkhttp = "1.68.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
+lottie = "6.6.0"
 material = "1.12.0"
 activity = "1.9.3"
-constraintlayout = "2.1.4"
-googleServices = "4.4.1"
+constraintlayout = "2.2.0"
+googleServices = "4.4.2"
 firebaseDatabase = "21.0.0"
-annotation = "1.9.0"
-lifecycleLivedataKtx = "2.8.6"
-lifecycleViewmodelKtx = "2.8.6"
+annotation = "1.9.1"
+lifecycleLivedataKtx = "2.8.7"
+lifecycleViewmodelKtx = "2.8.7"
 navigationFragment = "2.8.3"
 navigationUi = "2.8.3"
 legacySupportV4 = "1.0.0"
 kotlin = "1.9.24"
-coreKtx = "1.13.1"
+coreKtx = "1.15.0"
 playServicesAuth = "21.2.0"
+recyclerviewAnimators = "4.0.2"
+truetimeAndroid = "3.5"
+ucrop = "2.2.8"
 
 [libraries]
+carousellayoutmanager = { module = "com.mig35:carousellayoutmanager", version.ref = "carousellayoutmanager" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+compose = { module = "com.kizitonwose.calendar:compose", version.ref = "compose" }
+facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebookLogin" }
+firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-storage = { module = "com.google.firebase:firebase-storage", version.ref = "firebaseStorage" }
+generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClient" }
+google-api-services-calendar = { module = "com.google.apis:google-api-services-calendar", version.ref = "googleApiServicesCalendar" }
+google-oauth-client-jetty = { module = "com.google.oauth-client:google-oauth-client-jetty", version.ref = "googleOauthClientJetty" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
+grpc-okhttp = { module = "io.grpc:grpc-okhttp", version.ref = "grpcOkhttp" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
@@ -37,6 +71,10 @@ navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version
 legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacySupportV4" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+recyclerview-animators = { module = "jp.wasabeef:recyclerview-animators", version.ref = "recyclerviewAnimators" }
+truetime-android = { module = "com.github.instacart:truetime-android", version.ref = "truetimeAndroid" }
+ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
+view = { module = "com.kizitonwose.calendar:view", version.ref = "compose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

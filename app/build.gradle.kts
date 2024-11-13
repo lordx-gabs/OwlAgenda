@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.owlagenda"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.owlagenda"
@@ -39,17 +39,17 @@ android {
         resources.excludes.add("META-INF/INDEX.LIST")
     }
 
-    splits {
-        abi {
-            // Habilita a divisão de ABI
-            isEnable = true
-            // Define as ABIs a serem incluídas no APK
-            reset()
-            include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
-            // Define se o APK universal será gerado
-            isUniversalApk = false
-        }
-    }
+//    splits {
+//        abi {
+//            // Habilita a divisão de ABI
+//            isEnable = true
+//            // Define as ABIs a serem incluídas no APK
+//            reset()
+//            include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+//            // Define se o APK universal será gerado
+//            isUniversalApk = false
+//        }
+//    }
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -67,29 +67,28 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.material)
     implementation(libs.firebase.database)
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-    implementation(project(":opencv"))
-    implementation ("com.google.api-client:google-api-client:2.7.0")
-    implementation ("com.google.oauth-client:google-oauth-client-jetty:1.36.0")
-    implementation ("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
-    implementation("com.google.firebase:firebase-auth:23.1.0")
-    implementation("com.google.firebase:firebase-storage:21.0.1")
-    implementation("com.github.yalantis:ucrop:2.2.8")
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-    implementation ("com.facebook.android:facebook-login:17.0.2")
-    implementation ("com.github.bumptech.glide:glide:4.16.0")
-    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
-    implementation ("com.github.instacart:truetime-android:3.5")
-    implementation ("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    implementation ("com.mig35:carousellayoutmanager:1.4.6")
-    implementation("com.kizitonwose.calendar:compose:2.6.0")
-    implementation("com.kizitonwose.calendar:view:2.6.0")
-    implementation ("com.airbnb.android:lottie:6.5.2")
-    implementation("jp.wasabeef:recyclerview-animators:4.0.2")
-    implementation ("com.google.firebase:firebase-firestore:25.1.1")
-    implementation("io.grpc:grpc-okhttp:1.68.0")
+    implementation(platform(libs.firebase.bom))
+    // implementation(project(":opencv"))
+    implementation (libs.google.api.client)
+    implementation (libs.google.oauth.client.jetty)
+    implementation (libs.google.api.services.calendar)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.storage)
+    implementation(libs.ucrop)
+    implementation(libs.generativeai)
+    implementation (libs.facebook.login)
+    implementation (libs.glide)
+    annotationProcessor (libs.compiler)
+    implementation (libs.truetime.android)
+    implementation (libs.googleid)
+    implementation (libs.carousellayoutmanager)
+    implementation(libs.compose)
+    implementation(libs.view)
+    implementation (libs.lottie)
+    implementation(libs.recyclerview.animators)
+    implementation (libs.firebase.firestore)
+    implementation(libs.grpc.okhttp)
     implementation(libs.appcompat)
-    implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     testImplementation(libs.junit)

@@ -19,7 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.forgotpassword.ForgotPasswordView;
-import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
+import com.example.owlagenda.ui.homepage.HomePageView;
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -126,7 +126,7 @@ public class LoginView extends AppCompatActivity {
     }
 
     private void nextView() {
-        Intent intent = new Intent(getApplicationContext(), TelaPrincipalView.class);
+        Intent intent = new Intent(getApplicationContext(), HomePageView.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();

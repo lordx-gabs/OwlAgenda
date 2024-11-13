@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_edit_task"
+        android:orderInCategory="100"
+        android:title="Editar"
+        app:showAsAction="ifRoom"
+        android:iconTint="@color/icons_color"
+        android:icon="@drawable/ic_edit"/>
+    <item
+        android:id="@+id/menu_delete_task"
+        android:orderInCategory="100"
+        android:title="Deletar"
+        app:showAsAction="ifRoom"
+        android:iconTint="@color/icons_color"
+        android:icon="@drawable/ic_delete"/>
+</menu>

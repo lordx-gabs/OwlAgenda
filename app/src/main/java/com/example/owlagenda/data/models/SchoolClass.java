@@ -11,6 +11,18 @@ public class SchoolClass {
     private String period;
     private int numberOfStudents;
 
+    public SchoolClass(String id, DocumentReference userId, DocumentReference schoolId, String className, String classNameSearch, String period, int numberOfStudents) {
+        this.id = id;
+        this.userId = userId;
+        this.schoolId = schoolId;
+        this.className = className;
+        this.classNameSearch = classNameSearch;
+        this.period = period;
+        this.numberOfStudents = numberOfStudents;
+    }
+
+    public SchoolClass() {}
+
     public String getClassNameSearch() {
         return classNameSearch;
     }

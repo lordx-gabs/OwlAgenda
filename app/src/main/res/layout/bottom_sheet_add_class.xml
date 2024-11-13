@@ -10,6 +10,7 @@
         android:layout_height="wrap_content"/>
 
     <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_title_bottom_class"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -64,8 +65,10 @@
             android:id="@+id/auto_complete_period_class"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clickable="false"
             android:drawableStart="@drawable/ic_tag"
             android:drawablePadding="8dp"
+            android:focusable="false"
             android:inputType="text|textAutoComplete|textAutoCorrect" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -83,8 +86,10 @@
             android:id="@+id/auto_complete_school_class"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clickable="false"
             android:drawableStart="@drawable/ic_tag"
             android:drawablePadding="8dp"
+            android:focusable="false"
             android:inputType="text|textAutoComplete|textAutoCorrect" />
     </com.google.android.material.textfield.TextInputLayout>
 

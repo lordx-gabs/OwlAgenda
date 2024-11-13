@@ -81,7 +81,7 @@ public class CalendarViewModel extends ViewModel {
         taskRepository.deleteTask(taskCalendar.getId(), task -> {
             if(task.isSuccessful()) {
                 if(taskCalendar.getTaskDocuments() != null && !taskCalendar.getTaskDocuments().isEmpty()) {
-                    taskRepository.deleteAttachmentsStorage(taskCalendar.getTaskDocuments(), task1 -> {
+                    taskRepository.deleteAttachmentsStorage(taskCalendar.getId(), taskCalendar.getTaskDocuments(), task1 -> {
                         if(task1.isSuccessful()) {
                             isDeleted.setValue(true);
                             isLoading.setValue(false);
@@ -113,7 +113,7 @@ public class CalendarViewModel extends ViewModel {
 
         com.google.android.gms.tasks.Task<Void> lastTask = Tasks.forResult(null);
 
-        lastTask = lastTask.continueWithTask(task1 -> taskRepository.saveAttachmentsStorage(task.getTaskDocuments()))
+        lastTask = lastTask.continueWithTask(task1 -> taskRepository.saveAttachmentsStorage(task.getId(), task.getTaskDocuments()))
                 .addOnFailureListener(e -> {
                     if (e instanceof FirebaseNetworkException) {
                         errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
@@ -134,22 +134,22 @@ public class CalendarViewModel extends ViewModel {
                             if (task2.isSuccessful()) {
                                 isSuccessfully.postValue(true);
                             } else {
-                                handleErrorCreateTask(task.getTaskDocuments(), task2.getException());
+                                handleErrorCreateTask(task.getId(), task.getTaskDocuments(), task2.getException());
                             }
                         });
                     } else {
-                        handleErrorCreateTask(task.getTaskDocuments(), task1.getException());
+                        handleErrorCreateTask(task.getId(), task.getTaskDocuments(), task1.getException());
                     }
                 });
 
         return isSuccessfully;
     }
 
-    private void handleErrorCreateTask(ArrayList<TaskAttachments> documents, Exception exception) {
+    private void handleErrorCreateTask(String taskId, ArrayList<TaskAttachments> documents, Exception exception) {
         if (exception instanceof FirebaseNetworkException) {
             errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
         }
-        taskRepository.deleteAttachmentsStorage(documents, task -> {
+        taskRepository.deleteAttachmentsStorage(taskId, documents, task -> {
             if (!task.isSuccessful()) {
                 errorMessage.postValue("Erro ao interno, tente novamente. " + exception.getMessage());
             }

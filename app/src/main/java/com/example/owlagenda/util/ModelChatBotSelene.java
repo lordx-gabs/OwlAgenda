@@ -9,7 +9,6 @@ import com.google.ai.client.generativeai.type.GenerationConfig;
 import com.google.ai.client.generativeai.type.HarmCategory;
 import com.google.ai.client.generativeai.type.RequestOptions;
 import com.google.ai.client.generativeai.type.SafetySetting;
-import com.google.ai.client.generativeai.type.Schema;
 
 import java.util.Arrays;
 
@@ -60,7 +59,7 @@ public class ModelChatBotSelene {
                                 Regras gerais:
                                 Somente envie o campo taskAction, quando tiver todas as informações necessárias para realizar a ação, caso não tenha,
                                 peça ao usuario, e envie somente o campo response.
-                                Sempre envie os dados todos certo, se o usuario enviou nome da tarefa, "prova geografia", o campo taskTitle deve ser preenchido com "prova geografia", nunca "prova de geografia", 
+                                Sempre envie os dados todos certo, se o usuario enviou nome da tarefa, "prova geografia", o campo taskTitle deve ser preenchido com "prova geografia", nunca "prova de geografia",
                                 isso vale para qualquer campo, o campo deve ser sempre o dado que o usuario informar, ou caso você já tenha acesso. Caso ele erre na ortografia, informe e ofereça uma sugestão para arrumar, ai caso ele quiser,]
                                 você pode enviar o campo com a ortografia certa.
                                 Você não pode adicionar, remover, ou editar as turmas ou escolas, só as TAREFAS. Caso o usuário peça isso, informe a ele, que você

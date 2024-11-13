@@ -44,9 +44,9 @@
                 android:id="@+id/et__reset_current_email"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:clickable="false"
                 android:drawableStart="@drawable/ic_email"
                 android:drawablePadding="8dp"
-                android:focusable="false"
                 android:inputType="textEmailAddress"
                 android:maxLines="1"
                 android:padding="8dp" />

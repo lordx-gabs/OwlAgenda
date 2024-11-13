@@ -46,6 +46,10 @@
         android:supportsRtl="true"
         android:theme="@style/Base.Theme.OwlAgenda"
         tools:targetApi="31">
+
+        <activity
+            android:name=".ui.classesschools.ClassesSchoolsView"
+            android:exported="false" />
         <activity
             android:name=".ui.updatetask.UpdateTaskView"
             android:exported="false" />
@@ -57,13 +61,11 @@
             android:exported="false" />
 
         <receiver android:name=".util.NotificationUtil" />
+
         <receiver
             android:name=".util.CompleteTaskReceiver"
             android:exported="false" />
 
-        <activity
-            android:name=".ui.settings.SettingsView"
-            android:exported="false" />
         <activity
             android:name=".ui.updateemail.UpdateEmail"
             android:exported="false" />
@@ -88,6 +90,7 @@
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
+
         <meta-data
             android:name="com.facebook.sdk.ClientToken"
             android:value="@string/facebook_client_token" />
@@ -118,7 +121,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.telaprincipal.TelaPrincipalView"
+            android:name=".ui.homepage.HomePageView"
             android:exported="false"
             android:label="@string/title_activity_tela_principal"
             android:windowSoftInputMode="adjustResize" />

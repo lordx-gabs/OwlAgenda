@@ -30,10 +30,12 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.School;
 import com.example.owlagenda.data.models.SchoolClass;
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.databinding.ActivityTaskDetailsViewBinding;
+import com.example.owlagenda.ui.updatetask.UpdateTaskView;
 import com.example.owlagenda.util.NotificationUtil;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -47,7 +49,6 @@ public class TaskDetailsView extends AppCompatActivity {
     private String taskId;
     private int positionDocument;
     private Task task;
-    private BroadcastReceiver downloadReceiver;
     private Handler handler;
     private Runnable runnable;
 
@@ -70,6 +71,71 @@ public class TaskDetailsView extends AppCompatActivity {
             }
         });
 
+        binding.materialToolbar.inflateMenu(R.menu.menu_task_details);
+
+        binding.materialToolbar.setOnMenuItemClickListener(item -> {
+            if(item.getItemId() == R.id.menu_edit_task) {
+                if(binding.loadingTaskDetails.getVisibility() == View.GONE) {
+                    Intent intentEditTask = new Intent(this, UpdateTaskView.class);
+                    intentEditTask.putExtra("taskId", taskId);
+                    startActivity(intentEditTask);
+                    finish();
+                } else {
+                    Toast.makeText(this, "Carregando tarefa aguarde...", Toast.LENGTH_SHORT).show();
+                }
+            } else if (item.getItemId() == R.id.menu_delete_task) {
+                if(binding.loadingTaskDetails.getVisibility() == View.GONE) {
+                    viewModel.deleteTask(task).observe(this, aBoolean -> {
+                        if (aBoolean) {
+                            Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa Excluída",
+                                    Snackbar.LENGTH_SHORT).setAction("Desfazer", v3 ->
+                                    viewModel.addTask(task).observe(this, aBoolean1 -> {
+                                        if (aBoolean1) {
+                                            Toast.makeText(this, "Tarefa restaurada com sucesso", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            finish();
+                                            Toast.makeText(this, "Falha ao restaurar tarefa", Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                            );
+
+                            snackbar.addCallback(new Snackbar.Callback() {
+                                @Override
+                                public void onDismissed(Snackbar snackbar, int event) {
+                                    if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
+                                        int notificationId = 0;
+                                        try {
+                                            notificationId = Integer.parseInt(task.getId().replaceAll("[^0-9]", ""));
+                                        } catch (NumberFormatException ignored) {
+                                        }
+
+                                        Log.d("teste", "" + notificationId);
+                                        if (NotificationUtil.scheduleNotificationApp.isAlarmSet(TaskDetailsView.this,
+                                                task.getTitle(), notificationId)) {
+                                            NotificationUtil.scheduleNotificationApp
+                                                    .cancelNotification(TaskDetailsView.this, task.getTitle(),
+                                                            notificationId);
+                                            Log.d("testeee", "chegouu");
+                                        }
+                                        finish();
+                                    }
+                                    binding.loadingTaskDetails.setVisibility(View.GONE);
+                                }
+                            });
+
+                            snackbar.show();
+                        } else {
+                            Toast.makeText(this, "Falha ao deletar tarefa", Toast.LENGTH_SHORT).show();
+                        }
+                        binding.loadingTaskDetails.setVisibility(View.GONE);
+                    });
+                } else {
+                    Toast.makeText(this, "Carregando tarefa aguarde...", Toast.LENGTH_SHORT).show();
+                }
+            }
+            return false;
+        });
+
         viewModel.getErrorMessage().observe(this, s ->
                 Toast.makeText(this, s, Toast.LENGTH_SHORT).show());
 
@@ -81,59 +147,6 @@ public class TaskDetailsView extends AppCompatActivity {
 
         binding.materialToolbar.setNavigationOnClickListener(v ->
                 getOnBackPressedDispatcher().onBackPressed());
-
-        binding.btnDeleteTaskDetails.setOnClickListener(v -> {
-            binding.btnDeleteTaskDetails.setEnabled(false);
-            binding.btnEdit.setEnabled(false);
-            viewModel.deleteTask(task).observe(this, aBoolean -> {
-                if (aBoolean) {
-                    Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa Excluída",
-                            Snackbar.LENGTH_SHORT).setAction("Desfazer", v3 ->
-                            viewModel.addTask(task).observe(this, aBoolean1 -> {
-                                if (aBoolean1) {
-                                    binding.btnDeleteTaskDetails.setEnabled(true);
-                                    binding.btnEdit.setEnabled(true);
-                                    Toast.makeText(this, "Tarefa restaurada com sucesso", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    finish();
-                                    Toast.makeText(this, "Falha ao restaurar tarefa", Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                    );
-
-                    snackbar.addCallback(new Snackbar.Callback() {
-                        @Override
-                        public void onDismissed(Snackbar snackbar, int event) {
-                            if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
-                                int notificationId = 0;
-                                try {
-                                    notificationId = Integer.parseInt(task.getId().replaceAll("[^0-9]", ""));
-                                } catch (NumberFormatException ignored) {
-                                }
-
-                                Log.d("teste", "" + notificationId);
-                                if (NotificationUtil.scheduleNotificationApp.isAlarmSet(TaskDetailsView.this,
-                                        task.getTitle(), notificationId)) {
-                                    NotificationUtil.scheduleNotificationApp
-                                            .cancelNotification(TaskDetailsView.this, task.getTitle(),
-                                                    notificationId);
-                                    Log.d("testeee", "chegouu");
-                                }
-                                finish();
-                            }
-                            binding.loadingTaskDetails.setVisibility(View.GONE);
-                        }
-                    });
-
-                    snackbar.show();
-                } else {
-                    binding.btnDeleteTaskDetails.setEnabled(true);
-                    binding.btnEdit.setEnabled(true);
-                    Toast.makeText(this, "Falha ao deletar tarefa", Toast.LENGTH_SHORT).show();
-                }
-                binding.loadingTaskDetails.setVisibility(View.GONE);
-            });
-        });
 
         binding.recycleDocumentTask.setLayoutManager(new LinearLayoutManager(this
                 , LinearLayoutManager.HORIZONTAL, false));
@@ -157,21 +170,14 @@ public class TaskDetailsView extends AppCompatActivity {
                                 }
                                 binding.completeTask.setChecked(task.isCompleted());
                                 binding.tagTaskDetails.setText("Tag: " + task.getTag());
-                                binding.loadingTaskDetails.setVisibility(View.GONE);
-                                binding.btnEdit.setEnabled(true);
-                                binding.btnDeleteTaskDetails.setEnabled(true);
-                                if (!task.getTaskDocuments().isEmpty()) {
+                                if (task.getTaskDocuments() != null && !task.getTaskDocuments().isEmpty()) {
+                                    binding.recycleDocumentTask.setVisibility(View.VISIBLE);
+                                    binding.tvClickDownload.setVisibility(View.VISIBLE);
+                                    binding.emptyView.setVisibility(View.GONE);
                                     adapter = new DocumentTaskAdapter(position -> {
                                         Intent intent = new Intent(Intent.ACTION_VIEW);
-
-                                        // Definir a URI do arquivo
                                         intent.setData(Uri.parse(task.getTaskDocuments().get(position).getUri()));
-
-                                        // Definir a flag para dar permissão temporária de leitura da URI para o aplicativo de destino
                                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                                        // Verificar se existe um aplicativo que possa lidar com esse Intent
-
                                         try {
                                             startActivity(intent);
                                         } catch (Exception e) {
@@ -193,21 +199,25 @@ public class TaskDetailsView extends AppCompatActivity {
                                     binding.recycleDocumentTask.setAdapter(adapter);
                                 } else {
                                     binding.recycleDocumentTask.setVisibility(View.GONE);
+                                    binding.tvClickDownload.setVisibility(View.GONE);
                                     binding.emptyView.setVisibility(View.VISIBLE);
-                                    binding.loadingTaskDetails.setVisibility(View.GONE);
                                 }
+                                binding.loadingTaskDetails.setVisibility(View.GONE);
                             } else {
                                 binding.loadingTaskDetails.setVisibility(View.GONE);
+                                finish();
                                 Toast.makeText(this, "Erro ao carregar turma", Toast.LENGTH_SHORT).show();
                             }
                         });
                     } else {
                         binding.loadingTaskDetails.setVisibility(View.GONE);
+                        finish();
                         Toast.makeText(this, "Erro ao carregar escola", Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
                 binding.loadingTaskDetails.setVisibility(View.GONE);
+                finish();
                 Toast.makeText(this, "Erro ao carregar tarefa", Toast.LENGTH_SHORT).show();
             }
         });
@@ -281,7 +291,7 @@ public class TaskDetailsView extends AppCompatActivity {
                                 });
                             } else if (status == DownloadManager.STATUS_FAILED) {
                                 isDownloaded = true;
-                                Toast.makeText(this, "Erro ao baixar o arquivo", Toast.LENGTH_SHORT).show();
+                                runOnUiThread(() -> Toast.makeText(this, "Erro ao baixar o arquivo", Toast.LENGTH_SHORT).show());
                             } else if (status == DownloadManager.STATUS_RUNNING) {
                                 int bytesDownloaded = cursor.getInt(downloadedColumnIndex);
                                 int totalBytes = cursor.getInt(totalBytesColumnIndex);

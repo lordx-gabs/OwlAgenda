@@ -6,6 +6,7 @@ public class TaskCalendar {
     private String schoolClass;
     private String date;
     private String tag;
+    private boolean typeCalendarUser;
 
     public TaskCalendar(String id, String nameTask, String schoolClass, String date, String tag) {
         this.id = id;
@@ -53,5 +54,13 @@ public class TaskCalendar {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+    public boolean isTypeCalendarUser() {
+        return typeCalendarUser;
+    }
+
+    public void setTypeCalendarUser(boolean typeCalendarUser) {
+        this.typeCalendarUser = typeCalendarUser;
     }
 }

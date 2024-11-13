@@ -14,15 +14,13 @@ import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.BuildConfig;
-import com.example.owlagenda.R;
 import com.example.owlagenda.databinding.ActivityHomeScreenBinding;
 import com.example.owlagenda.ui.login.LoginView;
 import com.example.owlagenda.ui.register.RegisterView;
-import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
+import com.example.owlagenda.ui.homepage.HomePageView;
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -123,7 +121,7 @@ public class HomeScreenView extends AppCompatActivity {
     }
 
     private void goToMainScreen() {
-        this.startActivity(new Intent(this, TelaPrincipalView.class));
+        this.startActivity(new Intent(this, HomePageView.class));
         this.finish();
     }
 

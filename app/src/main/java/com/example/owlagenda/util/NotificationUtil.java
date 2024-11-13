@@ -16,8 +16,7 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 import com.example.owlagenda.R;
-import com.example.owlagenda.ui.calendar.CalendarFragment;
-import com.example.owlagenda.ui.telaprincipal.TelaPrincipalView;
+import com.example.owlagenda.ui.homepage.HomePageView;
 
 public class NotificationUtil extends BroadcastReceiver {
     public static final String CHANNEL_ID = "canal_notificacao_owl";
@@ -42,7 +41,7 @@ public class NotificationUtil extends BroadcastReceiver {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT
         );
 
-        Intent intent = new Intent(context.getApplicationContext(), TelaPrincipalView.class);
+        Intent intent = new Intent(context.getApplicationContext(), HomePageView.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context.getApplicationContext(), requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext(), NotificationUtil.CHANNEL_ID)

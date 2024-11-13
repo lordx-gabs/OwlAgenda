@@ -10,7 +10,9 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.Uri;
@@ -75,6 +77,7 @@ public class ProfileFragment extends Fragment {
     private ActivityResultLauncher<Intent> cropActivityResultLauncher;
     private ActivityResultLauncher<String> requestStoragePermissionLauncher;
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+    private Drawable originalPhoto;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -170,6 +173,7 @@ public class ProfileFragment extends Fragment {
                                             .placeholder(R.drawable.owl_home_screen)
                                             .circleCrop()
                                             .into(binding.imagePhotoProfile);
+                                    originalPhoto = binding.imagePhotoProfile.getDrawable();
                                 }
                             })
                     );
@@ -259,6 +263,7 @@ public class ProfileFragment extends Fragment {
                         user.setPhoneNumber(oldUser.getPhoneNumber());
                     }
 
+                    //:TODO verificar se ta certo
                     if (imageProfileBitmap != null) {
                         profileViewModel.saveProfilePhoto(imageProfileBitmap).observe(getViewLifecycleOwner(), url -> {
                             if (url != null) {
@@ -335,15 +340,16 @@ public class ProfileFragment extends Fragment {
                 }
         );
 
-        binding.btnChangePhoto.setOnClickListener(v -> {
+        binding.imagePhotoProfile.setOnClickListener(v -> {
             bottomSheetDialog = new BottomSheetDialog(getContext());
-            View view = LayoutInflater.from(getContext()).inflate(R.layout.bottom_sheet_select_picture, (ViewGroup) getActivity().getWindow().getDecorView(), false);
+            View view = LayoutInflater.from(getContext()).inflate(R.layout.bottom_sheet_select_picture_profile, (ViewGroup) getActivity().getWindow().getDecorView(), false);
             bottomSheetDialog.setContentView(view);
             bottomSheetDialog.show();
 
-            MaterialButton btnChangeImage = view.findViewById(R.id.btn_alterar_imagem),
-                    btnDeleteImage = view.findViewById(R.id.btn_excluir_imagem),
-                    btnTakePhoto = view.findViewById(R.id.btn_tirar_foto);
+            MaterialButton btnChangeImage = view.findViewById(R.id.btn_edit_image),
+                    btnDeleteImage = view.findViewById(R.id.btn_delete_image),
+                    btnTakePhoto = view.findViewById(R.id.btn_take_photo),
+                    btnSetDefaultPhoto = view.findViewById(R.id.btn_set_default_photo);
 
             btnTakePhoto.setOnClickListener(v13 -> takePhoto());
 
@@ -356,6 +362,27 @@ public class ProfileFragment extends Fragment {
                         .circleCrop()
                         .into(binding.imagePhotoProfile);
                 imageProfileBitmap = null;
+                bottomSheetDialog.dismiss();
+            });
+
+            btnSetDefaultPhoto.setOnClickListener(v5 -> {
+                Glide.with(getContext())
+                        .load(R.drawable.owl_home_screen)
+                        .circleCrop()
+                        .into(binding.imagePhotoProfile);
+
+                Drawable drawable = ContextCompat.getDrawable(requireContext(), R.drawable.owl_home_screen);
+                Bitmap bitmap = Bitmap.createBitmap(
+                        drawable.getIntrinsicWidth(),
+                        drawable.getIntrinsicHeight(),
+                        Bitmap.Config.ARGB_8888
+                );
+
+                Canvas canvas = new Canvas(bitmap);
+                drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                drawable.draw(canvas);
+
+                imageProfileBitmap = bitmap;
                 bottomSheetDialog.dismiss();
             });
         });

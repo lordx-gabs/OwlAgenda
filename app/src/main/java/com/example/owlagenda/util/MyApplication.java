@@ -27,20 +27,6 @@ public class MyApplication extends Application {
                         AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM));
 
         NotificationUtil.createNotificationChannel(getApplicationContext());
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!isExactAlarmPermissionGranted()) {
-                // Direcione o usuário para as configurações do aplicativo
-                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
-                Uri uri = Uri.fromParts("package", getPackageName(), null);
-                intent.setData(uri);
-                startActivity(intent);
-                Log.e("taaa", "aqui foi");
-            } else {
-                Log.e("taaa", "aqui foi4444");
-            }
-        }
-        
     }
 
     @Override
@@ -65,14 +51,5 @@ public class MyApplication extends Application {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
         }
-    }
-
-    private boolean isExactAlarmPermissionGranted() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            return getPackageManager().checkPermission(
-                    "android.permission.SCHEDULE_EXACT_ALARM", getPackageName()
-            ) == PackageManager.PERMISSION_GRANTED;
-        }
-        return true; // Para versões anteriores, não é necessário
     }
 }

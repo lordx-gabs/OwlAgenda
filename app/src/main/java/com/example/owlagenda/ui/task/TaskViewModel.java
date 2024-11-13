@@ -48,34 +48,6 @@ public class TaskViewModel extends ViewModel {
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
     }
 
-    public LiveData<ArrayList<Task>> getTasks() {
-        isLoading.postValue(true);
-        tasksLiveData = new MutableLiveData<>();
-        repository.getTasks(firebaseUser.getUid(), (value, error) -> {
-            if (error != null) {
-                if (error.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
-                    errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
-                } else {
-                    tasksLiveData.postValue(null);
-                }
-                isLoading.postValue(false);
-                return;
-            }
-            if (!value.isEmpty()) {
-
-                ArrayList<Task> tasks = new ArrayList<>(value.toObjects(Task.class));
-
-                tasksLiveData.postValue(tasks);
-                isLoading.postValue(false);
-            } else {
-                tasksLiveData.postValue(new ArrayList<>());
-                isLoading.postValue(false);
-            }
-
-        });
-        return tasksLiveData;
-    }
-
     public LiveData<Boolean> addTask(Task task) {
         isLoading.postValue(true);
         isSuccessful = new MutableLiveData<>();
@@ -86,7 +58,7 @@ public class TaskViewModel extends ViewModel {
 
         com.google.android.gms.tasks.Task<Void> lastTask = Tasks.forResult(null);
 
-        lastTask = lastTask.continueWithTask(task1 -> repository.saveAttachmentsStorage(task.getTaskDocuments()))
+        lastTask = lastTask.continueWithTask(task1 -> repository.saveAttachmentsStorage(task.getId(), task.getTaskDocuments()))
                 .addOnFailureListener(e -> {
                     if (e instanceof FirebaseNetworkException) {
                         errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
@@ -107,22 +79,22 @@ public class TaskViewModel extends ViewModel {
                             if (task2.isSuccessful()) {
                                 isSuccessful.postValue(true);
                             } else {
-                                handleErrorCreateTask(task.getTaskDocuments(), task2.getException());
+                                handleErrorCreateTask(task.getId(), task.getTaskDocuments(), task2.getException());
                             }
                         });
                     } else {
-                        handleErrorCreateTask(task.getTaskDocuments(), task1.getException());
+                        handleErrorCreateTask(task.getId(), task.getTaskDocuments(), task1.getException());
                     }
                 });
 
         return isSuccessful;
     }
 
-    private void handleErrorCreateTask(ArrayList<TaskAttachments> documents, Exception exception) {
+    private void handleErrorCreateTask(String taskId, ArrayList<TaskAttachments> documents, Exception exception) {
         if (exception instanceof FirebaseNetworkException) {
             errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
         }
-        repository.deleteAttachmentsStorage(documents, task -> {
+        repository.deleteAttachmentsStorage(taskId, documents, task -> {
             if (!task.isSuccessful()) {
                 errorMessage.postValue("Erro ao interno, tente novamente. " + exception.getMessage());
             }
@@ -255,4 +227,7 @@ public class TaskViewModel extends ViewModel {
         return isLoading;
     }
 
+    public MutableLiveData<String> getErrorMessage() {
+        return errorMessage;
+    }
 }

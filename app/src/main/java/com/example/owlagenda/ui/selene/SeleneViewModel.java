@@ -234,7 +234,7 @@ public class SeleneViewModel extends ViewModel {
                             ("Titulo: " + task1.getTitle() + "\nDescrição: " + task1.getDescription() + "\nData: " + task1.getDate()).append("\n"));
                     messageChatBot.postValue(stringBuilder.toString());
                 } else {
-                    messageChatBot.postValue("Sem tarefas para o mês :)");
+                    messageChatBot.postValue("Sem tarefas para esse mês :)");
                 }
             } else {
                 messageChatBot.postValue("Não foi possivel listar as tarefas. Por favor, tente novamente.");
@@ -398,9 +398,10 @@ public class SeleneViewModel extends ViewModel {
                                                         task12.getResult().getDocuments().get(0).getReference().delete()
                                                                 .addOnCompleteListener(task13 -> {
                                                                     if (task13.isSuccessful()) {
+                                                                        Task taskUser = task12.getResult().getDocuments().get(0).toObject(Task.class);
                                                                         ArrayList<TaskAttachments> taskAttachments = task12.getResult().getDocuments().get(0).toObject(Task.class).getTaskDocuments();
                                                                         if (taskAttachments != null) {
-                                                                            taskRepository.deleteAttachmentsStorage(task12.getResult().getDocuments().get(0).toObject(Task.class).getTaskDocuments(), task1 -> {
+                                                                            taskRepository.deleteAttachmentsStorage(taskUser.getId(), task12.getResult().getDocuments().get(0).toObject(Task.class).getTaskDocuments(), task1 -> {
                                                                                 if (task1.isSuccessful()) {
                                                                                     Log.d("teste excluir arquivos ia", "sucesso");
                                                                                 } else {

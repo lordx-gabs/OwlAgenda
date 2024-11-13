@@ -35,27 +35,16 @@
             android:layout_width="match_parent"
             android:layout_height="0dp">
 
-            <Button
-                android:id="@+id/btn_change_photo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Alterar Foto"
-                app:layout_constraintEnd_toStartOf="@+id/btn_update_email"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/image_photo_profile" />
-
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/image_photo_profile"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 android:scaleType="centerCrop"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_selene" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/materialDivider6"
@@ -66,21 +55,7 @@
                 app:layout_constraintBottom_toTopOf="@+id/et_nome_layout_profile"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/btn_change_photo"
-                app:layout_constraintVertical_bias="0.0" />
-
-            <Button
-                android:id="@+id/btn_save_user"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:text="Salvar"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/btn_user_undo"
-                app:layout_constraintTop_toBottomOf="@+id/et_telefone_layout_profile" />
+                app:layout_constraintTop_toBottomOf="@+id/btn_save_user" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/et_nome_layout_profile"
@@ -111,18 +86,6 @@
                     android:maxLines="1"
                     android:padding="8dp" />
             </com.google.android.material.textfield.TextInputLayout>
-
-            <Button
-                android:id="@+id/btn_user_undo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:text="Desfazer Alteração"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/btn_save_user"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/et_telefone_layout_profile" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/et_sobrenome_layout_profile"
@@ -251,14 +214,45 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <Button
-                android:id="@+id/btn_update_email"
+                android:id="@+id/btn_save_user"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="Salvar"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="48dp"
-                android:text="Alterar Email"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/image_photo_profile" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/et_telefone_layout_profile">
+
+                <Button
+                    android:id="@+id/btn_user_undo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="36dp"
+                    android:text="Desfazer Alteração" />
+
+                <Button
+                    android:id="@+id/btn_update_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Alterar Email" />
+
+            </LinearLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 

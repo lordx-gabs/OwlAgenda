@@ -1,6 +1,7 @@
 package com.example.owlagenda.data.repository;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -38,8 +39,12 @@ public class TaskRepository {
         collectionReference = FirebaseFirestore.getInstance().collection("tarefa");
     }
 
-    public void getTaskById (String id, OnCompleteListener<DocumentSnapshot> completeListener) {
+    public void getTaskById(String id, OnCompleteListener<DocumentSnapshot> completeListener) {
         collectionReference.document(id).get().addOnCompleteListener(completeListener);
+    }
+
+    public void getTaskById(String id, EventListener<DocumentSnapshot> eventListener) {
+        collectionReference.document(id).addSnapshotListener(eventListener);
     }
 
     public void getTasks(String id, EventListener<QuerySnapshot> eventListener) {
@@ -108,7 +113,7 @@ public class TaskRepository {
     public void getTaskByDateMonth(String id, OnCompleteListener<QuerySnapshot> eventListener) {
         //TODO:arrumar por data
         collectionReference.whereEqualTo("userId",
-                FirebaseFirestore.getInstance().collection("usuario").document(id))
+                        FirebaseFirestore.getInstance().collection("usuario").document(id))
                 .get().addOnCompleteListener(eventListener);
     }
 
@@ -124,14 +129,14 @@ public class TaskRepository {
                 .collection("usuario").document(id)).addSnapshotListener(eventListener);
     }
 
-    public com.google.android.gms.tasks.Task<Void> saveAttachmentsStorage(ArrayList<TaskAttachments> documents) {
+    public com.google.android.gms.tasks.Task<Void> saveAttachmentsStorage(String taskId, ArrayList<TaskAttachments> documents) {
         List<com.google.android.gms.tasks.Task<?>> uploadTasks = new ArrayList<>();
         for (TaskAttachments document : documents) {
             final Uri fileUri = Uri.parse(document.getUri());
             final StorageReference fileRef = FirebaseStorage.getInstance().getReference()
                     .child("usuarios")
                     .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                    .child("document")
+                    .child(taskId)
                     .child(document.getName());
 
             uploadTasks.add(fileRef.putFile(fileUri).continueWith(task -> {
@@ -145,26 +150,42 @@ public class TaskRepository {
         return Tasks.whenAll(uploadTasks);
     }
 
-    public void deleteAttachmentsStorage(ArrayList<TaskAttachments> documents, OnCompleteListener<Void> completeListener) {
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+    public void deleteAttachmentsStorage(String taskId, ArrayList<TaskAttachments> documents, OnCompleteListener<Void> completeListener) {
+        List<com.google.android.gms.tasks.Task<Void>> deleteTasks = new ArrayList<>();
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference()
+                .child("usuarios")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child(taskId);
 
-        documents.forEach(document -> {
-            StorageReference fileRef = storageRef.child("usuarios")
-                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                    .child("document")
-                    .child(document.getName());
+        storageRef.listAll().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (StorageReference item : task.getResult().getItems()) {
+                    deleteTasks.add(item.delete().addOnCompleteListener(task2 -> {
+                        if (task2.isSuccessful()) {
+                            Log.d("DeleteAttachments", "Arquivo deletado com sucesso: " + item.getPath());
+                        } else {
+                            Log.e("DeleteAttachments", "Erro ao deletar arquivo: " + item.getPath(), task2.getException());
+                        }
+                    }));
+                }
 
-            fileRef.delete().addOnCompleteListener(completeListener);
+                Tasks.whenAll(deleteTasks).addOnCompleteListener(completeListener);
+
+            } else {
+                Log.e("DeleteAttachments", "Erro ao listar arquivos", task.getException());
+                completeListener.onComplete(Tasks.forException(task.getException()));
+            }
         });
     }
 
     public com.google.android.gms.tasks.Task<Void> getAttachmentsUrls(Task task, ArrayList<String> downloadUrls) {
         List<com.google.android.gms.tasks.Task<?>> urlTasks = new ArrayList<>();
         for (TaskAttachments document : task.getTaskDocuments()) {
+            Log.d("teste", document.getName());
             final StorageReference fileRef = FirebaseStorage.getInstance().getReference()
                     .child("usuarios")
                     .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                    .child("document")
+                    .child(task.getId())
                     .child(document.getName());
 
             urlTasks.add(fileRef.getDownloadUrl().continueWith(urlTask -> {

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_take_photo"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="10sp"
+        android:text="Tirar foto"
+        android:textSize="16sp" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        app:dividerThickness="1dp"
+        app:dividerInsetStart="8dp"
+        app:dividerInsetEnd="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_edit_image"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="10sp"
+        android:text="Alterar imagem"
+        android:textSize="16sp" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        app:dividerThickness="1dp"
+        app:dividerInsetStart="8dp"
+        app:dividerInsetEnd="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_set_default_photo"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="10sp"
+        android:text="Definir foto padrão"
+        android:textSize="16sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_delete_image"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="10sp"
+        android:text="Excluir imagem atual"
+        android:textSize="16sp" />
+
+</LinearLayout>

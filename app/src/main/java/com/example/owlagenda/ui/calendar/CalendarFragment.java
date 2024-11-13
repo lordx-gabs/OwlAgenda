@@ -1,6 +1,7 @@
 package com.example.owlagenda.ui.calendar;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Typeface;
@@ -30,10 +31,12 @@ import com.example.owlagenda.databinding.CalendarHeaderBinding;
 import com.example.owlagenda.databinding.FragmentCalendarBinding;
 import com.example.owlagenda.ui.task.TaskView;
 import com.example.owlagenda.ui.taskdetails.TaskDetailsView;
+import com.example.owlagenda.ui.updatetask.UpdateTaskView;
 import com.example.owlagenda.util.NotificationUtil;
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.example.owlagenda.util.TaskTypeColor;
 import com.google.android.gms.tasks.Tasks;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.kizitonwose.calendar.core.CalendarDay;
@@ -106,7 +109,17 @@ public class CalendarFragment extends Fragment {
         taskAdapter = new TaskAdapter(new TaskViewHolder.OnClickTask() {
             @Override
             public void onClickBtnEdit(int position) {
-
+                List<TaskCalendar> task = tasks.get(selectedDate);
+                Optional<Task> taskOptional = tasksObject.stream()
+                        .filter(task7 -> task7.getId().equalsIgnoreCase(task.get(position).getId()))
+                        .findFirst();
+                if(taskOptional.isPresent()) {
+                    Intent intentUpdateTask = new Intent(getActivity(), UpdateTaskView.class);
+                    intentUpdateTask.putExtra("taskId", taskOptional.get().getId());
+                    startActivity(intentUpdateTask);
+                } else {
+                    Toast.makeText(requireContext(), "Erro interno. Contante o suporte", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
@@ -133,7 +146,7 @@ public class CalendarFragment extends Fragment {
                                                     }
                                             )
                                     );
-
+                                    snackbar.setAnchorView(binding.appFab.fab);
                                     snackbar.addCallback(new Snackbar.Callback() {
                                         @Override
                                         public void onDismissed(Snackbar snackbar, int event) {
@@ -320,6 +333,18 @@ public class CalendarFragment extends Fragment {
                 return true;
             }
             return false;
+        });
+
+        binding.btnCalendarAdd.setOnClickListener(v -> {
+            new MaterialAlertDialogBuilder(getContext())
+                    .setTitle("Deseja adicionar as tarefas do seu calendário?")
+                    .setMessage("Todas as suas tarefas do seu calendário serão mostradas aqui no Owl.")
+                    .setPositiveButton("Sim", (dialogInterface, i) -> {
+
+                    })
+                    .setNegativeButton("Não", (dialogInterface, i) -> {
+                        dialogInterface.dismiss();
+                    }).show();
         });
 
         return binding.getRoot();

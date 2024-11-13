@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
 
 public class TaskView extends AppCompatActivity {
     private static final int REQUEST_CODE_NOTIFICATION = 501;
-    private final int PICK_DOCUMENT_REQUEST = 64;
     private ActivityResultLauncher<Intent> pickImageLauncher;
     private TaskViewModel viewModel;
     private ActivityTaskBinding binding;
@@ -108,6 +107,9 @@ public class TaskView extends AppCompatActivity {
                 binding.loadingTaskView.setVisibility(View.GONE);
             }
         });
+
+        viewModel.getErrorMessage().observe(this, s ->
+                Toast.makeText(this, s, Toast.LENGTH_SHORT).show());
 
         setContentView(binding.getRoot());
 
@@ -182,6 +184,7 @@ public class TaskView extends AppCompatActivity {
                 String[] periods = new String[]{"Manhã", "Tarde", "Noite"};
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, periods);
                 autoCompletePeriod.setAdapter(adapter);
+                autoCompletePeriod.setOnClickListener(v -> autoCompletePeriod.showDropDown());
 
                 bottomSheetDialogClass.setOnDismissListener(dialog -> {
                     nameClass = etNameClass.getText().toString();
@@ -191,6 +194,8 @@ public class TaskView extends AppCompatActivity {
 
                 AutoCompleteTextView autoCompleteSchool = view5.findViewById(R.id.auto_complete_school_class);
                 autoCompleteSchool.setAdapter(adapterSchool);
+                autoCompleteSchool.setOnClickListener(v -> autoCompleteSchool.showDropDown());
+
                 autoCompleteSchool.setOnItemClickListener((parent1, view1, position1, id1) -> {
                     if (position1 == 0) {
                         this.bottomSheetDialogClass.dismiss();
@@ -308,8 +313,8 @@ public class TaskView extends AppCompatActivity {
 
         documentAdapter = new DocumentAdapter(position ->
                 pickImageLauncher.launch(Intent.createChooser(
-                new Intent(Intent.ACTION_GET_CONTENT).setType("*/*"), "Selecione um arquivo")
-        ), position -> {
+                        new Intent(Intent.ACTION_GET_CONTENT).setType("*/*"), "Selecione um arquivo")
+                ), position -> {
             bottomSheetDialogClass = new BottomSheetDialog(this);
             View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_delete_document, (ViewGroup) this.getWindow().getDecorView(), false);
             bottomSheetDialogClass.setContentView(view);
@@ -342,29 +347,22 @@ public class TaskView extends AppCompatActivity {
         });
 
         Calendar calendarStart = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
-        calendarStart.add(Calendar.DAY_OF_MONTH, 1);
+        calendarStart.add(Calendar.YEAR, -1);
         long dateStart = calendarStart.getTimeInMillis();
 
         Calendar calendarEnd = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
         calendarEnd.add(Calendar.YEAR, 1);
         long dateEnd = calendarEnd.getTimeInMillis();
 
-        Calendar calendarValidator = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
-        calendarValidator.set(Calendar.HOUR_OF_DAY, 0);
-        calendarValidator.set(Calendar.MINUTE, 0);
-        calendarValidator.set(Calendar.SECOND, 0);
-        calendarValidator.set(Calendar.MILLISECOND, 0);
-        long dateValidator = calendarValidator.getTimeInMillis();
-
         CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder()
                 .setStart(dateStart)
-                .setEnd(dateEnd)
-                .setValidator(DateValidatorPointForward.from(dateValidator));
+                .setEnd(dateEnd);
 
         binding.etDateTask.setOnClickListener(v -> {
             Calendar calendarInitialed = Calendar.getInstance();
             if (binding.etDateTask.getText().toString().isEmpty()) {
-                calendarInitialed.setTimeInMillis(dateStart);
+                calendarInitialed.setTimeInMillis(Calendar.getInstance(TimeZone
+                                .getTimeZone("America/Sao_Paulo")).getTimeInMillis());
             } else {
                 try {
                     calendarInitialed.setTime(new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -440,11 +438,10 @@ public class TaskView extends AppCompatActivity {
                     documentAdapter.getDocuments(),
                     notificationBefore
             );
-            Calendar calendar;
+            Calendar calendar = Calendar.getInstance();
             if (notificationBefore != null) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                 dateFormat.setTimeZone(TimeZone.getTimeZone("America/Sao_Paulo")); // Definir o fuso horário
-                calendar = Calendar.getInstance();
                 try {
                     // Faz o parse da data
                     calendar.setTime(dateFormat.parse(txtDateTask));
@@ -461,16 +458,14 @@ public class TaskView extends AppCompatActivity {
                     Toast.makeText(this, "Erro ao converter data", Toast.LENGTH_SHORT).show();
                 }
                 if (isNotificationDateInFuture(calendar)) {
-                    Toast.makeText(this, "Notificação inválida. Selecione uma notificação válida.", Toast.LENGTH_SHORT).show();
-                    return;
+                    notificationBefore = null;
                 }
-            } else {
-                calendar = null;
             }
 
+            Integer finalNotificationBefore = notificationBefore;
             viewModel.addTask(task).observe(this, aBoolean -> {
                 if (aBoolean) {
-                    if (notificationBefore != null) {
+                    if (finalNotificationBefore != null) {
 
                         int idNotification = 0;
                         try {

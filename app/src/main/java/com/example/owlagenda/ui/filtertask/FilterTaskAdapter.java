@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.TaskDay;
-import com.example.owlagenda.ui.inicio.TaskDayViewHolder;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
