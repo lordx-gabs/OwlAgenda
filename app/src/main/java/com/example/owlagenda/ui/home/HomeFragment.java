@@ -22,6 +22,7 @@ import com.example.owlagenda.data.models.TaskDay;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentHomeBinding;
+import com.example.owlagenda.ui.aboutus.AboutUsView;
 import com.example.owlagenda.ui.classesschools.ClassesSchoolsView;
 import com.example.owlagenda.ui.filtertask.FilterTaskView;
 import com.example.owlagenda.ui.task.TaskView;
@@ -50,6 +51,7 @@ public class HomeFragment extends Fragment {
     private TaskDayAdapter adapter;
     List<com.google.android.gms.tasks.Task<Void>> tasksSchool = new ArrayList<>(); // Lista de tarefas Firestore para controle
     List<com.google.android.gms.tasks.Task<Void>> firestoreTasks = new ArrayList<>(); // Lista de tarefas Firestore para controle
+    private Snackbar snackbar;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -82,141 +84,148 @@ public class HomeFragment extends Fragment {
         homeViewModel.getTasksByNotCompleted(FirebaseAuth.getInstance()
                 .getCurrentUser().getUid()).observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
-                tasksDay.clear();
-                tasks.sort(Comparator.comparing(task ->
-                        LocalDate.parse(task.getDate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                ));
-                Collections.reverse(tasks);
-                if (!tasks.isEmpty()) {
-                    binding.recycleTaskDay.setVisibility(View.VISIBLE);
-                    binding.tvMessageNoTask.setVisibility(View.GONE);
-                    binding.tvTaskDayTitle.setVisibility(View.VISIBLE);
-                    binding.loadingHome.setVisibility(View.VISIBLE);
-                    for (Task task : tasks) {
-                        com.google.android.gms.tasks.Task<DocumentSnapshot> taskSchool = task.getSchool().get();
-                        com.google.android.gms.tasks.Task<DocumentSnapshot> classTasks = task.getSchoolClass().get();
+                if(isAdded()) {
+                    tasksDay.clear();
+                    tasks.sort(Comparator.comparing(task ->
+                            LocalDate.parse(task.getDate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    ));
+                    Collections.reverse(tasks);
+                    if (!tasks.isEmpty()) {
+                        binding.recycleTaskDay.setVisibility(View.VISIBLE);
+                        binding.tvMessageNoTask.setVisibility(View.GONE);
+                        binding.tvTaskDayTitle.setVisibility(View.VISIBLE);
+                        binding.loadingHome.setVisibility(View.VISIBLE);
+                        for (Task task : tasks) {
+                            com.google.android.gms.tasks.Task<DocumentSnapshot> taskSchool = task.getSchool().get();
+                            com.google.android.gms.tasks.Task<DocumentSnapshot> classTasks = task.getSchoolClass().get();
 
-                        // Adicionar à lista de tarefas Firestore para esperar todas
-                        firestoreTasks.add(classTasks.continueWith(task1 -> {
-                            if (task1.isSuccessful()) {
-                                DocumentSnapshot document = task1.getResult();
-                                if (document.exists()) {
-                                    // Adicionar uma nova TaskDay à lista
-                                    tasksSchool.add(taskSchool.continueWith(task4 -> {
-                                        if (task4.isSuccessful()) {
-                                            document.getDocumentReference("schoolId").get()
-                                                    .addOnCompleteListener(task2 -> {
-                                                                if (task2.isSuccessful()) {
-                                                                    tasksDay.add(new TaskDay(
-                                                                            task.getId(),
-                                                                            task.getTitle(),
-                                                                            document.getString("className"),
-                                                                            task.getTag(),
-                                                                            task.getDate(),
-                                                                            task.isCompleted(),
-                                                                            task2.getResult().getString("schoolName")
-                                                                    ));
-                                                                    adapter.notifyDataSetChanged();
-                                                                } else {
-                                                                    Toast.makeText(getContext(), "Erro ao carregar escola", Toast.LENGTH_SHORT).show();
+                            // Adicionar à lista de tarefas Firestore para esperar todas
+                            firestoreTasks.add(classTasks.continueWith(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    DocumentSnapshot document = task1.getResult();
+                                    if (document.exists()) {
+                                        // Adicionar uma nova TaskDay à lista
+                                        tasksSchool.add(taskSchool.continueWith(task4 -> {
+                                            if (task4.isSuccessful()) {
+                                                document.getDocumentReference("schoolId").get()
+                                                        .addOnCompleteListener(task2 -> {
+                                                                    if (task2.isSuccessful()) {
+                                                                        tasksDay.add(new TaskDay(
+                                                                                task.getId(),
+                                                                                task.getTitle(),
+                                                                                document.getString("className"),
+                                                                                task.getTag(),
+                                                                                task.getDate(),
+                                                                                task.isCompleted(),
+                                                                                task2.getResult().getString("schoolName")
+                                                                        ));
+                                                                        if(adapter != null) {
+                                                                            adapter.notifyDataSetChanged();
+                                                                        }
+                                                                    } else {
+                                                                        Toast.makeText(getContext(), "Erro ao carregar escola", Toast.LENGTH_SHORT).show();
+                                                                    }
                                                                 }
-                                                            }
-                                                    );
-                                        } else {
-                                            Toast.makeText(getContext(), "Erro ao carregar escolas", Toast.LENGTH_SHORT).show();
-                                        }
-                                        return null;
-                                    }));
-                                } else {
-                                    Toast.makeText(getContext(), "Erro ao carregar classes", Toast.LENGTH_SHORT).show();
+                                                        );
+                                            } else {
+                                                Toast.makeText(getContext(), "Erro ao carregar escolas", Toast.LENGTH_SHORT).show();
+                                            }
+                                            return null;
+                                        }));
+                                    } else {
+                                        Toast.makeText(getContext(), "Erro ao carregar classes", Toast.LENGTH_SHORT).show();
+                                    }
                                 }
-                            }
-                            return null;
-                        }));
+                                return null;
+                            }));
 
-                        Tasks.whenAllComplete(firestoreTasks).addOnCompleteListener(task7 -> {
-                            if (task7.isSuccessful()) {
-                                Tasks.whenAllComplete(taskSchool).addOnCompleteListener(task9 -> {
-                                    if(isAdded()) {
-                                        binding.loadingHome.setVisibility(View.GONE);
-                                        if (task9.isSuccessful()) {
-                                            adapter = new TaskDayAdapter(tasksDay, new TaskDayViewHolder.onClickListener() {
-                                                @Override
-                                                public void onClickCheck(int position) {
-                                                    //marcar tarefa como concluida
+                            Tasks.whenAllComplete(firestoreTasks).addOnCompleteListener(task7 -> {
+                                if (task7.isSuccessful()) {
+                                    Tasks.whenAllComplete(taskSchool).addOnCompleteListener(task9 -> {
+                                        if (isAdded()) {
+                                            binding.loadingHome.setVisibility(View.GONE);
+                                            if (task9.isSuccessful()) {
+                                                adapter = new TaskDayAdapter(tasksDay, new TaskDayViewHolder.onClickListener() {
+                                                    @Override
+                                                    public void onClickCheck(int position) {
+                                                        //marcar tarefa como concluida
 
-                                                    Optional<Task> taskActually = tasks.stream().filter(task -> task.getId()
-                                                            .equalsIgnoreCase(tasksDay.get(position).getIdTaskDay())).findFirst();
-                                                    taskActually.orElse(null).setCompleted(true);
+                                                        Optional<Task> taskActually = tasks.stream().filter(task -> task.getId()
+                                                                .equalsIgnoreCase(tasksDay.get(position).getIdTaskDay())).findFirst();
 
-                                                    homeViewModel.setTaskIsCompleted(taskActually.orElse(null)).observe(getViewLifecycleOwner()
-                                                            , aBoolean -> {
-                                                                if (aBoolean) {
-                                                                    Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa marcada como concluida!",
-                                                                                    Snackbar.LENGTH_SHORT)
-                                                                            .setAction("Desfazer", v -> {
-                                                                                taskActually.orElse(null).setCompleted(false);
-                                                                                homeViewModel.setTaskIsCompleted(taskActually.orElse(null));
-                                                                            }).setAnchorView(binding.appFab.getRoot());
+                                                        taskActually.ifPresent(value -> value.setCompleted(true));
 
-                                                                    snackbar.addCallback(new Snackbar.Callback() {
-                                                                        @Override
-                                                                        public void onDismissed(Snackbar snackbar, int event) {
-                                                                            if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
-                                                                                int notificationId = 0;
-                                                                                try {
-                                                                                    notificationId = Integer.parseInt(taskActually.orElse(null).getId().replaceAll("[^0-9]", ""));
-                                                                                } catch (
-                                                                                        NumberFormatException ignored) {
-                                                                                }
+                                                        homeViewModel.setTaskIsCompleted(taskActually.orElse(null)).observe(getViewLifecycleOwner(),
+                                                                aBoolean -> {
+                                                                    if (aBoolean) {
+                                                                        snackbar = Snackbar.make(binding.appFab.fab, "Tarefa marcada como concluida!",
+                                                                                        Snackbar.LENGTH_SHORT)
+                                                                                .setAction("Desfazer", v -> {
+                                                                                    taskActually.ifPresent(value -> value.setCompleted(false));
+                                                                                    homeViewModel.setTaskIsCompleted(taskActually.orElse(null));
+                                                                                });
 
-                                                                                Log.d("teste", "" + notificationId);
-                                                                                if (NotificationUtil.scheduleNotificationApp.isAlarmSet(HomeFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
-                                                                                        notificationId)) {
-                                                                                    NotificationUtil.scheduleNotificationApp.cancelNotification(HomeFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
-                                                                                            notificationId);
-                                                                                    Log.d("testeee", "chegouu");
+                                                                        snackbar.addCallback(new Snackbar.Callback() {
+                                                                            @Override
+                                                                            public void onDismissed(Snackbar snackbar, int event) {
+                                                                                if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT  ||
+                                                                                        event == Snackbar.Callback.DISMISS_EVENT_MANUAL ||
+                                                                                        event == Snackbar.Callback.DISMISS_EVENT_SWIPE) {
+                                                                                    int notificationId = 0;
+                                                                                    try {
+                                                                                        notificationId = Integer.parseInt(taskActually.orElse(null).getId().replaceAll("[^0-9]", ""));
+                                                                                    } catch (
+                                                                                            NumberFormatException ignored) {
+                                                                                    }
+
+                                                                                    Log.d("teste", "" + notificationId);
+                                                                                    if (NotificationUtil.scheduleNotificationApp.isAlarmSet(HomeFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
+                                                                                            notificationId)) {
+                                                                                        NotificationUtil.scheduleNotificationApp.cancelNotification(HomeFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
+                                                                                                notificationId);
+                                                                                        Log.d("testeee", "chegouu");
+                                                                                    }
                                                                                 }
                                                                             }
-                                                                        }
-                                                                    });
+                                                                        });
 
-                                                                    snackbar.show();
-                                                                } else {
-                                                                    Toast.makeText(getContext(), "Erro ao marcar tarefa como concluida!",
-                                                                            Toast.LENGTH_SHORT).show();
-                                                                }
-                                                            });
-                                                }
+                                                                        snackbar.show();
+                                                                    } else {
+                                                                        Toast.makeText(getContext(), "Erro ao marcar tarefa como concluida!",
+                                                                                Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                });
+                                                    }
 
-                                                @Override
-                                                public void onClickTask(int position) {
-                                                    Intent intent = new Intent(getActivity(), TaskDetailsView.class);
-                                                    intent.putExtra("taskId", tasksDay.get(position).getIdTaskDay());
-                                                    startActivity(intent);
+                                                    @Override
+                                                    public void onClickTask(int position) {
+                                                        Intent intent = new Intent(getActivity(), TaskDetailsView.class);
+                                                        intent.putExtra("taskId", tasksDay.get(position).getIdTaskDay());
+                                                        startActivity(intent);
+                                                    }
+                                                });
+                                                if (isAdded()) {
+                                                    binding.recycleTaskDay.setAdapter(adapter);
+                                                    binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
                                                 }
-                                            });
-                                            if (isAdded()) {
-                                                binding.recycleTaskDay.setAdapter(adapter);
-                                                binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
+                                            } else {
+                                                Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
                                             }
-                                        } else {
-                                            Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
                                         }
-                                    }
-                                });
-                            } else {
-                                Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                                    });
+                                } else {
+                                    Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } else {
+                        if (binding.recycleTaskDay.getAdapter() != null) {
+                            binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
+                        }
+                        binding.recycleTaskDay.setVisibility(View.GONE);
+                        binding.tvMessageNoTask.setVisibility(View.VISIBLE);
+                        binding.tvTaskDayTitle.setVisibility(View.GONE);
                     }
-                } else {
-                    if (binding.recycleTaskDay.getAdapter() != null) {
-                        binding.recycleTaskDay.getAdapter().notifyDataSetChanged();
-                    }
-                    binding.recycleTaskDay.setVisibility(View.GONE);
-                    binding.tvMessageNoTask.setVisibility(View.VISIBLE);
-                    binding.tvTaskDayTitle.setVisibility(View.GONE);
                 }
             } else {
                 Toast.makeText(getContext(), "Erro ao carregar tarefas", Toast.LENGTH_SHORT).show();
@@ -259,6 +268,9 @@ public class HomeFragment extends Fragment {
 
                 requireActivity().recreate();
                 return true;
+            } else if (item.getItemId() == R.id.action_about_us) {
+                startActivity(new Intent(getActivity(), AboutUsView.class));
+                return true;
             }
             return false;
         });
@@ -267,6 +279,14 @@ public class HomeFragment extends Fragment {
                 startActivity(new Intent(getActivity(), ClassesSchoolsView.class)));
 
         return root;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (snackbar != null && snackbar.isShown()) {
+            snackbar.dismiss();
+        }
     }
 
     @Override

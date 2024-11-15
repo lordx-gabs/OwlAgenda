@@ -1,11 +1,16 @@
 package com.example.owlagenda.ui.calendar;
 
+import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -16,8 +21,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,10 +33,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.Task;
+import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.CalendarDayBinding;
 import com.example.owlagenda.databinding.CalendarHeaderBinding;
 import com.example.owlagenda.databinding.FragmentCalendarBinding;
+import com.example.owlagenda.ui.aboutus.AboutUsView;
 import com.example.owlagenda.ui.task.TaskView;
 import com.example.owlagenda.ui.taskdetails.TaskDetailsView;
 import com.example.owlagenda.ui.updatetask.UpdateTaskView;
@@ -47,17 +57,19 @@ import com.kizitonwose.calendar.view.MonthDayBinder;
 import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.kizitonwose.calendar.view.ViewContainer;
 
+import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 
@@ -68,12 +80,18 @@ public class CalendarFragment extends Fragment {
     private FragmentCalendarBinding binding;
     private LocalDate selectedDate;
     private TaskAdapter taskAdapter;
-    private Map<LocalDate, List<TaskCalendar>> tasks;
+    private HashMap<LocalDate, List<TaskCalendar>> tasks;
     private UserViewModel userViewModel;
     private CalendarViewModel viewModel;
     private ArrayList<TaskCalendar> tasksCalendar;
     private ArrayList<Task> tasksObject;
-    List<com.google.android.gms.tasks.Task<Void>> firestoreTasks = new ArrayList<>(); // Lista de tarefas Firestore para controle
+    private ActivityResultLauncher<String> requestCalendarPermissionLauncher;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    private List<com.google.android.gms.tasks.Task<Void>> firestoreTasks = new ArrayList<>(); // Lista de tarefas Firestore para controle
+    private User currentUser;
+    private List<DayOfWeek> daysOfWeek;
+    private ArrayList<TaskCalendar> taskCalendarUserCopy = new ArrayList<>();
+    private Snackbar snackbar;
 
 
     @Override
@@ -86,6 +104,7 @@ public class CalendarFragment extends Fragment {
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow);
 
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+
         viewModel = new ViewModelProvider(this).get(CalendarViewModel.class);
 
         binding.recycleCalendar.setLayoutManager(new LinearLayoutManager(requireContext(),
@@ -97,7 +116,18 @@ public class CalendarFragment extends Fragment {
 
         binding.appFab.fab.setOnClickListener(v -> startActivity(new Intent(getActivity(), TaskView.class)));
 
-        List<DayOfWeek> daysOfWeek = ExtensionsKt.daysOfWeek();
+        requestCalendarPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        loadCalendars();
+                    } else {
+                        Toast.makeText(getContext(), "Permissão necessária para acessar o armazenamento.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        daysOfWeek = ExtensionsKt.daysOfWeek();
         YearMonth currentMonth = YearMonth.now();
         YearMonth startMonth = currentMonth.minusMonths(12);
         YearMonth endMonth = currentMonth.plusMonths(12);
@@ -113,7 +143,7 @@ public class CalendarFragment extends Fragment {
                 Optional<Task> taskOptional = tasksObject.stream()
                         .filter(task7 -> task7.getId().equalsIgnoreCase(task.get(position).getId()))
                         .findFirst();
-                if(taskOptional.isPresent()) {
+                if (taskOptional.isPresent()) {
                     Intent intentUpdateTask = new Intent(getActivity(), UpdateTaskView.class);
                     intentUpdateTask.putExtra("taskId", taskOptional.get().getId());
                     startActivity(intentUpdateTask);
@@ -134,7 +164,7 @@ public class CalendarFragment extends Fragment {
                     viewModel.deleteTask(taskOptional.get())
                             .observe(getViewLifecycleOwner(), aBoolean -> {
                                 if (aBoolean) {
-                                    Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa Excluída",
+                                    snackbar = Snackbar.make(binding.appFab.fab, "Tarefa Excluída",
                                             Snackbar.LENGTH_SHORT).setAction("Desfazer", v3 ->
                                             viewModel.addTask(taskOptional.get()).observe(getViewLifecycleOwner(),
                                                     aBoolean1 -> {
@@ -146,11 +176,13 @@ public class CalendarFragment extends Fragment {
                                                     }
                                             )
                                     );
-                                    snackbar.setAnchorView(binding.appFab.fab);
+
                                     snackbar.addCallback(new Snackbar.Callback() {
                                         @Override
                                         public void onDismissed(Snackbar snackbar, int event) {
-                                            if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
+                                            if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT ||
+                                                    event == Snackbar.Callback.DISMISS_EVENT_MANUAL ||
+                                                    event == Snackbar.Callback.DISMISS_EVENT_SWIPE) {
                                                 int notificationId = 0;
                                                 try {
                                                     notificationId = Integer.parseInt(taskOptional.get().getId()
@@ -227,7 +259,8 @@ public class CalendarFragment extends Fragment {
                                             task.getTitle(),
                                             document.getString("className"),
                                             task.getDate(),
-                                            task.getTag()
+                                            task.getTag(),
+                                            task.isCompleted()
                                     ));
                                 }
                             }
@@ -237,6 +270,8 @@ public class CalendarFragment extends Fragment {
                         Tasks.whenAllComplete(firestoreTasks).addOnCompleteListener(task7 -> {
                             if (task7.isSuccessful()) {
                                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                                tasksCalendar.removeIf(TaskCalendar::isTypeCalendarUser);
+                                tasksCalendar.addAll(taskCalendarUserCopy);
                                 this.tasks.clear();
                                 this.tasks.putAll(
                                         tasksCalendar.stream().collect(Collectors.groupingBy(task5 ->
@@ -244,6 +279,7 @@ public class CalendarFragment extends Fragment {
                                                 Collectors.toList()))
                                 );
                                 Log.e("teste", "" + this.tasks.size());
+
                                 if (isAdded()) {
                                     if (selectedDate != null) {
                                         updateAdapterForDate(selectedDate);
@@ -261,7 +297,7 @@ public class CalendarFragment extends Fragment {
                     }
                 } else {
                     binding.loadingCalendar.setVisibility(View.GONE);
-                    this.tasks.clear();
+                    this.tasks.entrySet().removeIf(entry -> entry.getValue().stream().anyMatch(task -> !task.isTypeCalendarUser()));
                     if (isAdded()) {
                         if (selectedDate != null) {
                             updateAdapterForDate(selectedDate);
@@ -331,23 +367,216 @@ public class CalendarFragment extends Fragment {
 
                 requireActivity().recreate();
                 return true;
+            } else if (item.getItemId() == R.id.action_about_us) {
+                startActivity(new Intent(getActivity(), AboutUsView.class));
+                return true;
             }
             return false;
         });
 
-        binding.btnCalendarAdd.setOnClickListener(v -> {
-            new MaterialAlertDialogBuilder(getContext())
-                    .setTitle("Deseja adicionar as tarefas do seu calendário?")
-                    .setMessage("Todas as suas tarefas do seu calendário serão mostradas aqui no Owl.")
-                    .setPositiveButton("Sim", (dialogInterface, i) -> {
+        binding.btnCalendarAdd.setOnClickListener(v ->
+                new MaterialAlertDialogBuilder(getContext())
+                        .setTitle("Deseja adicionar as tarefas do seu calendário?")
+                        .setMessage("Todas as suas tarefas do seu calendário serão mostradas aqui no Owl.")
+                        .setPositiveButton("Sim", (dialogInterface, i) -> {
+                            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                                requestCalendarPermissionLauncher.launch(Manifest.permission.READ_CALENDAR);
+                            } else {
+                                loadCalendars();
+                            }
+                        })
+                        .setNegativeButton("Não", (dialogInterface, i) -> dialogInterface.dismiss())
+                        .show());
 
-                    })
-                    .setNegativeButton("Não", (dialogInterface, i) -> {
-                        dialogInterface.dismiss();
-                    }).show();
+
+        userViewModel.getUser().observe(getViewLifecycleOwner(), user -> {
+            if (user != null) {
+                currentUser = user;
+                if (user.getTaskCalendarUser() != null && !user.getTaskCalendarUser().isEmpty()) {
+                    tasksCalendar.removeIf(TaskCalendar::isTypeCalendarUser);
+                    tasks.entrySet().removeIf(entry -> entry.getValue().stream().anyMatch(TaskCalendar::isTypeCalendarUser));
+
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    tasksCalendar.addAll(user.getTaskCalendarUser());
+                    this.tasks.putAll(
+                            tasksCalendar.stream().collect(Collectors.groupingBy(task5 ->
+                                            LocalDate.parse(task5.getDate(), formatter),
+                                    Collectors.toList()))
+                    );
+                    taskCalendarUserCopy = new ArrayList<>(user.getTaskCalendarUser());
+                } else {
+                    taskCalendarUserCopy.clear();
+                    tasksCalendar.removeIf(TaskCalendar::isTypeCalendarUser);
+                    tasks.entrySet().removeIf(entry -> entry.getValue().stream().anyMatch(TaskCalendar::isTypeCalendarUser));
+                }
+                Log.e("testeSizeTasks", "" + this.tasks.size());
+                if (isAdded()) {
+                    if (selectedDate != null) {
+                        updateAdapterForDate(selectedDate);
+                    } else {
+                        updateAdapterForDate(null);
+                    }
+                    configureBinders(daysOfWeek);
+                    binding.loadingCalendar.setVisibility(View.GONE);
+                }
+            } else {
+                Toast.makeText(getContext(), "Erro ao carregar usuário", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        binding.btnRemoveCalendarUser.setOnClickListener(v -> {
+            binding.loadingCalendar.setVisibility(View.VISIBLE);
+            binding.btnRemoveCalendarUser.setEnabled(false);
+            currentUser.setTaskCalendarUser(null);
+            viewModel.updateUserTaskCalendar(currentUser).observe(getViewLifecycleOwner(), aBoolean -> {
+                binding.btnRemoveCalendarUser.setEnabled(true);
+                binding.loadingCalendar.setVisibility(View.GONE);
+                if (aBoolean) {
+                    Toast.makeText(getContext(), "Tarefas removidas com sucesso", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Erro ao remover tarefas", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         return binding.getRoot();
+    }
+
+    private void loadCalendars() {
+        if (!taskCalendarUserCopy.isEmpty()) {
+            Toast.makeText(getContext(), "Calendário já carregado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        List<CalendarModel> calendars = new ArrayList<>();
+
+        Uri uri = CalendarContract.Calendars.CONTENT_URI;
+        String[] projection = new String[]{
+                CalendarContract.Calendars._ID,
+                CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+                CalendarContract.Calendars.ACCOUNT_NAME,
+                CalendarContract.Calendars.ACCOUNT_TYPE
+        };
+
+        Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID));
+                String displayName = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME));
+                String accountName = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME));
+                String accountType = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE));
+
+                calendars.add(new CalendarModel(id, displayName, accountName, accountType));
+                Log.d("CalendarInfo", "ID: " + id + ", Nome: " + displayName + ", Conta: " + accountName + ", Tipo: " + accountType);
+            }
+            cursor.close();
+        }
+
+        String[] names = new String[calendars.size()];
+        for (int i = 0; i < calendars.size(); i++) {
+            names[i] = calendars.get(i).getDisplayName();
+        }
+
+        new MaterialAlertDialogBuilder(getContext())
+                .setTitle("Selecione um calendário")
+                .setItems(names, (dialogInterface, i) -> {
+                    CalendarModel selectedCalendar = calendars.get(i);
+                    Log.d("CalendarInfo", "ID: " + selectedCalendar.getId() + "nome" + selectedCalendar.getAccountName());
+                    getCalendarTask(selectedCalendar.getId());
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void getCalendarTask(long calendarId) {
+        binding.loadingCalendar.setVisibility(View.VISIBLE);
+        binding.btnCalendarAdd.setEnabled(false);
+        Uri uri = CalendarContract.Events.CONTENT_URI;
+
+        String[] projection = new String[]{
+                CalendarContract.Events.TITLE,
+                CalendarContract.Events.DTSTART,
+                CalendarContract.Events.EVENT_TIMEZONE,
+                CalendarContract.Events.ALL_DAY
+        };
+
+        long currentTime = System.currentTimeMillis();
+        long oneYearFromNow = currentTime + (365L * 24 * 60 * 60 * 1000); // One year in milliseconds
+
+        String selection = CalendarContract.Events.CALENDAR_ID + " = ? AND " +
+                CalendarContract.Events.DTSTART + " >= ? AND " +
+                CalendarContract.Events.DTSTART + " <= ?";
+        String[] selectionArgs = new String[]{
+                String.valueOf(calendarId),
+                String.valueOf(currentTime),
+                String.valueOf(oneYearFromNow)
+        };
+
+        String sortOrder = CalendarContract.Events.DTSTART + " ASC";
+
+        ContentResolver contentResolver = requireActivity().getContentResolver();
+
+        try (Cursor cursor = contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                ArrayList<TaskCalendar> taskCalendarsUser = new ArrayList<>();
+                do {
+                    String title = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE));
+                    long dtStart = cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.DTSTART));
+                    String eventTimeZone = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.EVENT_TIMEZONE));
+                    int allDay = cursor.getInt(cursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY));
+
+                    String dateFormatted;
+
+                    SimpleDateFormat dateFormat;
+                    if (allDay == 1) {
+                        // Handle all-day events
+                        dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    } else {
+                        // Handle events with specific times
+                        dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                        if (eventTimeZone != null) {
+                            dateFormat.setTimeZone(TimeZone.getTimeZone(eventTimeZone));
+                        } else {
+                            dateFormat.setTimeZone(TimeZone.getDefault());
+                        }
+                    }
+                    dateFormatted = dateFormat.format(new Date(dtStart));
+
+                    // Create the task
+                    TaskCalendar taskCalendar = new TaskCalendar(title, dateFormatted, "TaskCalendarUser", true);
+                    taskAdapter.getTasks().add(taskCalendar);
+                    taskCalendarsUser.add(taskCalendar);
+
+                    Log.d("CalendarEvent", "Title: " + title + ", Date: " + dateFormatted);
+                } while (cursor.moveToNext());
+
+                if (!taskCalendarsUser.isEmpty()) {
+                    currentUser.setTaskCalendarUser(taskCalendarsUser);
+                    viewModel.updateUserTaskCalendar(currentUser).observe(getViewLifecycleOwner(), aBoolean -> {
+                        binding.loadingCalendar.setVisibility(View.GONE);
+                        binding.btnCalendarAdd.setEnabled(true);
+                        if (aBoolean) {
+                            Toast.makeText(getContext(), "Tarefas do calendário salvas", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(), "Erro ao salvar tarefas do calendário", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    binding.loadingCalendar.setVisibility(View.GONE);
+                    binding.btnCalendarAdd.setEnabled(true);
+                    Toast.makeText(getContext(), "Nenhuma tarefa encontrada neste calendário.", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                binding.loadingCalendar.setVisibility(View.GONE);
+                binding.btnCalendarAdd.setEnabled(true);
+                Toast.makeText(getContext(), "Nenhuma tarefa encontrada neste calendário.", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            binding.loadingCalendar.setVisibility(View.GONE);
+            binding.btnCalendarAdd.setEnabled(true);
+            Toast.makeText(getContext(), "Erro ao acessar o calendário: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("CalendarError", "Erro ao acessar o calendário", e);
+        }
     }
 
     private void updateAdapterForDate(LocalDate date) {
@@ -475,6 +704,14 @@ public class CalendarFragment extends Fragment {
                 }
             }
         });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (snackbar != null && snackbar.isShown()) {
+            snackbar.dismiss();
+        }
     }
 
     @Override

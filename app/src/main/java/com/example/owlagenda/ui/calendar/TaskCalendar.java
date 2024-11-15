@@ -6,14 +6,26 @@ public class TaskCalendar {
     private String schoolClass;
     private String date;
     private String tag;
+    private boolean isCompleted;
     private boolean typeCalendarUser;
 
-    public TaskCalendar(String id, String nameTask, String schoolClass, String date, String tag) {
+    public TaskCalendar() {
+    }
+
+    public TaskCalendar(String id, String nameTask, String schoolClass, String date, String tag, boolean isCompleted) {
         this.id = id;
         this.nameTask = nameTask;
         this.schoolClass = schoolClass;
         this.date = date;
         this.tag = tag;
+        this.isCompleted = isCompleted;
+    }
+
+    public TaskCalendar(String nameTask, String date, String tag, boolean typeCalendarUser) {
+        this.nameTask = nameTask;
+        this.date = date;
+        this.tag = tag;
+        this.typeCalendarUser = typeCalendarUser;
     }
 
     public String getId() {
@@ -62,5 +74,13 @@ public class TaskCalendar {
 
     public void setTypeCalendarUser(boolean typeCalendarUser) {
         this.typeCalendarUser = typeCalendarUser;
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
     }
 }

@@ -42,6 +42,7 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentProfileBinding;
+import com.example.owlagenda.ui.aboutus.AboutUsView;
 import com.example.owlagenda.ui.homescreen.HomeScreenView;
 import com.example.owlagenda.ui.updateemail.UpdateEmail;
 import com.example.owlagenda.util.FormatPhoneNumber;
@@ -417,8 +418,8 @@ public class ProfileFragment extends Fragment {
         }
 
         binding.appBarTelaPrincipal.toolbar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_settings) {
-                Toast.makeText(getContext(), "Settings clicked", Toast.LENGTH_SHORT).show();
+            if (item.getItemId() == R.id.action_about_us) {
+                startActivity(new Intent(getActivity(), AboutUsView.class));
                 return true;
             } else if (item.getItemId() == R.id.action_logout) {
                 profileViewModel.logout();

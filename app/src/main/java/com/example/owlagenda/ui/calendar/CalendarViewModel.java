@@ -10,7 +10,9 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.models.TaskAttachments;
+import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.repository.TaskRepository;
+import com.example.owlagenda.data.repository.UserRepository;
 import com.example.owlagenda.util.NotificationUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Tasks;
@@ -29,11 +31,13 @@ public class CalendarViewModel extends ViewModel {
     private final MutableLiveData<String> errorMessage;
     private MutableLiveData<Boolean> isDeleted;
     private MutableLiveData<Boolean> isSuccessfully;
+    private final UserRepository userRepository;
 
     public CalendarViewModel() {
         taskRepository = new TaskRepository();
         isLoading = new MutableLiveData<>();
         errorMessage = new MutableLiveData<>();
+        userRepository = new UserRepository();
     }
 
     public LiveData<ArrayList<Task>> getTasks() {
@@ -101,6 +105,22 @@ public class CalendarViewModel extends ViewModel {
         });
 
         return isDeleted;
+    }
+
+    public LiveData<Boolean> updateUserTaskCalendar(User user) {
+        isSuccessfully = new MutableLiveData<>();
+        isLoading.setValue(true);
+        userRepository.updateUser(user, task -> {
+            isLoading.setValue(false);
+            if (task.isSuccessful()) {
+                isSuccessfully.setValue(true);
+            } else {
+                isSuccessfully.setValue(false);
+                errorMessage.setValue("Erro ao atualizar usuário. Erro: " + task.getException().getMessage());
+            }
+        });
+
+        return isSuccessfully;
     }
 
     public LiveData<Boolean> addTask(Task task) {

@@ -26,7 +26,6 @@
         android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
-    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <queries>
@@ -46,7 +45,9 @@
         android:supportsRtl="true"
         android:theme="@style/Base.Theme.OwlAgenda"
         tools:targetApi="31">
-
+        <activity
+            android:name=".ui.aboutus.AboutUsView"
+            android:exported="false" />
         <activity
             android:name=".ui.classesschools.ClassesSchoolsView"
             android:exported="false" />
@@ -61,7 +62,6 @@
             android:exported="false" />
 
         <receiver android:name=".util.NotificationUtil" />
-
         <receiver
             android:name=".util.CompleteTaskReceiver"
             android:exported="false" />
@@ -90,7 +90,6 @@
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
-
         <meta-data
             android:name="com.facebook.sdk.ClientToken"
             android:value="@string/facebook_client_token" />

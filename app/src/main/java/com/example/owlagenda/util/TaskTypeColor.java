@@ -15,7 +15,8 @@ public enum TaskTypeColor {
     REUNIAO_COM_PAIS("Reunião com Pais", R.color.reuniao_com_pais_color),
     PREPARACAO_DE_AULA("Preparação de Aula", R.color.preparacao_de_aula_color),
     ATIVIDADE_DESENVOLVIMENTO_PROFISSIONAL("Atividade de Desenvolvimento Profissional", R.color.atividade_desenvolvimento_profissional_color),
-    OUTROS("Outros", R.color.outros_color);
+    OUTROS("Outros", R.color.outros_color),
+    TASK_CALENDAR_USER("TaskCalendarUser", R.color.task_calendar_user);
 
     private final String tagName;
     @ColorRes

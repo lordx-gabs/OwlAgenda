@@ -30,6 +30,7 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentSeleneBinding;
+import com.example.owlagenda.ui.aboutus.AboutUsView;
 import com.example.owlagenda.ui.homescreen.HomeScreenView;
 import com.example.owlagenda.util.NetworkUtil;
 import com.example.owlagenda.util.SharedPreferencesUtil;
@@ -232,6 +233,9 @@ public class SeleneFragment extends Fragment {
                 }
 
                 requireActivity().recreate();
+                return true;
+            } else if (item.getItemId() == R.id.action_about_us) {
+                startActivity(new Intent(getActivity(), AboutUsView.class));
                 return true;
             }
             return false;

@@ -1,5 +1,6 @@
 package com.example.owlagenda.data.models;
 
+import com.example.owlagenda.ui.calendar.TaskCalendar;
 import com.example.owlagenda.ui.selene.Message;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ public class User {
     private String urlProfilePhoto;
     private Long phoneNumber;
     private ArrayList<Message> historyMessage;
+    private ArrayList<TaskCalendar> taskCalendarUser;
 
     public User() {
     }
@@ -97,5 +99,13 @@ public class User {
 
     public void setHistoryMessage(ArrayList<Message> historyMessage) {
         this.historyMessage = historyMessage;
+    }
+
+    public ArrayList<TaskCalendar> getTaskCalendarUser() {
+        return taskCalendarUser;
+    }
+
+    public void setTaskCalendarUser(ArrayList<TaskCalendar> taskCalendarUser) {
+        this.taskCalendarUser = taskCalendarUser;
     }
 }

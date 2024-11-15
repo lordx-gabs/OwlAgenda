@@ -1,5 +1,6 @@
 package com.example.owlagenda.ui.calendar;
 
+import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,10 +37,36 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         TaskViewHolder viewHolder = ((TaskViewHolder) holder);
         TaskCalendar task = tasks.get(position);
-        String title = task.getNameTask() + "\n" + task.getSchoolClass();
-        viewHolder.nameTaskLayout.setText(title);
-        viewHolder.dateTaskLayout.setText(LocalDate.parse(task.getDate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n" + task.getTag());
+        if(!task.isTypeCalendarUser()) {
+            viewHolder.btnDeleteTaskLayout.setVisibility(View.VISIBLE);
+            viewHolder.btnDetailsTaskLayout.setVisibility(View.VISIBLE);
+            viewHolder.btnEditTaskLayout.setVisibility(View.VISIBLE);
+
+            String title = task.getNameTask() + "\n" + task.getSchoolClass();
+            viewHolder.nameTaskLayout.setText(title);
+            if (task.isCompleted()) {
+                viewHolder.nameTaskLayout.setPaintFlags(viewHolder.nameTaskLayout.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            } else {
+                viewHolder.nameTaskLayout.setPaintFlags(viewHolder.nameTaskLayout.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            }
+
+            viewHolder.dateTaskLayout.setText(LocalDate.parse(task.getDate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n" + task.getTag());
+        } else {
+            viewHolder.btnDeleteTaskLayout.setVisibility(View.INVISIBLE);
+            viewHolder.btnDetailsTaskLayout.setVisibility(View.INVISIBLE);
+            viewHolder.btnEditTaskLayout.setVisibility(View.INVISIBLE);
+
+            viewHolder.nameTaskLayout.setText(task.getNameTask());
+
+            if (LocalDate.parse(task.getDate(), DateTimeFormatter.ofPattern("dd/MM/yyyy")).isBefore(LocalDate.now())) {
+                viewHolder.nameTaskLayout.setPaintFlags(viewHolder.nameTaskLayout.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            } else {
+                viewHolder.nameTaskLayout.setPaintFlags(viewHolder.nameTaskLayout.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            }
+
+            viewHolder.dateTaskLayout.setText(task.getDate());
+        }
     }
 
     @Override

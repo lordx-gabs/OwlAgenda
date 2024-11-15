@@ -51,6 +51,7 @@ public class TaskDetailsView extends AppCompatActivity {
     private Task task;
     private Handler handler;
     private Runnable runnable;
+    private Snackbar snackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +88,7 @@ public class TaskDetailsView extends AppCompatActivity {
                 if(binding.loadingTaskDetails.getVisibility() == View.GONE) {
                     viewModel.deleteTask(task).observe(this, aBoolean -> {
                         if (aBoolean) {
-                            Snackbar snackbar = Snackbar.make(binding.getRoot(), "Tarefa Excluída",
+                            snackbar = Snackbar.make(binding.getRoot(), "Tarefa Excluída",
                                     Snackbar.LENGTH_SHORT).setAction("Desfazer", v3 ->
                                     viewModel.addTask(task).observe(this, aBoolean1 -> {
                                         if (aBoolean1) {
@@ -102,7 +103,9 @@ public class TaskDetailsView extends AppCompatActivity {
                             snackbar.addCallback(new Snackbar.Callback() {
                                 @Override
                                 public void onDismissed(Snackbar snackbar, int event) {
-                                    if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
+                                    if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT ||
+                                            event == Snackbar.Callback.DISMISS_EVENT_MANUAL ||
+                                            event == Snackbar.Callback.DISMISS_EVENT_SWIPE) {
                                         int notificationId = 0;
                                         try {
                                             notificationId = Integer.parseInt(task.getId().replaceAll("[^0-9]", ""));
@@ -427,6 +430,14 @@ public class TaskDetailsView extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Permissão negada para gravar no armazenamento", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (snackbar != null && snackbar.isShown()) {
+            snackbar.dismiss();
         }
     }
 }
