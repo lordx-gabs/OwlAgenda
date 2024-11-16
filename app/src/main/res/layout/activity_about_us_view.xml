@@ -109,14 +109,14 @@
                     android:layout_height="100dp"
                     android:scaleType="centerCrop"
                     app:shapeAppearanceOverlay="@style/circleImageView"
-                    app:srcCompat="@drawable/avatar_1" />
+                    app:srcCompat="@drawable/photo_developer2" />
 
                 <TextView
                     android:id="@+id/member2Name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Nome Membro 2"
+                    android:text="Rafaei Mechi\nGerente de projeto"
                     android:textSize="16sp" />
             </LinearLayout>
 
