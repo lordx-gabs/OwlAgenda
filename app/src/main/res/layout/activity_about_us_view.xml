@@ -109,7 +109,7 @@
                     android:layout_height="100dp"
                     android:scaleType="centerCrop"
                     app:shapeAppearanceOverlay="@style/circleImageView"
-                    app:srcCompat="@drawable/photo_developer2" />
+                    app:srcCompat="@drawable/photo_developer2_rafael" />
 
                 <TextView
                     android:id="@+id/member2Name"
@@ -133,14 +133,14 @@
                     android:layout_height="100dp"
                     android:scaleType="centerCrop"
                     app:shapeAppearanceOverlay="@style/circleImageView"
-                    app:srcCompat="@drawable/avatar_1" />
+                    app:srcCompat="@drawable/photo_developer3_guilherme" />
 
                 <TextView
                     android:id="@+id/member3Name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Nome Membro 3"
+                    android:text="Guilherme Trevizan\nDesenvolvedor Front-End"
                     android:textSize="16sp" />
             </LinearLayout>
 
