@@ -163,7 +163,7 @@
                 android:layout_centerHorizontal="false"
                 android:layout_marginStart="8dp"
                 android:layout_marginBottom="8dp"
-                android:text="Selecione um anexo clicando no icone abaixo, para deletar o anexo, aperte e segure"
+                android:text="Selecione um anexo clicando no icone abaixo, para deletar o anexo, aperte sobre o arquivo e clique em &quot;Deletar anexo&quot;."
                 android:textSize="16sp" />
 
             <androidx.recyclerview.widget.RecyclerView

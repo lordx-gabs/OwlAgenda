@@ -1,12 +1,9 @@
 package com.example.owlagenda.ui.classesschools;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
@@ -17,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -25,7 +21,6 @@ import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.School;
 import com.example.owlagenda.data.models.SchoolClass;
 import com.example.owlagenda.databinding.ActivityClassesSchoolsViewBinding;
-import com.example.owlagenda.ui.task.TaskView;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -39,14 +34,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ClassesSchoolsView extends AppCompatActivity {
     private ActivityClassesSchoolsViewBinding binding;
     private ClassesSchoolsViewModel viewModel;
-    private ArrayList<ClassModel> classesModel = new ArrayList<>();
-    private ArrayList<SchoolModel> schoolsModel = new ArrayList<>();
-    private List<Task<Void>> tasksSchool = new ArrayList<>(); // Lista de tarefas Firestore para controle
+    private final ArrayList<ClassModel> classesModel = new ArrayList<>();
+    private final ArrayList<SchoolModel> schoolsModel = new ArrayList<>();
+    private final List<Task<Void>> tasksSchool = new ArrayList<>();
     private ClassAdapter classAdapter;
     private SchoolAdapter schoolAdapter;
     private BottomSheetDialog bottomSheetDialogClass;
@@ -90,71 +84,80 @@ public class ClassesSchoolsView extends AppCompatActivity {
 
         viewModel.getSchools(FirebaseAuth.getInstance().getCurrentUser().getUid()).observe(this, schools -> {
             if(schools != null) {
-                schoolsModel.clear();
-                schools.forEach(school -> schoolsModel.add(new SchoolModel(school.getId()
-                        ,school.getSchoolName())));
+                if(!schools.isEmpty()) {
+                    binding.tvMessageNoSchools.setVisibility(View.GONE);
+                    binding.tvMessageSchoolsFound.setVisibility(View.VISIBLE);
+                    binding.recycleSchools.setVisibility(View.VISIBLE);
+                    schoolsModel.clear();
+                    schools.forEach(school -> schoolsModel.add(new SchoolModel(school.getId()
+                            , school.getSchoolName())));
 
-                schoolAdapter = new SchoolAdapter(schoolsModel, new SchoolViewHolder.onSchoolClickListener() {
-                    @Override
-                    public void onEditSchoolClick(int position) {
-                        BottomSheetDialog bottomSheetDialogSchool = new BottomSheetDialog(ClassesSchoolsView.this);
-                        View view9 = LayoutInflater.from(ClassesSchoolsView.this).inflate(R.layout.bottom_sheet_add_school, (ViewGroup) ClassesSchoolsView.this.getWindow().getDecorView(), false);
-                        bottomSheetDialogSchool.setContentView(view9);
-                        bottomSheetDialogSchool.show();
+                    schoolAdapter = new SchoolAdapter(schoolsModel, new SchoolViewHolder.onSchoolClickListener() {
+                        @Override
+                        public void onEditSchoolClick(int position) {
+                            BottomSheetDialog bottomSheetDialogSchool = new BottomSheetDialog(ClassesSchoolsView.this);
+                            View view9 = LayoutInflater.from(ClassesSchoolsView.this).inflate(R.layout.bottom_sheet_add_school, (ViewGroup) ClassesSchoolsView.this.getWindow().getDecorView(), false);
+                            bottomSheetDialogSchool.setContentView(view9);
+                            bottomSheetDialogSchool.show();
 
-                        TextView tvTitle = view9.findViewById(R.id.tv_title_bottom_add_school);
-                        tvTitle.setText("Editar Escola");
-                        TextInputEditText etNameSchool = view9.findViewById(R.id.edt_nome_escola);
-                        etNameSchool.setText(schoolsModel.get(position).getSchoolName());
-                        MaterialButton btnUpdateSchool = view9.findViewById(R.id.btn_add_escola);
-                        btnUpdateSchool.setText("Editar Escola");
+                            TextView tvTitle = view9.findViewById(R.id.tv_title_bottom_add_school);
+                            tvTitle.setText("Editar Escola");
+                            TextInputEditText etNameSchool = view9.findViewById(R.id.edt_nome_escola);
+                            etNameSchool.setText(schoolsModel.get(position).getSchoolName());
+                            MaterialButton btnUpdateSchool = view9.findViewById(R.id.btn_add_escola);
+                            btnUpdateSchool.setText("Editar Escola");
 
-                        btnUpdateSchool.setOnClickListener(v -> {
-                            School school = new School();
-                            school.setSchoolName(etNameSchool.getText().toString());
-                            school.setUserId(FirebaseFirestore.getInstance()
-                                    .collection("usuario").document(
-                                            FirebaseAuth.getInstance().getCurrentUser().getUid()
-                                    ));
-                            school.setSchoolNameSearch(etNameSchool.getText().toString().toUpperCase());
-                            school.setId(schoolsModel.get(position).getIdSchool());
-                            viewModel.updateSchool(school).observe(ClassesSchoolsView.this, aBoolean -> {
-                                if (aBoolean) {
-                                    bottomSheetDialogSchool.dismiss();
-                                    Toast.makeText(ClassesSchoolsView.this, "Escola editada com sucesso.", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(ClassesSchoolsView.this, "Erro ao editar escola.", Toast.LENGTH_SHORT).show();
-                                }
+                            btnUpdateSchool.setOnClickListener(v -> {
+                                School school = new School();
+                                school.setSchoolName(etNameSchool.getText().toString());
+                                school.setUserId(FirebaseFirestore.getInstance()
+                                        .collection("usuario").document(
+                                                FirebaseAuth.getInstance().getCurrentUser().getUid()
+                                        ));
+                                school.setSchoolNameSearch(etNameSchool.getText().toString().toUpperCase());
+                                school.setId(schoolsModel.get(position).getIdSchool());
+                                viewModel.updateSchool(school).observe(ClassesSchoolsView.this, aBoolean -> {
+                                    if (aBoolean) {
+                                        bottomSheetDialogSchool.dismiss();
+                                        Toast.makeText(ClassesSchoolsView.this, "Escola editada com sucesso.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(ClassesSchoolsView.this, "Erro ao editar escola.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                             });
-                        });
 
-                    }
+                        }
 
-                    @Override
-                    public void onDeleteSchoolClick(int position) {
-                        new MaterialAlertDialogBuilder(ClassesSchoolsView.this)
-                                .setTitle("Tem certeza que deseja excluir essa escola?")
-                                .setMessage("Todas suas tarefas e turmas atrelhadas a essa escola serão " +
-                                        "deletadas. Essa ação não pode ser desfeita")
-                                .setPositiveButton("Sim", (dialogInterface, i) -> {
-                                    viewModel.deleteSchool(schoolsModel.get(position).getIdSchool(),
-                                            ClassesSchoolsView.this).observe(ClassesSchoolsView.this,
-                                            aBoolean -> {
-                                                if(aBoolean) {
-                                                    Toast.makeText(ClassesSchoolsView.this,
-                                                            "Escola deletada com sucesso", Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    Toast.makeText(ClassesSchoolsView.this,
-                                                            "Erro ao deletar a escola", Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
-                                }).setNegativeButton("Não", (dialogInterface, i) -> {
-                                    dialogInterface.dismiss();
-                                }).show();
-                    }
-                });
-                binding.recycleSchools.setAdapter(schoolAdapter);
-                schoolAdapter.notifyDataSetChanged();
+                        @Override
+                        public void onDeleteSchoolClick(int position) {
+                            new MaterialAlertDialogBuilder(ClassesSchoolsView.this)
+                                    .setTitle("Tem certeza que deseja excluir essa escola?")
+                                    .setMessage("Todas suas tarefas e turmas atrelhadas a essa escola serão " +
+                                            "deletadas. Essa ação não pode ser desfeita")
+                                    .setPositiveButton("Sim", (dialogInterface, i) -> {
+                                        viewModel.deleteSchool(schoolsModel.get(position).getIdSchool(),
+                                                ClassesSchoolsView.this).observe(ClassesSchoolsView.this,
+                                                aBoolean -> {
+                                                    if (aBoolean) {
+                                                        Toast.makeText(ClassesSchoolsView.this,
+                                                                "Escola deletada com sucesso", Toast.LENGTH_SHORT).show();
+                                                    } else {
+                                                        Toast.makeText(ClassesSchoolsView.this,
+                                                                "Erro ao deletar a escola", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                    }).setNegativeButton("Não", (dialogInterface, i) -> {
+                                        dialogInterface.dismiss();
+                                    }).show();
+                        }
+                    });
+                    binding.recycleSchools.setAdapter(schoolAdapter);
+                    schoolAdapter.notifyDataSetChanged();
+                } else {
+                    binding.tvMessageNoSchools.setVisibility(View.VISIBLE);
+                    binding.tvMessageSchoolsFound.setVisibility(View.GONE);
+                    binding.recycleSchools.setVisibility(View.GONE);
+                }
             } else {
                 Toast.makeText(this, "Erro ao carregar escolas", Toast.LENGTH_SHORT).show();
             }

@@ -3,6 +3,7 @@ package com.example.owlagenda.ui.task;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -35,7 +36,6 @@ import com.example.owlagenda.util.NotificationUtil;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.CalendarConstraints;
-import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 
 public class TaskView extends AppCompatActivity {
     private static final int REQUEST_CODE_NOTIFICATION = 501;
-    private ActivityResultLauncher<Intent> pickImageLauncher;
+    private ActivityResultLauncher<Intent> pickDocumentLauncher;
     private TaskViewModel viewModel;
     private ActivityTaskBinding binding;
     private ArrayList<School> schools;
@@ -187,9 +187,9 @@ public class TaskView extends AppCompatActivity {
                 autoCompletePeriod.setOnClickListener(v -> autoCompletePeriod.showDropDown());
 
                 bottomSheetDialogClass.setOnDismissListener(dialog -> {
-                    nameClass = etNameClass.getText().toString();
-                    numberOfStudents = etNumberOfStudents.getText().toString();
-                    period = autoCompletePeriod.getText().toString();
+                    nameClass = etNameClass.getText().toString().trim();
+                    numberOfStudents = etNumberOfStudents.getText().toString().trim();
+                    period = autoCompletePeriod.getText().toString().trim();
                 });
 
                 AutoCompleteTextView autoCompleteSchool = view5.findViewById(R.id.auto_complete_school_class);
@@ -217,12 +217,12 @@ public class TaskView extends AppCompatActivity {
 
                         btnAddSchool.setOnClickListener(v -> {
                             School school = new School();
-                            school.setSchoolName(etNameSchool.getText().toString());
+                            school.setSchoolName(etNameSchool.getText().toString().trim());
                             school.setUserId(FirebaseFirestore.getInstance()
                                     .collection("usuario").document(
                                             FirebaseAuth.getInstance().getCurrentUser().getUid()
                                     ));
-                            school.setSchoolNameSearch(etNameSchool.getText().toString().toUpperCase());
+                            school.setSchoolNameSearch(etNameSchool.getText().toString().trim().toUpperCase());
                             school.setId(FirebaseFirestore.getInstance().collection("escola").document().getId());
                             viewModel.saveSchool(school).observe(this, aBoolean -> {
                                 if (aBoolean) {
@@ -243,13 +243,13 @@ public class TaskView extends AppCompatActivity {
                 });
 
                 btnAddClass.setOnClickListener(v -> {
-                    if (!etNameClass.getText().toString().isEmpty() && !etNumberOfStudents.getText().toString().isEmpty()
-                            && !autoCompletePeriod.getText().toString().isEmpty() && schoolSelected != null) {
+                    if (!etNameClass.getText().toString().trim().isEmpty() && !etNumberOfStudents.getText().toString().trim().isEmpty()
+                            && !autoCompletePeriod.getText().toString().trim().isEmpty() && schoolSelected != null) {
                         SchoolClass dataSchoolClass = new SchoolClass();
-                        dataSchoolClass.setClassNameSearch(etNameClass.getText().toString().toUpperCase());
-                        dataSchoolClass.setNumberOfStudents(Integer.parseInt(etNumberOfStudents.getText().toString()));
-                        dataSchoolClass.setClassName(etNameClass.getText().toString());
-                        dataSchoolClass.setPeriod(autoCompletePeriod.getText().toString());
+                        dataSchoolClass.setClassNameSearch(etNameClass.getText().toString().trim().toUpperCase());
+                        dataSchoolClass.setNumberOfStudents(Integer.parseInt(etNumberOfStudents.getText().toString().trim()));
+                        dataSchoolClass.setClassName(etNameClass.getText().toString().trim());
+                        dataSchoolClass.setPeriod(autoCompletePeriod.getText().toString().trim());
                         dataSchoolClass.setUserId(FirebaseFirestore.getInstance().collection("usuario").document(
                                 FirebaseAuth.getInstance().getCurrentUser().getUid())
                         );
@@ -283,17 +283,22 @@ public class TaskView extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.dropdown_layout, tagsTask);
         binding.autoCompleteTag.setAdapter(adapter);
 
-        pickImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+        pickDocumentLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        if (result.getData().getData() != null) {
+                        Uri documentUri = result.getData().getData();
+                        if (documentUri != null) {
                             if (documentAdapter.getDocuments().size() < 10) {
-                                if (viewModel.getFileMbSize(this, result.getData().getData()) < 5) {
-                                    String fileName = viewModel.getFileName(result.getData().getData(), this);
+                                if (viewModel.getFileMbSize(this, documentUri) < 5) {
+                                    String fileName = viewModel.getFileName(documentUri, this);
                                     if (documentAdapter.getDocuments().stream().noneMatch(taskAttachments ->
                                             taskAttachments.getName().equals(fileName))) {
+                                        final int takeFlags = (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+                                        getContentResolver().takePersistableUriPermission(documentUri, takeFlags);
+
                                         documentAdapter.getDocuments().add(new TaskAttachments(
-                                                fileName, result.getData().getData().toString()));
+                                                fileName, documentUri.toString()));
                                         documentAdapter.notifyItemInserted(documentAdapter.getItemCount() - 1);
                                     } else {
                                         Toast.makeText(this, "Esse arquivo já esta anexado a tarefa", Toast.LENGTH_SHORT).show();
@@ -312,8 +317,8 @@ public class TaskView extends AppCompatActivity {
         );
 
         documentAdapter = new DocumentAdapter(position ->
-                pickImageLauncher.launch(Intent.createChooser(
-                        new Intent(Intent.ACTION_GET_CONTENT).setType("*/*"), "Selecione um arquivo")
+                pickDocumentLauncher.launch(Intent.createChooser(
+                        new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*"), "Selecione um arquivo")
                 ), position -> {
             bottomSheetDialogClass = new BottomSheetDialog(this);
             View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_delete_document, (ViewGroup) this.getWindow().getDecorView(), false);
@@ -360,13 +365,13 @@ public class TaskView extends AppCompatActivity {
 
         binding.etDateTask.setOnClickListener(v -> {
             Calendar calendarInitialed = Calendar.getInstance();
-            if (binding.etDateTask.getText().toString().isEmpty()) {
+            if (binding.etDateTask.getText().toString().trim().isEmpty()) {
                 calendarInitialed.setTimeInMillis(Calendar.getInstance(TimeZone
                                 .getTimeZone("America/Sao_Paulo")).getTimeInMillis());
             } else {
                 try {
                     calendarInitialed.setTime(new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                            .parse(binding.etDateTask.getText().toString()));
+                            .parse(binding.etDateTask.getText().toString().trim()));
                 } catch (ParseException e) {
                     Toast.makeText(this, "Erro ao formatar a data.", Toast.LENGTH_SHORT).show();
                     return;

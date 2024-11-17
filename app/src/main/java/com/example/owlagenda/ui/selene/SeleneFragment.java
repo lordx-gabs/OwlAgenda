@@ -1,6 +1,7 @@
 package com.example.owlagenda.ui.selene;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -31,7 +32,6 @@ import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
 import com.example.owlagenda.databinding.FragmentSeleneBinding;
 import com.example.owlagenda.ui.aboutus.AboutUsView;
-import com.example.owlagenda.ui.homescreen.HomeScreenView;
 import com.example.owlagenda.util.NetworkUtil;
 import com.example.owlagenda.util.SharedPreferencesUtil;
 import com.google.ai.client.generativeai.type.Content;
@@ -68,22 +68,24 @@ public class SeleneFragment extends Fragment {
             if (user != null) {
                 currentUser = user;
                 this.messages = new ArrayList<>();
-                if(user.getHistoryMessage() != null && !user.getHistoryMessage().isEmpty()) {
+                if (user.getHistoryMessage() != null && !user.getHistoryMessage().isEmpty()) {
                     List<Content> historyMessage = new ArrayList<>();
-                    Content.Builder contentBuilderUser, contentBuilderChatbot;
-                    contentBuilderUser = new Content.Builder();
-                    contentBuilderChatbot = new Content.Builder();
-                    contentBuilderUser.setRole("user");
-                    contentBuilderChatbot.setRole("model");
 
-                    user.getHistoryMessage().stream()
-                            .filter(message -> message.getMessageType() == Message.TYPE_USER_MESSAGE) // Filtra mensagens do usuário
-                            .forEach(message -> contentBuilderUser.addText(message.getText()));
-                    user.getHistoryMessage().stream()
-                            .filter(message -> message.getMessageType() == Message.TYPE_SELENE_MESSAGE)
-                            .forEach(message -> contentBuilderChatbot.addText(message.getText()));
-                    historyMessage.add(contentBuilderUser.build());
-                    historyMessage.add(contentBuilderChatbot.build());
+                    for (Message message : user.getHistoryMessage()) {
+                        Content.Builder contentBuilder = new Content.Builder();
+
+                        if (message.getMessageType() == Message.TYPE_USER_MESSAGE) {
+                            contentBuilder.setRole("user");
+                        } else if (message.getMessageType() == Message.TYPE_SELENE_MESSAGE) {
+                            contentBuilder.setRole("model");
+                        } else {
+                            continue; // Pular tipos de mensagem desconhecidos
+                        }
+
+                        contentBuilder.addText(message.getText());
+                        historyMessage.add(contentBuilder.build());
+                    }
+
                     viewModel.setChatBotSelene(historyMessage);
                 } else {
                     viewModel.setChatBotSelene(new ArrayList<>());
@@ -246,40 +248,36 @@ public class SeleneFragment extends Fragment {
 
     private void animatedText() {
         binding.recycleBalloons.post(() -> {
-            SeleneMessageViewHolder viewHolder = (SeleneMessageViewHolder) binding.recycleBalloons.findViewHolderForAdapterPosition(messages.size() - 1);
+            RecyclerView.ViewHolder holder = binding.recycleBalloons.findViewHolderForAdapterPosition(messages.size() - 1);
+            if (holder instanceof SeleneMessageViewHolder viewHolder) {
 
-            String fullTextSelene = viewHolder.textMessage.getText().toString();
-            animatorText = ValueAnimator.ofInt(0, fullTextSelene.length());
-            animatorText.setDuration(3000);
-//            int heightInDp = 2;
-//            int heightInPx = (int) (heightInDp * getResources().getDisplayMetrics().density); // Converter dp para px
-            animatorText.addUpdateListener(animation -> {
-                int animatedValue = (int) animation.getAnimatedValue();
-//                viewHolder.textMessage.setHeight(viewHolder.textMessage.getHeight() + heightInPx);
-                viewHolder.textMessage.setText(fullTextSelene.substring(0, animatedValue));
-                binding.recycleBalloons.scrollToPosition(messages.size() - 1);
-            });
-            animatorText.start();
+                String fullTextSelene = viewHolder.textMessage.getText().toString();
 
-            animatorText.addListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(@NonNull Animator animation) {
-                }
+                int durationPerCharacter = 50;
+                int minDuration = 500;
+                int maxDuration = 10000;
+                int totalDuration = fullTextSelene.length() * durationPerCharacter;
+                totalDuration = Math.max(minDuration, Math.min(totalDuration, maxDuration));
 
-                @Override
-                public void onAnimationEnd(@NonNull Animator animation) {
-                    binding.pointsAnimationView.setVisibility(View.GONE);
-                    binding.btnSendMessage.setVisibility(View.VISIBLE);
-                }
+                animatorText = ValueAnimator.ofInt(0, fullTextSelene.length());
+                animatorText.setDuration(totalDuration);
 
-                @Override
-                public void onAnimationCancel(@NonNull Animator animation) {
-                }
+                animatorText.addUpdateListener(animation -> {
+                    int animatedValue = (int) animation.getAnimatedValue();
+                    viewHolder.textMessage.setText(fullTextSelene.substring(0, animatedValue));
+                    binding.recycleBalloons.scrollToPosition(messages.size() - 1);
+                });
 
-                @Override
-                public void onAnimationRepeat(@NonNull Animator animation) {
-                }
-            });
+                animatorText.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        binding.pointsAnimationView.setVisibility(View.GONE);
+                        binding.btnSendMessage.setVisibility(View.VISIBLE);
+                    }
+                });
+
+                animatorText.start();
+            }
         });
     }
 
@@ -289,6 +287,9 @@ public class SeleneFragment extends Fragment {
     }
 
     private void onShowKeyboard() {
+        if(binding.bottomNavigationViewSelene.bottomNavigationView.getVisibility() == View.GONE) {
+            binding.recycleBalloons.scrollToPosition(SeleneFragment.this.messages.size() - 1);
+        }
         getActivity().findViewById(R.id.bottomNavigationView).setVisibility(View.VISIBLE);
         binding.bottomNavigationViewSelene.bottomNavigationView.setVisibility(View.VISIBLE);
     }

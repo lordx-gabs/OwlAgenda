@@ -9,8 +9,9 @@
         android:id="@+id/selene_photo"
         android:layout_width="45dp"
         android:layout_height="50dp"
+        android:padding="2dp"
         android:scaleType="centerInside"
-        android:src="@drawable/owl_home_screen" />
+        android:src="@drawable/owl_default" />
 
     <FrameLayout
         android:layout_width="wrap_content"
@@ -27,7 +28,7 @@
             android:paddingStart="15dp"
             android:paddingTop="8dp"
             android:paddingEnd="15dp"
-            android:paddingBottom="4dp"
+            android:paddingBottom="8dp"
             android:text="jjfshjfusdhfhsdf" />
 
         <ImageView

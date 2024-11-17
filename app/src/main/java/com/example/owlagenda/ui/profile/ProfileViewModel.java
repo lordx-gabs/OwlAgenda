@@ -98,7 +98,7 @@ public class ProfileViewModel extends ViewModel {
     }
 
     private byte[] resizeImage(Bitmap imageProfile) {
-        int imageWidthMax = 300, imageHeightMax = 300;
+        int imageWidthMax = 300, imageHeightMax = 300; 
         return bitmapToByteArray(
                 Bitmap.createScaledBitmap(imageProfile, imageWidthMax, imageHeightMax, false)
         );

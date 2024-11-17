@@ -11,6 +11,8 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
@@ -78,8 +80,6 @@ public class ProfileFragment extends Fragment {
     private ActivityResultLauncher<Intent> cropActivityResultLauncher;
     private ActivityResultLauncher<String> requestStoragePermissionLauncher;
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
-    private Drawable originalPhoto;
-
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -171,10 +171,9 @@ public class ProfileFragment extends Fragment {
 
                                     Glide.with(getContext())
                                             .load(user.getUrlProfilePhoto())
-                                            .placeholder(R.drawable.owl_home_screen)
+                                            .placeholder(R.drawable.owl_default)
                                             .circleCrop()
                                             .into(binding.imagePhotoProfile);
-                                    originalPhoto = binding.imagePhotoProfile.getDrawable();
                                 }
                             })
                     );
@@ -202,7 +201,7 @@ public class ProfileFragment extends Fragment {
                 binding.etTelefoneProfile.setText(String.valueOf(oldUser.getPhoneNumber()));
                 Glide.with(getContext())
                         .load(oldUser.getUrlProfilePhoto())
-                        .placeholder(R.drawable.owl_home_screen)
+                        .placeholder(R.drawable.owl_default)
                         .circleCrop()
                         .into(binding.imagePhotoProfile);
                 imageProfileBitmap = null;
@@ -264,7 +263,6 @@ public class ProfileFragment extends Fragment {
                         user.setPhoneNumber(oldUser.getPhoneNumber());
                     }
 
-                    //:TODO verificar se ta certo
                     if (imageProfileBitmap != null) {
                         profileViewModel.saveProfilePhoto(imageProfileBitmap).observe(getViewLifecycleOwner(), url -> {
                             if (url != null) {
@@ -327,12 +325,12 @@ public class ProfileFragment extends Fragment {
                         if (resultUri != null) {
                             Glide.with(getContext())
                                     .load(resultUri)
-                                    .placeholder(R.drawable.owl_home_screen)
+                                    .placeholder(R.drawable.owl_default)
                                     .circleCrop()
                                     .into(binding.imagePhotoProfile);
                             imageProfileBitmap = BitmapFactory.decodeFile(resultUri.getPath());
                         }
-                    } else if (result.getResultCode() == UCrop.RESULT_ERROR) {
+                    } else if (result.getResultCode() == UCrop.RESULT_ERROR && result.getData() != null) {
                         final Throwable cropError = UCrop.getError(result.getData());
                         if (cropError != null) {
                             Toast.makeText(getContext(), "Erro ao recortar a imagem. Tente novamente.", Toast.LENGTH_SHORT).show();
@@ -359,7 +357,7 @@ public class ProfileFragment extends Fragment {
             btnDeleteImage.setOnClickListener(v12 -> {
                 Glide.with(getContext())
                         .load(oldUser.getUrlProfilePhoto())
-                        .placeholder(R.drawable.owl_home_screen)
+                        .placeholder(R.drawable.owl_default)
                         .circleCrop()
                         .into(binding.imagePhotoProfile);
                 imageProfileBitmap = null;
@@ -368,11 +366,11 @@ public class ProfileFragment extends Fragment {
 
             btnSetDefaultPhoto.setOnClickListener(v5 -> {
                 Glide.with(getContext())
-                        .load(R.drawable.owl_home_screen)
+                        .load(R.drawable.photo_default)
                         .circleCrop()
                         .into(binding.imagePhotoProfile);
 
-                Drawable drawable = ContextCompat.getDrawable(requireContext(), R.drawable.owl_home_screen);
+                Drawable drawable = ContextCompat.getDrawable(requireContext(), R.drawable.photo_default);
                 Bitmap bitmap = Bitmap.createBitmap(
                         drawable.getIntrinsicWidth(),
                         drawable.getIntrinsicHeight(),

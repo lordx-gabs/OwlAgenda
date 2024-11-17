@@ -37,11 +37,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:text="Titulo:"
-            android:textColor="?attr/colorOnSurface"
             android:textSize="20sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/materialToolbar" />
@@ -53,7 +53,6 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:text="Escola: "
-            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_task_details" />
@@ -65,7 +64,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:text="Turma: "
-            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_task_details" />
@@ -77,7 +75,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:text="Data: "
-            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/school_task_details" />
@@ -87,14 +84,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
             android:text="Descrição:"
-            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/date_task_details" />
+            app:layout_constraintTop_toBottomOf="@+id/tag_task_details" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textView11"
@@ -103,7 +98,6 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
             android:text="Anexos da Tarefa:"
-            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/description_task_details" />
@@ -184,6 +178,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
+            android:paddingBottom="8dp"
             android:text="Tag: "
             android:textSize="16sp"
             app:layout_constraintEnd_toStartOf="@+id/date_task_details"

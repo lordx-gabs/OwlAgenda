@@ -43,7 +43,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearProgressHomeScreen"
-            app:srcCompat="@drawable/owl_home_screen" />
+            app:srcCompat="@drawable/owl_default" />
 
         <TextView
             android:id="@+id/title_selene"
@@ -115,7 +115,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="16dp"
-            app:layout_constraintBottom_toTopOf="@+id/btn_teste_face"
+            app:layout_constraintBottom_toTopOf="@+id/btn_facebook"
             app:layout_constraintEnd_toStartOf="@+id/textView2"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent" />
@@ -127,7 +127,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
-            app:layout_constraintBottom_toTopOf="@+id/btn_teste_face"
+            app:layout_constraintBottom_toTopOf="@+id/btn_facebook"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/textView2" />
@@ -142,12 +142,12 @@
             android:text="Ou entre com"
             android:textSize="12sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/btn_teste_face"
+            app:layout_constraintBottom_toTopOf="@+id/btn_facebook"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_testeeee"
+            android:id="@+id/btn_google"
             android:layout_width="209dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -163,7 +163,7 @@
             app:layout_constraintStart_toStartOf="parent" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_teste_face"
+            android:id="@+id/btn_facebook"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -173,7 +173,7 @@
             app:icon="@drawable/com_facebook_button_icon"
             app:iconTint="@android:color/transparent"
             app:iconTintMode="add"
-            app:layout_constraintBottom_toTopOf="@+id/btn_testeeee"
+            app:layout_constraintBottom_toTopOf="@+id/btn_google"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 

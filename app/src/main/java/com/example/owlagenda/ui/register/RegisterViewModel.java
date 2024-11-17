@@ -116,7 +116,7 @@ public class RegisterViewModel extends ViewModel {
     }
 
     public Bitmap getImageProfileDefaultBitmap(Context context) {
-       return ((BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.owl_home_screen))
+       return ((BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.photo_default))
                 .getBitmap();
     }
 

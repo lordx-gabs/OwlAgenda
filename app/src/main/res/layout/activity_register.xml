@@ -200,7 +200,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/appBarLayout_register"
                 app:shapeAppearanceOverlay="@style/circleImageView"
-                app:srcCompat="@drawable/avatar_1" />
+                app:srcCompat="@drawable/photo_default" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textView13"

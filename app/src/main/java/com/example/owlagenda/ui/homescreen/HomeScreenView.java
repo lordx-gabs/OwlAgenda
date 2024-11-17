@@ -70,10 +70,10 @@ public class HomeScreenView extends AppCompatActivity {
         request = new GetCredentialRequest.Builder().addCredentialOption(new GetSignInWithGoogleOption
                 .Builder(BuildConfig.tokenGoogle).build()).build();
 
-        binding.btnTesteeee.setOnClickListener(v -> loginWithGoogle());
+        binding.btnGoogle.setOnClickListener(v -> loginWithGoogle());
 
         callbackManager = CallbackManager.Factory.create();
-        binding.btnTesteFace.setOnClickListener(v -> {
+        binding.btnFacebook.setOnClickListener(v -> {
             LoginManager.getInstance().logInWithReadPermissions(HomeScreenView.this
                     , Arrays.asList("email", "public_profile"));
             LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<>() {

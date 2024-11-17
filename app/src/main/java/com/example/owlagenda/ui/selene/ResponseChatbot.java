@@ -1,9 +1,5 @@
 package com.example.owlagenda.ui.selene;
 
-import androidx.annotation.experimental.UseExperimental;
-
-import com.google.gson.annotations.SerializedName;
-
 public class ResponseChatbot {
     private String response;
     private String taskTitle;
