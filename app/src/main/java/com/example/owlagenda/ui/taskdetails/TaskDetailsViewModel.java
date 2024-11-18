@@ -129,6 +129,24 @@ public class TaskDetailsViewModel extends ViewModel {
         });
     }
 
+    public LiveData<Boolean> markTaskAsCompleted(String taskId, boolean isCompleted) {
+        MutableLiveData<Boolean> isTaskUpdated = new MutableLiveData<>();
+        isLoading.setValue(true);
+
+                taskRepository.markTaskAsCompleted(taskId, isCompleted, task -> {
+            if (task.isSuccessful()) {
+                isTaskUpdated.setValue(true);
+            } else {
+                errorMessage.setValue("Erro ao marcar tarefa como concluída: " + task.getException().getMessage());
+                isTaskUpdated.setValue(false);
+            }
+            isLoading.setValue(false);
+        });
+
+        return isTaskUpdated;
+    }
+
+
     public MutableLiveData<Boolean> getIsLoading() {
         return isLoading;
     }
