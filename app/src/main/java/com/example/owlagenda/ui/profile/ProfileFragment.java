@@ -11,8 +11,6 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
@@ -21,7 +19,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -171,7 +168,7 @@ public class ProfileFragment extends Fragment {
 
                                     Glide.with(getContext())
                                             .load(user.getUrlProfilePhoto())
-                                            .placeholder(R.drawable.owl_default)
+                                            .placeholder(R.drawable.photo_default)
                                             .circleCrop()
                                             .into(binding.imagePhotoProfile);
                                 }
@@ -201,7 +198,7 @@ public class ProfileFragment extends Fragment {
                 binding.etTelefoneProfile.setText(String.valueOf(oldUser.getPhoneNumber()));
                 Glide.with(getContext())
                         .load(oldUser.getUrlProfilePhoto())
-                        .placeholder(R.drawable.owl_default)
+                        .placeholder(R.drawable.photo_default)
                         .circleCrop()
                         .into(binding.imagePhotoProfile);
                 imageProfileBitmap = null;
@@ -325,7 +322,7 @@ public class ProfileFragment extends Fragment {
                         if (resultUri != null) {
                             Glide.with(getContext())
                                     .load(resultUri)
-                                    .placeholder(R.drawable.owl_default)
+                                    .placeholder(R.drawable.photo_default)
                                     .circleCrop()
                                     .into(binding.imagePhotoProfile);
                             imageProfileBitmap = BitmapFactory.decodeFile(resultUri.getPath());
@@ -357,7 +354,7 @@ public class ProfileFragment extends Fragment {
             btnDeleteImage.setOnClickListener(v12 -> {
                 Glide.with(getContext())
                         .load(oldUser.getUrlProfilePhoto())
-                        .placeholder(R.drawable.owl_default)
+                        .placeholder(R.drawable.photo_default)
                         .circleCrop()
                         .into(binding.imagePhotoProfile);
                 imageProfileBitmap = null;

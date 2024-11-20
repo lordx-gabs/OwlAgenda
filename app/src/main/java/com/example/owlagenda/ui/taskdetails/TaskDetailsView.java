@@ -86,11 +86,13 @@ public class TaskDetailsView extends AppCompatActivity {
                 }
             } else if (item.getItemId() == R.id.menu_delete_task) {
                 if(binding.loadingTaskDetails.getVisibility() == View.GONE) {
+                    binding.loadingTaskDetails.setVisibility(View.VISIBLE);
                     viewModel.deleteTask(task).observe(this, aBoolean -> {
                         if (aBoolean) {
                             snackbar = Snackbar.make(binding.getRoot(), "Tarefa Excluída",
                                     Snackbar.LENGTH_SHORT).setAction("Desfazer", v3 ->
                                     viewModel.addTask(task).observe(this, aBoolean1 -> {
+                                        binding.loadingTaskDetails.setVisibility(View.GONE);
                                         if (aBoolean1) {
                                             Toast.makeText(this, "Tarefa restaurada com sucesso", Toast.LENGTH_SHORT).show();
                                         } else {
@@ -122,7 +124,6 @@ public class TaskDetailsView extends AppCompatActivity {
                                         }
                                         finish();
                                     }
-                                    binding.loadingTaskDetails.setVisibility(View.GONE);
                                 }
                             });
 
@@ -130,7 +131,6 @@ public class TaskDetailsView extends AppCompatActivity {
                         } else {
                             Toast.makeText(this, "Falha ao deletar tarefa", Toast.LENGTH_SHORT).show();
                         }
-                        binding.loadingTaskDetails.setVisibility(View.GONE);
                     });
                 } else {
                     Toast.makeText(this, "Carregando tarefa aguarde...", Toast.LENGTH_SHORT).show();

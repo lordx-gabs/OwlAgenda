@@ -344,8 +344,6 @@ public class TaskView extends AppCompatActivity {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_NOTIFICATION);
                     return;
-                } else {
-                    saveTask();
                 }
             }
             saveTask();

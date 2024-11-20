@@ -11,6 +11,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
@@ -127,7 +128,11 @@ public class ClassRepository {
     }
 
     public void getClassByNameAndSchool(String name, DocumentReference schoolId, OnCompleteListener<QuerySnapshot> completeListener) {
-        classCollection.whereEqualTo("classNameSearch", name)
+        DocumentReference userRef = FirebaseFirestore.getInstance()
+                .collection("usuario")
+                .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        classCollection.whereEqualTo("userId", userRef)
+                .whereEqualTo("classNameSearch", name)
                 .whereEqualTo("schoolId", schoolId).get().addOnCompleteListener(completeListener);
     }
 

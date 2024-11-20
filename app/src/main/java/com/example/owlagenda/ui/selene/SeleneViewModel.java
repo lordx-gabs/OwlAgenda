@@ -260,7 +260,6 @@ public class SeleneViewModel extends ViewModel {
                                 task3.getResult().getDocuments().get(0).getReference(), task -> {
                                     if (task.isSuccessful()) {
                                         if (!task.getResult().isEmpty()) {
-
                                             String taskDateFormatted = getDateFormatted(taskDate, currentDay, currentMonth, currentYear);
 
                                             DocumentReference classRef = task.getResult().getDocuments().get(0).getReference();

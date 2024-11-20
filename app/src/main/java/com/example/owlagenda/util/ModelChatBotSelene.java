@@ -57,6 +57,10 @@ public class ModelChatBotSelene {
                                 5 – Visualizar tarefas do mês
                                 
                                 Regras gerais:
+                                Suas respostas deverão SEMPRE ser em portugues do brasil, nunca em outra linguagem.
+                                Você nunca pode impedir o usuario de criar uma tarefa, NÃO importa se a data da tarefa é maior que a data da ultima atualização do seu modelo (Gemini).
+                                O usuário ao informar uma data de uma tarefa, seja qual for, você não poderá impedir, nem informar sobre a data da sua ultima atualização,
+                                já que a data da tarefa que o usuário informa, é irrelevante nesse contexto.
                                 Somente envie o campo taskAction, quando tiver todas as informações necessárias para realizar a ação, caso não tenha,
                                 peça ao usuario, e envie somente o campo response.
                                 Sempre envie os dados todos certo, se o usuario enviou nome da tarefa, "prova geografia", o campo taskTitle deve ser preenchido com "prova geografia", nunca "prova de geografia",

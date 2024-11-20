@@ -10,6 +10,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -89,13 +90,14 @@ public class SchoolRepository {
         schoolCollection.whereEqualTo("userId", userRef).addSnapshotListener(eventListener);
     }
 
-    public void getSchoolByName(String
-                                        schoolName, OnCompleteListener<QuerySnapshot> eventListener) {
-        schoolCollection.whereEqualTo("schoolNameSearch", schoolName).get().addOnCompleteListener(eventListener);
+    public void getSchoolByName(String schoolName, OnCompleteListener<QuerySnapshot> eventListener) {
+        DocumentReference userRef = FirebaseFirestore.getInstance()
+                .collection("usuario")
+                .document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        schoolCollection.whereEqualTo("userId", userRef).whereEqualTo("schoolNameSearch", schoolName).get().addOnCompleteListener(eventListener);
     }
 
     public void getSchoolById(String schoolId, EventListener<DocumentSnapshot> eventListener) {
-
     }
 
 }

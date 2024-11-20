@@ -83,10 +83,10 @@ public class CalendarViewModel extends ViewModel {
         isLoading.setValue(true);
 
         taskRepository.deleteTask(taskCalendar.getId(), task -> {
-            if(task.isSuccessful()) {
-                if(taskCalendar.getTaskDocuments() != null && !taskCalendar.getTaskDocuments().isEmpty()) {
+            if (task.isSuccessful()) {
+                if (taskCalendar.getTaskDocuments() != null && !taskCalendar.getTaskDocuments().isEmpty()) {
                     taskRepository.deleteAttachmentsStorage(taskCalendar.getId(), taskCalendar.getTaskDocuments(), task1 -> {
-                        if(task1.isSuccessful()) {
+                        if (task1.isSuccessful()) {
                             isDeleted.setValue(true);
                             isLoading.setValue(false);
                         } else {
@@ -132,35 +132,46 @@ public class CalendarViewModel extends ViewModel {
         task.setId(FirebaseFirestore.getInstance().collection("tarefa").document().getId());
 
         com.google.android.gms.tasks.Task<Void> lastTask = Tasks.forResult(null);
-
-        lastTask = lastTask.continueWithTask(task1 -> taskRepository.saveAttachmentsStorage(task.getId(), task.getTaskDocuments()))
-                .addOnFailureListener(e -> {
-                    if (e instanceof FirebaseNetworkException) {
-                        errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
-                    } else {
-                        isSuccessfully.postValue(false);
-                    }
-                    isLoading.postValue(false);
-                });
-
-        lastTask.continueWithTask(task1 -> taskRepository.getAttachmentsUrls(task, downloadUrls))
-                .addOnCompleteListener(task1 -> {
-                    if (task1.isSuccessful()) {
-                        for (int i = 0; i < downloadUrls.size(); i++) {
-                            task.getTaskDocuments().get(i).setUrl(downloadUrls.get(i));
+        if (task.getTaskDocuments() == null) {
+            taskRepository.addTask(task, task2 -> {
+                isLoading.postValue(false);
+                if (task2.isSuccessful()) {
+                    isSuccessfully.postValue(true);
+                } else {
+                    isSuccessfully.postValue(false);
+                }
+            });
+        } else {
+            lastTask = lastTask.continueWithTask(task1 -> taskRepository.saveAttachmentsStorage(task.getId(), task.getTaskDocuments()))
+                    .addOnFailureListener(e -> {
+                        if (e instanceof FirebaseNetworkException) {
+                            errorMessage.postValue("Erro de conexão. Verifique sua conexão e tente novamente.");
+                        } else {
+                            isSuccessfully.postValue(false);
                         }
+                        isLoading.postValue(false);
+                    });
 
-                        taskRepository.addTask(task, task2 -> {
-                            if (task2.isSuccessful()) {
-                                isSuccessfully.postValue(true);
-                            } else {
-                                handleErrorCreateTask(task.getId(), task.getTaskDocuments(), task2.getException());
+            lastTask.continueWithTask(task1 -> taskRepository.getAttachmentsUrls(task, downloadUrls))
+                    .addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()) {
+                            for (int i = 0; i < downloadUrls.size(); i++) {
+                                task.getTaskDocuments().get(i).setUrl(downloadUrls.get(i));
                             }
-                        });
-                    } else {
-                        handleErrorCreateTask(task.getId(), task.getTaskDocuments(), task1.getException());
-                    }
-                });
+
+                            taskRepository.addTask(task, task2 -> {
+                                isLoading.postValue(false);
+                                if (task2.isSuccessful()) {
+                                    isSuccessfully.postValue(true);
+                                } else {
+                                    handleErrorCreateTask(task.getId(), task.getTaskDocuments(), task2.getException());
+                                }
+                            });
+                        } else {
+                            handleErrorCreateTask(task.getId(), task.getTaskDocuments(), task1.getException());
+                        }
+                    });
+        }
 
         return isSuccessfully;
     }

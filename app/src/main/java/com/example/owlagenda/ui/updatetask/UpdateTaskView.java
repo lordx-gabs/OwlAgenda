@@ -418,8 +418,10 @@ public class UpdateTaskView extends AppCompatActivity {
                         binding.autoCompleteTagTaskUpdate.setText(task.getTag(), false);
                         binding.switchCompleteUpdateTask.setChecked(task.isCompleted());
                         documentAdapter.getDocuments().clear();
-                        documentAdapter.getDocuments().addAll(task.getTaskDocuments());
-                        documentAdapter.notifyDataSetChanged();
+                        if(task.getTaskDocuments() != null) {
+                            documentAdapter.getDocuments().addAll(task.getTaskDocuments());
+                            documentAdapter.notifyDataSetChanged();
+                        }
                     } else {
                         finish();
                         Toast.makeText(this, "Erro ao carregar a tarefa.", Toast.LENGTH_SHORT).show();

@@ -86,8 +86,7 @@ public class CalendarFragment extends Fragment {
     private ArrayList<TaskCalendar> tasksCalendar;
     private ArrayList<Task> tasksObject;
     private ActivityResultLauncher<String> requestCalendarPermissionLauncher;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-    private List<com.google.android.gms.tasks.Task<Void>> firestoreTasks = new ArrayList<>(); // Lista de tarefas Firestore para controle
+    private final List<com.google.android.gms.tasks.Task<Void>> firestoreTasks = new ArrayList<>(); // Lista de tarefas Firestore para controle
     private User currentUser;
     private List<DayOfWeek> daysOfWeek;
     private ArrayList<TaskCalendar> taskCalendarUserCopy = new ArrayList<>();
@@ -95,11 +94,9 @@ public class CalendarFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentCalendarBinding.inflate(inflater, container, false);
-
 
         binding.appBarTelaPrincipal.toolbar.inflateMenu(R.menu.menu_overflow);
 
@@ -191,10 +188,10 @@ public class CalendarFragment extends Fragment {
                                                 }
 
                                                 Log.d("teste", "" + notificationId);
-                                                if (NotificationUtil.scheduleNotificationApp.isAlarmSet(getActivity().getApplicationContext(),
+                                                if (NotificationUtil.scheduleNotificationApp.isAlarmSet(requireActivity().getApplicationContext(),
                                                         taskOptional.get().getTitle(), notificationId)) {
                                                     NotificationUtil.scheduleNotificationApp
-                                                            .cancelNotification(getActivity().getApplicationContext(),
+                                                            .cancelNotification(requireActivity().getApplicationContext(),
                                                                     taskOptional.get().getTitle(), notificationId);
                                                     Log.d("testeee", "chegouu");
                                                 }
@@ -457,7 +454,7 @@ public class CalendarFragment extends Fragment {
                 CalendarContract.Calendars.ACCOUNT_TYPE
         };
 
-        Cursor cursor = getActivity().getContentResolver().query(uri, projection, null, null, null);
+        Cursor cursor = requireActivity().getContentResolver().query(uri, projection, null, null, null);
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID));
