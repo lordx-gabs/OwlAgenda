@@ -62,6 +62,18 @@ public class TaskRepository {
                 .addOnCompleteListener(completeListener);
     }
 
+    public void markTaskAsCompleted(String taskId, boolean isCompleted, OnCompleteListener<Void> completeListener) {
+        DocumentReference taskDoc = collectionReference.document(taskId);
+
+        // Cria o mapa de atualização
+        Map<String, Object> updateData = new HashMap<>();
+        updateData.put("isCompleted", isCompleted);  // Atualiza o status conforme o estado do Switch
+
+        // Atualiza a tarefa no Firestore
+        taskDoc.update(updateData).addOnCompleteListener(completeListener);
+    }
+
+
     public void updateTaskFields(DocumentReference task, String newName, String newType,
                                  DocumentReference school, DocumentReference newClass, String newDescription,
                                  String newDate, OnCompleteListener<Void> onCompleteListener) {

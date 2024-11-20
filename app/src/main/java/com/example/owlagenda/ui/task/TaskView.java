@@ -32,11 +32,13 @@ import com.example.owlagenda.data.models.School;
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.models.TaskAttachments;
 import com.example.owlagenda.databinding.ActivityTaskBinding;
+import com.example.owlagenda.ui.taskdetails.TaskDetailsViewModel;
 import com.example.owlagenda.util.NotificationUtil;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -404,6 +406,34 @@ public class TaskView extends AppCompatActivity {
                 binding.autoCompleteNotifications.showDropDown());
 
         binding.toolbarTask.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
+
+
+        // Obtém a tarefa passada pela Intent
+        Task task = (Task) getIntent().getSerializableExtra("TASK");  // Passando a tarefa completa pela Intent
+        String taskId = task.getId();  // Obtendo o ID da tarefa
+
+        // Obtém o MaterialSwitch pelo ID
+        MaterialSwitch completeTaskSwitch = findViewById(R.id.complete_task);
+
+        // Define o estado inicial do switch com base no status atual da tarefa
+        completeTaskSwitch.setChecked(task.isCompleted());  // Se a tarefa já estiver concluída, o switch será marcado como "checked"
+
+        // Inicializa o ViewModel
+        TaskDetailsViewModel viewModel = new ViewModelProvider(this).get(TaskDetailsViewModel.class);
+
+        // Configura o listener para mudanças no estado do switch
+        completeTaskSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Chama o método do ViewModel para atualizar o status da tarefa
+            viewModel.markTaskAsCompleted(taskId, isChecked).observe(this, isUpdated -> {
+                if (isUpdated != null && isUpdated) {
+                    // Exibe mensagem de sucesso
+                    Toast.makeText(TaskView.this, "Tarefa concluída!", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Exibe mensagem de erro
+                    Toast.makeText(TaskView.this, "Falha ao marcar a tarefa como concluída.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
 
     }
 
