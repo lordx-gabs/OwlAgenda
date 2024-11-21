@@ -1,6 +1,7 @@
 package com.example.owlagenda.util;
 
-import org.opencv.BuildConfig;
+
+import com.example.owlagenda.BuildConfig;
 import com.google.ai.client.generativeai.GenerativeModel;
 import com.google.ai.client.generativeai.java.GenerativeModelFutures;
 import com.google.ai.client.generativeai.type.BlockThreshold;
