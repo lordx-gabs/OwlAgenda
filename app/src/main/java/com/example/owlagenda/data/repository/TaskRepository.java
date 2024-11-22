@@ -57,21 +57,9 @@ public class TaskRepository {
                         .document(id)).addSnapshotListener(eventListener);
     }
 
-    public void addTask(Task task, OnCompleteListener<Void> completeListener, Context context) {
-        collectionReference.document(task.getId()).set(task).addOnCompleteListener(taskResult -> {
-            if (taskResult.isSuccessful()) {
-                // Envia a broadcast para atualizar o widget
-                Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                context.getApplicationContext().sendBroadcast(intent);
-            }
-            completeListener.onComplete(taskResult);
-        });
+    public void addTask(Task task, OnCompleteListener<Void> completeListener) {
+        collectionReference.document(task.getId()).set(task).addOnCompleteListener(completeListener);
     }
-
-
-
-
-
 
     public void updateTask(Task task, OnCompleteListener<Void> completeListener) {
         collectionReference.document(task.getId()).set(task, SetOptions.merge())

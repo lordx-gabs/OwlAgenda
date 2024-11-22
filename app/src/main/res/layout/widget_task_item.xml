@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -11,13 +12,13 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Título da Tarefa"
-        android:textSize="14sp"/>
+        android:textSize="16sp"/>
 
-    <ImageView
-        android:id="@+id/widget_task_complete"
+    <ImageButton
+        android:id="@+id/widget_task_complete_button"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:src="@drawable/ic_check"
-        android:contentDescription="Concluir Tarefa"
-    android:padding="4dp"/>
+    android:contentDescription="Concluir Tarefa"
+    android:background="?attr/selectableItemBackgroundBorderless"/>
 </LinearLayout>

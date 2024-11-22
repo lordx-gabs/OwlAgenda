@@ -1,22 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/background_task_day">
+    android:padding="8dp">
 
+    <!-- Título do widget -->
     <TextView
         android:id="@+id/widget_task_title"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tarefas:"
+        android:text="Tarefas do dia"
         android:textSize="16sp"
-        android:padding="8dp"
-        android:textColor="@color/black"/>
+        android:textStyle="bold"
+        android:paddingBottom="8dp"
+        android:gravity="center_horizontal"/>
 
+    <!-- ListView para exibir as tarefas -->
     <ListView
         android:id="@+id/widget_task_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp"
+        android:padding="4dp"
+        android:scrollingCache="false"
+        android:scrollbars="vertical"
+        android:drawSelectorOnTop="false"/>
+
+    <!-- Mensagem quando não houver tarefas -->
+    <TextView
+        android:id="@+id/widget_no_tasks_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nenhuma tarefa para hoje."
+        android:textSize="14sp"
+        android:gravity="center"
+        android:visibility="gone"/> <!-- Inicialmente invisível -->
+
 </LinearLayout>
