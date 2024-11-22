@@ -1,5 +1,7 @@
 package com.example.owlagenda.data.repository;
 
+import android.appwidget.AppWidgetManager;
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
@@ -7,8 +9,10 @@ import androidx.annotation.Nullable;
 
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.models.TaskAttachments;
+import com.example.owlagenda.ui.widgets.TaskWidgetProvider;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Tasks;
+import com.google.api.Context;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
@@ -53,9 +57,21 @@ public class TaskRepository {
                         .document(id)).addSnapshotListener(eventListener);
     }
 
-    public void addTask(Task task, OnCompleteListener<Void> completeListener) {
-        collectionReference.document(task.getId()).set(task).addOnCompleteListener(completeListener);
+    public void addTask(Task task, OnCompleteListener<Void> completeListener, Context context) {
+        collectionReference.document(task.getId()).set(task).addOnCompleteListener(taskResult -> {
+            if (taskResult.isSuccessful()) {
+                // Envia a broadcast para atualizar o widget
+                Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                context.getApplicationContext().sendBroadcast(intent);
+            }
+            completeListener.onComplete(taskResult);
+        });
     }
+
+
+
+
+
 
     public void updateTask(Task task, OnCompleteListener<Void> completeListener) {
         collectionReference.document(task.getId()).set(task, SetOptions.merge())

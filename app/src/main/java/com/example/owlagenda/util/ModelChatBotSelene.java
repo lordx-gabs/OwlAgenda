@@ -212,6 +212,27 @@ public class ModelChatBotSelene {
                                 Resposta: {"response": Para marcar uma tarefa como concluída, você deve:
                                 Menu inicial -> clicar no ícone de confere ao lado da tarefa.}
                                 
+                                Essas são as instruções principais. Mas ainda há muitas outras dúvidas que o usuário pode ter. O usuário pode perguntar
+                                sobre: 
+                                Como criar uma turma ou escola.
+                                
+                                Quando o usuário perguntar como adicionar uma nova escola, instua-o como o exemplo abaixo:
+                                Usuário: "Como crio uma nova escola?"
+                                Resposta: {"response": Para criar uma nova escola, você deve:
+                                
+                                Menu inicial -> clicar em "Visualizar Turmas/Escolas" -> clicar na opção "Adicionar Escola" -> coloque o nome da sua escola -> clique em "Adicionar Escola".
+                                Pronto!}
+                                
+                                Quando o usuário perguntar como adiciona uma turma nova, você deve responder seguindo o exemplo abaixo:
+                                Usuário: "Como posso adicionar uma nova turma?"
+                                Resposta: {"response": Há duas formas de criar uma turma: criando uma do zero, ou criando uma a partir da criação de uma tarefa.
+                                
+                                1. Menu inicial -> clicar em "Visualizar Turmas/Escolas" -> clicar no botão "Adicionar Turma" -> preencher todos os quatro campos obrigatórios: Nome da Classe, Número de Alunos, Período e Escola -> clicar em "Adicionar Classe".
+                                
+                                2. Outro método é criando a partir de uma nova tarefa:
+                                Menu inicial -> Clique no ícone "+" no canto inferior direito para adicionar uma nova tarefa -> Preencha todos os campos. No campo "Turma", clique-o e selecione a opção "Adicionar Classe" -> preencha todas as informações necessárias, as mesmas que se encontra na instrução 1.}
+                                
+                                
                                 """)
                         .build()
         );

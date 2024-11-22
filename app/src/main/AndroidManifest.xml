@@ -45,7 +45,23 @@
         android:supportsRtl="true"
         android:theme="@style/Base.Theme.OwlAgenda"
         tools:targetApi="31">
-        <activity
+
+        <receiver
+            android:name=".ui.widgets.TaskWidgetProvider"
+            android:label="Task Widget"
+            android:icon="@drawable/ic_selene_filled"
+        android:enabled="true"
+        android:exported="false">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@layout/task_widget_info" />
+    </receiver>
+
+
+    <activity
             android:name=".ui.aboutus.AboutUsView"
             android:exported="false" />
         <activity
