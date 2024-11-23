@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.example.owlagenda.R;
@@ -32,10 +33,21 @@ public class TaskWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        // Atualiza todos os widgets
         for (int appWidgetId : appWidgetIds) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_task_view);
+
+            // Configure o RemoteAdapter (conectando a lista de tarefas com o widget)
+            Intent intent = new Intent(context, TaskWidgetService.class);
+            views.setRemoteAdapter(R.id.widget_task_list, intent);
+
+            // Definir a EmptyView para mostrar a mensagem quando não houver tarefas
+            views.setEmptyView(R.id.widget_task_list, R.id.widget_no_tasks_message);
+
+            // Atualizar o widget
             appWidgetManager.updateAppWidget(appWidgetId, views);
+            Log.d("TaskWidgetProvider", "Widget atualizado com sucesso.");
         }
     }
+
+
 }

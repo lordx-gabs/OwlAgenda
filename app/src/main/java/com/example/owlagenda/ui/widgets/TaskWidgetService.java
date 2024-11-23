@@ -11,8 +11,7 @@ public class TaskWidgetService extends RemoteViewsService {
 
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        // 'this' é o contexto válido para o RemoteViewsService
-        return new TaskWidgetFactory(this);
+        return new TaskWidgetFactory(getApplicationContext());
     }
 
     // A classe TaskWidgetFactory implementa RemoteViewsFactory,

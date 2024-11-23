@@ -46,6 +46,7 @@
         android:theme="@style/Base.Theme.OwlAgenda"
         tools:targetApi="31">
 
+        <!-- Registro do TaskWidgetProvider (Widget) -->
         <receiver
             android:name=".ui.widgets.TaskWidgetProvider"
             android:label="Task Widget"
@@ -60,7 +61,19 @@
                 android:resource="@xml/task_widget_info" />
         </receiver>
 
+        <!-- Registro do TaskWidgetService (Serviço de RemoteViews para o widget) -->
+        <service
+            android:name=".ui.widgets.TaskWidgetService"
+            android:exported="true"
+            android:permission="android.permission.BIND_REMOTEVIEWS">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
 
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/task_widget_info" />
+        </service>
 
         <activity
             android:name=".ui.aboutus.AboutUsView"
@@ -96,7 +109,6 @@
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -129,10 +141,8 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
