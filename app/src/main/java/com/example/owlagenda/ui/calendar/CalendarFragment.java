@@ -189,10 +189,10 @@ public class CalendarFragment extends Fragment {
 
                                                 Log.d("teste", "" + notificationId);
                                                 if (NotificationUtil.scheduleNotificationApp.isAlarmSet(requireActivity().getApplicationContext(),
-                                                        taskOptional.get().getTitle(), notificationId)) {
+                                                        taskOptional.get().getTitle(), notificationId, taskOptional.get().getId())) {
                                                     NotificationUtil.scheduleNotificationApp
                                                             .cancelNotification(requireActivity().getApplicationContext(),
-                                                                    taskOptional.get().getTitle(), notificationId);
+                                                                    taskOptional.get().getTitle(), notificationId, taskOptional.get().getId());
                                                     Log.d("testeee", "chegouu");
                                                 }
                                             }

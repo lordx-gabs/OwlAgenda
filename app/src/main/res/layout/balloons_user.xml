@@ -6,23 +6,21 @@
     android:gravity="right"
     android:orientation="horizontal">
 
-    <FrameLayout
+    <!-- RelativeLayout para controlar o layout do TextView e ImageView -->
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp">
 
         <!-- TextView com fundo e texto -->
-
-        <!-- ImageView que será sobreposta -->
         <TextView
             android:id="@+id/tv_balloons_user"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
+            android:layout_alignParentEnd="true"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="7dp"
             android:background="@drawable/balloons_rounded_background_user"
-            android:gravity="right"
             android:maxWidth="250dp"
             android:paddingStart="15dp"
             android:paddingTop="8dp"
@@ -30,17 +28,31 @@
             android:paddingBottom="8dp"
             android:text="jjfshjfusdhfhsdf" />
 
+        <!-- ImageView que será sobreposta -->
         <ImageView
             android:id="@+id/imageView2"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:layout_gravity="end"
+            android:layout_alignParentEnd="true"
             android:layout_marginTop="4dp"
             app:srcCompat="@drawable/tip_user" />
 
-    </FrameLayout>
+        <!-- Círculo de erro abaixo do TextView -->
+        <ImageView
+            android:id="@+id/ic_error_message"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_below="@id/tv_balloons_user"
+            android:layout_alignEnd="@id/tv_balloons_user"
+            android:layout_alignParentEnd="false"
+            android:layout_marginTop="4dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_error"
+            android:visibility="gone" /> <!-- Círculo vermelho -->
 
+    </RelativeLayout>
 
+    <!-- Imagem do perfil -->
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/profile_photo_ballons_user"
         android:layout_width="45dp"

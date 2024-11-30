@@ -85,10 +85,6 @@
                 app:navigationIcon="@drawable/ic_arrow_back"
                 app:title="Editar tarefa" />
 
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="1dp" />
-
         </com.google.android.material.appbar.AppBarLayout>
 
         <LinearLayout

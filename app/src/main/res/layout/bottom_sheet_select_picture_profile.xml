@@ -47,6 +47,13 @@
         android:text="Definir foto padrão"
         android:textSize="16sp" />
 
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        app:dividerThickness="1dp"
+        app:dividerInsetStart="8dp"
+        app:dividerInsetEnd="8dp" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_delete_image"
         android:layout_width="match_parent"

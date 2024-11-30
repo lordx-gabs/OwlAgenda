@@ -306,7 +306,8 @@ public class SeleneViewModel extends ViewModel {
                                                     NotificationUtil.scheduleNotificationApp.scheduleNotification(context.getApplicationContext(),
                                                             calendar.getTimeInMillis(),
                                                             taskName,
-                                                            idNotification);
+                                                            idNotification,
+                                                            taskData.getId());
                                                     messageChatBot.postValue(responseChatbot.getResponse());
                                                 } else {
                                                     if (task1.getException() instanceof FirebaseNetworkException) {
@@ -417,9 +418,9 @@ public class SeleneViewModel extends ViewModel {
                                                                         }
                                                                         Log.d("teste", "" + notificationId);
                                                                         if (NotificationUtil.scheduleNotificationApp.isAlarmSet(context, taskName,
-                                                                                notificationId)) {
+                                                                                notificationId, taskUser.getId())) {
                                                                             NotificationUtil.scheduleNotificationApp.cancelNotification(context, taskName,
-                                                                                    notificationId);
+                                                                                    notificationId, taskUser.getId());
                                                                             Log.d("testeee", "chegouu");
                                                                         }
                                                                         messageChatBot.postValue(responseChatbot.getResponse());
@@ -496,7 +497,7 @@ public class SeleneViewModel extends ViewModel {
                                                                 taskDescription.trim(), taskDateFormatted, task13 -> {
                                                                     if (task13.isSuccessful()) {
                                                                         if (!taskDate.isEmpty()) {
-                                                                            scheduleNotification(finalTaskDateFormatted, context, taskName.trim(), newTaskName.trim());
+                                                                            scheduleNotification(finalTaskDateFormatted, context, taskName.trim(), newTaskName.trim(), taskOld.getId());
                                                                         }
                                                                         messageChatBot.postValue(responseChatbot.getResponse());
                                                                     } else {
@@ -531,7 +532,7 @@ public class SeleneViewModel extends ViewModel {
                                 null, taskDescription, taskDateFormatted, task1 -> {
                                     if (task1.isSuccessful()) {
                                         if (!taskDate.isEmpty()) {
-                                            scheduleNotification(finalTaskDateFormatted, context, taskName, newTaskName.trim());
+                                            scheduleNotification(finalTaskDateFormatted, context, taskName, newTaskName.trim(), taskOld.getId());
                                         }
                                         messageChatBot.postValue(responseChatbot.getResponse());
                                     } else {
@@ -548,7 +549,7 @@ public class SeleneViewModel extends ViewModel {
         });
     }
 
-    private void scheduleNotification(String taskDate, Context context, String taskNameOld, String taskNameNew) {
+    private void scheduleNotification(String taskDate, Context context, String taskNameOld, String taskNameNew, String taskId) {
         Log.d("teseee", taskDate);
         if (!taskDate.isEmpty()) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -578,19 +579,15 @@ public class SeleneViewModel extends ViewModel {
             }
 
             Log.d("testeeee", "" + idNotification);
-            if (NotificationUtil.scheduleNotificationApp.isAlarmSet(context.getApplicationContext(), taskNameOld, idNotification)) {
-                NotificationUtil.scheduleNotificationApp.cancelNotification(context.getApplicationContext(), taskNameOld, idNotification);
+            if (NotificationUtil.scheduleNotificationApp.isAlarmSet(context.getApplicationContext(), taskNameOld, idNotification, taskId)) {
+                NotificationUtil.scheduleNotificationApp.cancelNotification(context.getApplicationContext(), taskNameOld, idNotification, taskId);
                 Log.d("testeee", "chegouu");
                 if (taskNameNew.isEmpty()) {
                     NotificationUtil.scheduleNotificationApp.scheduleNotification(context.getApplicationContext()
-                            , calendar.getTimeInMillis(),
-                            taskNameOld.trim(),
-                            idNotification);
+                            , calendar.getTimeInMillis(), taskNameOld.trim(), idNotification, taskId);
                 } else {
                     NotificationUtil.scheduleNotificationApp.scheduleNotification(context.getApplicationContext()
-                            , calendar.getTimeInMillis(),
-                            taskNameNew.trim(),
-                            idNotification);
+                            , calendar.getTimeInMillis(), taskNameNew.trim(), idNotification, taskId);
                 }
             }
         }

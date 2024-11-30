@@ -31,7 +31,6 @@ public class TaskViewModel extends ViewModel {
     private final TaskRepository repository;
     private final SchoolRepository schoolRepository;
     private final ClassRepository classRepository;
-    private MutableLiveData<ArrayList<Task>> tasksLiveData;
     private final MutableLiveData<Boolean> isLoading;
     private MutableLiveData<Boolean> isSuccessful;
     private final MutableLiveData<String> errorMessage;

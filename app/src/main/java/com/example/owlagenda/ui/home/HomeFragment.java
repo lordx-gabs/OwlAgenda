@@ -180,9 +180,9 @@ public class HomeFragment extends Fragment {
 
                                                                                     Log.d("teste", "" + notificationId);
                                                                                     if (NotificationUtil.scheduleNotificationApp.isAlarmSet(HomeFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
-                                                                                            notificationId)) {
+                                                                                            notificationId, taskActually.orElse(null).getId())) {
                                                                                         NotificationUtil.scheduleNotificationApp.cancelNotification(HomeFragment.this.getActivity().getApplicationContext(), taskActually.orElse(null).getTitle(),
-                                                                                                notificationId);
+                                                                                                notificationId, taskActually.orElse(null).getId());
                                                                                         Log.d("testeee", "chegouu");
                                                                                     }
                                                                                 }

@@ -31,12 +31,17 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.owlagenda.R;
 import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.models.UserViewModel;
@@ -62,7 +67,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class ProfileFragment extends Fragment {
-
     private FragmentProfileBinding binding;
     private UserViewModel userViewModel;
     private ProfileViewModel profileViewModel;
@@ -128,7 +132,7 @@ public class ProfileFragment extends Fragment {
             });
 
             if (!materialDatePicker.isAdded()) {
-                materialDatePicker.show(getActivity().getSupportFragmentManager(), "material_date_picker");
+                materialDatePicker.show(requireActivity().getSupportFragmentManager(), "material_date_picker");
             }
         });
 
@@ -144,6 +148,8 @@ public class ProfileFragment extends Fragment {
                 binding.barraCarregandoProfile.setVisibility(View.GONE);
             }
         });
+        binding.imagePhotoProfile.setVisibility(View.INVISIBLE);
+        binding.imageLoadingAnimationView.setVisibility(View.VISIBLE);
 
         NetworkUtil.registerNetworkCallback(getContext(), new ConnectivityManager.NetworkCallback() {
             @Override
@@ -168,9 +174,23 @@ public class ProfileFragment extends Fragment {
 
                                     Glide.with(getContext())
                                             .load(user.getUrlProfilePhoto())
-                                            .placeholder(R.drawable.photo_default)
                                             .circleCrop()
+                                            .listener(new RequestListener<>() {
+                                                @Override
+                                                public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
+                                                    Toast.makeText(getContext(), "Erro ao carregar imagem de perfil.", Toast.LENGTH_SHORT).show();
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                                                    binding.imagePhotoProfile.setVisibility(View.VISIBLE);
+                                                    binding.imageLoadingAnimationView.setVisibility(View.GONE);
+                                                    return false;
+                                                }
+                                            })
                                             .into(binding.imagePhotoProfile);
+
                                 }
                             })
                     );

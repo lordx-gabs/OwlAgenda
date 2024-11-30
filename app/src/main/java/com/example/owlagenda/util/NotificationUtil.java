@@ -17,11 +17,11 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.owlagenda.R;
 import com.example.owlagenda.ui.homepage.HomePageView;
+import com.example.owlagenda.ui.taskdetails.TaskDetailsView;
 
 public class NotificationUtil extends BroadcastReceiver {
     public static final String CHANNEL_ID = "canal_notificacao_owl";
     public static final String CHANNEL_NAME = "Notificações do Owl";
-    public static final int idNotificationAlertTask = 1;
 
     public static void createNotificationChannel(Context context) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -30,7 +30,7 @@ public class NotificationUtil extends BroadcastReceiver {
         notificationManager.createNotificationChannel(channel);
     }
 
-    public static Notification createNotification(Context context, String title, int requestCode) {
+    public static Notification createNotification(Context context, String title, int requestCode, String taskId) {
         Intent completeTaskIntent = new Intent(context, CompleteTaskReceiver.class);
         completeTaskIntent.putExtra("taskId", title);
         completeTaskIntent.putExtra("requestCode", requestCode);
@@ -41,7 +41,8 @@ public class NotificationUtil extends BroadcastReceiver {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT
         );
 
-        Intent intent = new Intent(context.getApplicationContext(), HomePageView.class);
+        Intent intent = new Intent(context.getApplicationContext(), TaskDetailsView.class);
+        intent.putExtra("taskId", taskId);
         PendingIntent pendingIntent = PendingIntent.getActivity(context.getApplicationContext(), requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext(), NotificationUtil.CHANNEL_ID)
@@ -61,18 +62,20 @@ public class NotificationUtil extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String title = intent.getStringExtra("title");
+        String taskId = intent.getStringExtra("taskId");
         int requestCode = intent.getIntExtra("requestCode", 0);
 
-        Notification notification = createNotification(context.getApplicationContext(), title, requestCode);
+        Notification notification = createNotification(context.getApplicationContext(), title, requestCode, taskId);
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(requestCode, notification);
     }
 
     public static class scheduleNotificationApp {
 
-        public static void scheduleNotification(Context context, long triggerAtMillis, String title, int requestCode) {
+        public static void scheduleNotification(Context context, long triggerAtMillis, String title, int requestCode, String taskId) {
             Intent intent = new Intent(context.getApplicationContext(), NotificationUtil.class);
             intent.putExtra("title", title);
+            intent.putExtra("taskId", taskId);
             intent.putExtra("requestCode", requestCode);
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -94,10 +97,11 @@ public class NotificationUtil extends BroadcastReceiver {
             }
         }
 
-        public static void cancelNotification(Context context, String title, int requestCode) {
+        public static void cancelNotification(Context context, String title, int requestCode, String taskId) {
             Intent intent = new Intent(context.getApplicationContext(), NotificationUtil.class);
             intent.putExtra("title", title);
             intent.putExtra("requestCode", requestCode);
+            intent.putExtra("taskId", taskId);
 
             // Recria o mesmo PendingIntent que foi usado para agendar o alarme
             PendingIntent pendingIntent;
@@ -109,7 +113,6 @@ public class NotificationUtil extends BroadcastReceiver {
                         PendingIntent.FLAG_UPDATE_CURRENT);
             }
 
-            // Obtém o AlarmManager
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null) {
                 // Cancela o alarme
@@ -119,11 +122,12 @@ public class NotificationUtil extends BroadcastReceiver {
         }
 
         @SuppressLint("UnspecifiedImmutableFlag")
-        public static boolean isAlarmSet(Context context, String title, int requestCode) {
-            // Crie um Intent para o seu BroadcastReceiver
+        public static boolean isAlarmSet(Context context, String title, int requestCode, String taskId) {
             Intent intent = new Intent(context.getApplicationContext(), NotificationUtil.class);
             intent.putExtra("title", title);
             intent.putExtra("requestCode", requestCode);
+            intent.putExtra("taskId", taskId);
+
             PendingIntent pendingIntent;
             // Crie o PendingIntent com o mesmo requestCode
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

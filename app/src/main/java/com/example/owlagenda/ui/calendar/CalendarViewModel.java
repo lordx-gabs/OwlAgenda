@@ -188,23 +188,6 @@ public class CalendarViewModel extends ViewModel {
         });
     }
 
-
-    public static void deleteNotification(Task taskCalendar, Context context) {
-        int notificationId = 0;
-        try {
-            notificationId = Integer.parseInt(taskCalendar.getId().replaceAll("[^0-9]", ""));
-        } catch (NumberFormatException ignored) {
-
-        }
-        Log.d("teste", "" + notificationId);
-        if (NotificationUtil.scheduleNotificationApp.isAlarmSet(context, taskCalendar.getTitle(),
-                notificationId)) {
-            NotificationUtil.scheduleNotificationApp.cancelNotification(context, taskCalendar.getTitle(),
-                    notificationId);
-            Log.d("testeee", "chegouu");
-        }
-    }
-
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }

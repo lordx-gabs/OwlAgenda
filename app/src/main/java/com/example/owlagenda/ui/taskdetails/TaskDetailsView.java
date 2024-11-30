@@ -116,10 +116,10 @@ public class TaskDetailsView extends AppCompatActivity {
 
                                         Log.d("teste", "" + notificationId);
                                         if (NotificationUtil.scheduleNotificationApp.isAlarmSet(TaskDetailsView.this,
-                                                task.getTitle(), notificationId)) {
+                                                task.getTitle(), notificationId, task.getId())) {
                                             NotificationUtil.scheduleNotificationApp
                                                     .cancelNotification(TaskDetailsView.this, task.getTitle(),
-                                                            notificationId);
+                                                            notificationId, task.getId());
                                             Log.d("testeee", "chegouu");
                                         }
                                         finish();

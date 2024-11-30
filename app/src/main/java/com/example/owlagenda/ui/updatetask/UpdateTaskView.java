@@ -401,7 +401,6 @@ public class UpdateTaskView extends AppCompatActivity {
 
         adapterNotification = new ArrayAdapter<>(this, R.layout.dropdown_layout, notificationsMinutes);
         binding.autoCompleteNotificationsTaskUpdate.setAdapter(adapterNotification);
-        binding.autoCompleteNotificationsTaskUpdate.setText(notificationsMinutes[1], false);
         binding.autoCompleteNotificationsTaskUpdate.setOnClickListener(v ->
                 binding.autoCompleteNotificationsTaskUpdate.showDropDown());
 
@@ -417,8 +416,22 @@ public class UpdateTaskView extends AppCompatActivity {
                         binding.etDateTaskUpdate.setText(task.getDate());
                         binding.autoCompleteTagTaskUpdate.setText(task.getTag(), false);
                         binding.switchCompleteUpdateTask.setChecked(task.isCompleted());
+
+                        switch (task.getNotificationBefore()) {
+                            case 720 ->
+                                    binding.autoCompleteNotificationsTaskUpdate.setText(notificationsMinutes[1], false);
+                            case 1440 ->
+                                    binding.autoCompleteNotificationsTaskUpdate.setText(notificationsMinutes[2], false);
+                            case 2880 ->
+                                    binding.autoCompleteNotificationsTaskUpdate.setText(notificationsMinutes[3], false);
+                            case 4320 ->
+                                    binding.autoCompleteNotificationsTaskUpdate.setText(notificationsMinutes[4], false);
+                            default ->
+                                    binding.autoCompleteNotificationsTaskUpdate.setText(notificationsMinutes[0], false);
+                        }
+
                         documentAdapter.getDocuments().clear();
-                        if(task.getTaskDocuments() != null) {
+                        if (task.getTaskDocuments() != null) {
                             documentAdapter.getDocuments().addAll(task.getTaskDocuments());
                             documentAdapter.notifyDataSetChanged();
                         }
@@ -506,16 +519,16 @@ public class UpdateTaskView extends AppCompatActivity {
                 }
                 if (aBoolean) {
                     if (NotificationUtil.scheduleNotificationApp.isAlarmSet(getApplicationContext(),
-                            task.getTitle(), idNotification)) {
+                            task.getTitle(), idNotification, task.getId())) {
                         NotificationUtil.scheduleNotificationApp.cancelNotification(getApplicationContext(),
-                                        task.getTitle(), idNotification);
+                                task.getTitle(), idNotification, task.getId());
                         Log.d("testeee", "cancelou");
                     }
                     if (finalNotificationBefore != null && !binding.switchCompleteUpdateTask.isChecked()) {
                         NotificationUtil.scheduleNotificationApp.scheduleNotification(getApplicationContext(),
                                 calendar.getTimeInMillis(),
                                 txtNameTask,
-                                idNotification);
+                                idNotification, task.getId());
                         Log.d("testeee", "salvou");
                     }
                     Toast.makeText(this, "Tarefa alterada com sucesso.", Toast.LENGTH_SHORT).show();

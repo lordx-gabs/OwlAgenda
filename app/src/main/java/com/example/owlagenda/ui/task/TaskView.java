@@ -32,13 +32,11 @@ import com.example.owlagenda.data.models.School;
 import com.example.owlagenda.data.models.Task;
 import com.example.owlagenda.data.models.TaskAttachments;
 import com.example.owlagenda.databinding.ActivityTaskBinding;
-import com.example.owlagenda.ui.taskdetails.TaskDetailsViewModel;
 import com.example.owlagenda.util.NotificationUtil;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -137,17 +135,16 @@ public class TaskView extends AppCompatActivity {
                         // Mapeia cada classe para o nome da escola correspondente e coleta os nomes em uma lista
                         List<String> schoolNames = classes.stream()
                                 .map(classItem -> {
-                                    // Obtém o DocumentReference da escola da classe
                                     String classSchoolRef = classItem.getSchoolId().getId();
 
                                     // Encontra a escola correspondente
                                     return schools.stream()
-                                            .filter(school -> classSchoolRef.equals(school.getId())) // Compara DocumentReferences
-                                            .map(School::getSchoolName) // Mapeia para o nome da escola
-                                            .findFirst() // Pega a primeira ocorrência
-                                            .orElse("Escola Desconhecida"); // Valor padrão caso não encontre
+                                            .filter(school -> classSchoolRef.equals(school.getId()))
+                                            .map(School::getSchoolName)
+                                            .findFirst()
+                                            .orElse("Escola Desconhecida");
                                 })
-                                .collect(Collectors.toList()); // Coleta os nomes das escolas em uma lista
+                                .collect(Collectors.toList()); 
 
                         for (int i = 0; i < schoolNames.size(); i++) {
                             classesName.add(schoolNames.get(i) + " - " + classes.get(i).getClassName());
@@ -406,35 +403,6 @@ public class TaskView extends AppCompatActivity {
                 binding.autoCompleteNotifications.showDropDown());
 
         binding.toolbarTask.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
-
-
-        // Obtém a tarefa passada pela Intent
-        Task task = (Task) getIntent().getSerializableExtra("TASK");  // Passando a tarefa completa pela Intent
-        String taskId = task.getId();  // Obtendo o ID da tarefa
-
-        // Obtém o MaterialSwitch pelo ID
-        MaterialSwitch completeTaskSwitch = findViewById(R.id.complete_task);
-
-        // Define o estado inicial do switch com base no status atual da tarefa
-        completeTaskSwitch.setChecked(task.isCompleted());  // Se a tarefa já estiver concluída, o switch será marcado como "checked"
-
-        // Inicializa o ViewModel
-        TaskDetailsViewModel viewModel = new ViewModelProvider(this).get(TaskDetailsViewModel.class);
-
-        // Configura o listener para mudanças no estado do switch
-        completeTaskSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // Chama o método do ViewModel para atualizar o status da tarefa
-            viewModel.markTaskAsCompleted(taskId, isChecked).observe(this, isUpdated -> {
-                if (isUpdated != null && isUpdated) {
-                    // Exibe mensagem de sucesso
-                    Toast.makeText(TaskView.this, "Tarefa concluída!", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Exibe mensagem de erro
-                    Toast.makeText(TaskView.this, "Falha ao marcar a tarefa como concluída.", Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
-
     }
 
     private void saveTask() {
@@ -486,7 +454,7 @@ public class TaskView extends AppCompatActivity {
                     calendar.set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE));
                     calendar.set(Calendar.SECOND, currentCalendar.get(Calendar.SECOND));
 
-                    calendar.add(Calendar.MINUTE, -notificationBefore); // Subtrai o tempo de notificação
+                    calendar.add(Calendar.MINUTE, +notificationBefore); // Subtrai o tempo de notificação
                 } catch (ParseException e) {
                     Toast.makeText(this, "Erro ao converter data", Toast.LENGTH_SHORT).show();
                 }
@@ -507,9 +475,7 @@ public class TaskView extends AppCompatActivity {
                         }
 
                         NotificationUtil.scheduleNotificationApp.scheduleNotification(getApplicationContext(),
-                                calendar.getTimeInMillis(),
-                                txtNameTask,
-                                idNotification);
+                                calendar.getTimeInMillis(), txtNameTask, idNotification, task.getId());
                     }
                     Toast.makeText(this, "Tarefa adicionada com sucesso.", Toast.LENGTH_SHORT).show();
                     finish();

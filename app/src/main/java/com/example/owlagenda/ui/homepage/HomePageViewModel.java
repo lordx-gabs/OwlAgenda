@@ -11,7 +11,6 @@ import com.example.owlagenda.data.models.User;
 import com.example.owlagenda.data.repository.TaskRepository;
 import com.example.owlagenda.data.repository.UserRepository;
 import com.example.owlagenda.ui.selene.Message;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
@@ -135,7 +134,8 @@ public class HomePageViewModel extends ViewModel {
                 if (historyMessage instanceof List<?> historyMessageList) {
                     for (Object item : historyMessageList) {
                         if (item instanceof Map<?, ?> messageMap) {
-                            Message message = new Message((String) messageMap.get("text"), (long) messageMap.get("messageType"));
+                            Message message = new Message((String) messageMap.get("text"), (long) messageMap.get("messageType"),
+                                    (boolean) messageMap.get("messageError"));
 
                             currentMessages.add(message);
                         }

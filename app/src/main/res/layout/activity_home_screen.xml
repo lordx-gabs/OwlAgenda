@@ -150,7 +150,7 @@
             android:id="@+id/btn_google"
             android:layout_width="209dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="16dp"
             android:backgroundTint="#FFFFFF"
             android:text="Entrar com Google"
             android:textColor="#808080"

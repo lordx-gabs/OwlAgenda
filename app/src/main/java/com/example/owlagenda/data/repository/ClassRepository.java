@@ -54,8 +54,8 @@ public class ClassRepository {
                             } catch (NumberFormatException ignored) {
                             }
 
-                            if (NotificationUtil.scheduleNotificationApp.isAlarmSet(context.getApplicationContext(), taskModel.getTitle(), notificationId)) {
-                                NotificationUtil.scheduleNotificationApp.cancelNotification(context.getApplicationContext(), taskModel.getTitle(), notificationId);
+                            if (NotificationUtil.scheduleNotificationApp.isAlarmSet(context.getApplicationContext(), taskModel.getTitle(), notificationId, taskModel.getId())) {
+                                NotificationUtil.scheduleNotificationApp.cancelNotification(context.getApplicationContext(), taskModel.getTitle(), notificationId, taskModel.getId());
                                 Log.d("testeChe", "chegou");
                             }
 

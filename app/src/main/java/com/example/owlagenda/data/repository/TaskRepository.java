@@ -62,18 +62,6 @@ public class TaskRepository {
                 .addOnCompleteListener(completeListener);
     }
 
-    public void markTaskAsCompleted(String taskId, boolean isCompleted, OnCompleteListener<Void> completeListener) {
-        DocumentReference taskDoc = collectionReference.document(taskId);
-
-        // Cria o mapa de atualização
-        Map<String, Object> updateData = new HashMap<>();
-        updateData.put("isCompleted", isCompleted);  // Atualiza o status conforme o estado do Switch
-
-        // Atualiza a tarefa no Firestore
-        taskDoc.update(updateData).addOnCompleteListener(completeListener);
-    }
-
-
     public void updateTaskFields(DocumentReference task, String newName, String newType,
                                  DocumentReference school, DocumentReference newClass, String newDescription,
                                  String newDate, OnCompleteListener<Void> onCompleteListener) {
@@ -116,21 +104,18 @@ public class TaskRepository {
     }
 
     public void getTaskByDateToday(String id, OnCompleteListener<QuerySnapshot> eventListener) {
-        //TODO:arrumar por data
         collectionReference.whereEqualTo("userId", id).whereEqualTo("date",
                         DateTimeFormatter.ofPattern("dd/MM/yyyy").format(LocalDate.now()))
                 .whereEqualTo("completed", false).get().addOnCompleteListener(eventListener);
     }
 
     public void getTaskByDateMonth(String id, OnCompleteListener<QuerySnapshot> eventListener) {
-        //TODO:arrumar por data
         collectionReference.whereEqualTo("userId",
                         FirebaseFirestore.getInstance().collection("usuario").document(id))
                 .get().addOnCompleteListener(eventListener);
     }
 
     public void getTaskByNotCompleted(String id, EventListener<QuerySnapshot> eventListener) {
-        //TODO:pesquisar por isCompleted
         collectionReference.whereEqualTo("userId",
                         FirebaseFirestore.getInstance().collection("usuario").document(id))
                 .whereEqualTo("completed", false).addSnapshotListener(eventListener);

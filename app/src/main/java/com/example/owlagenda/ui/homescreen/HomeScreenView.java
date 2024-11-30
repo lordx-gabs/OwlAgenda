@@ -16,7 +16,7 @@ import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
 import androidx.lifecycle.ViewModelProvider;
 
-import org.opencv.test.BuildConfig;
+import com.example.owlagenda.BuildConfig;
 import com.example.owlagenda.databinding.ActivityHomeScreenBinding;
 import com.example.owlagenda.ui.login.LoginView;
 import com.example.owlagenda.ui.register.RegisterView;

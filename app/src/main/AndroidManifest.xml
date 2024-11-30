@@ -27,6 +27,7 @@
         tools:node="remove" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <queries>
         <intent>
@@ -45,6 +46,7 @@
         android:supportsRtl="true"
         android:theme="@style/Base.Theme.OwlAgenda"
         tools:targetApi="31">
+
         <activity
             android:name=".ui.aboutus.AboutUsView"
             android:exported="false" />
@@ -62,6 +64,7 @@
             android:exported="false" />
 
         <receiver android:name=".util.NotificationUtil" />
+
         <receiver
             android:name=".util.CompleteTaskReceiver"
             android:exported="false" />
@@ -83,6 +86,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".ui.prova.Prova"
             android:exported="false" />
@@ -132,6 +136,7 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name="com.yalantis.ucrop.UCropActivity" />
+
         <activity
             android:name=".ui.login.LoginView"
             android:exported="false" />
