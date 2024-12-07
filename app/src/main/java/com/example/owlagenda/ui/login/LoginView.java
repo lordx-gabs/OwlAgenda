@@ -108,6 +108,10 @@ public class LoginView extends AppCompatActivity {
     }
 
     public void loginUser(View view) {
+        if(loadingProgress.getVisibility() == View.VISIBLE) {
+            Toast.makeText(this, "Aguarde...", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String emailUser = emailEditText.getText().toString();
         String passwordUser = passwordEditText.getText().toString();
         if (!emailUser.isEmpty() && !passwordUser.isEmpty()) {

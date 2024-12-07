@@ -6,6 +6,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -176,11 +177,12 @@ public class RegisterView extends AppCompatActivity {
                 TextInputLayout textInputLayout = findViewById(R.id.et_email_layout_register);
                 int boxStrokeColor;
                 if (Patterns.EMAIL_ADDRESS.matcher(emailEditText.getText().toString()).matches()) {
-                    boxStrokeColor = getColor(R.color.botao_cor);
+                    boxStrokeColor = getColor(R.color.green);
                 } else {
-                    boxStrokeColor = getColor(R.color.cor_primaria);
+                    boxStrokeColor = getColor(R.color.red);
                 }
                 textInputLayout.setBoxStrokeColor(boxStrokeColor);
+                textInputLayout.setHintTextColor(ColorStateList.valueOf(boxStrokeColor));
             }
         });
 
@@ -223,6 +225,10 @@ public class RegisterView extends AppCompatActivity {
     }
 
     public void registerUser(View view) {
+        if(loadingProgress.getVisibility() == View.VISIBLE) {
+            Toast.makeText(this, "Aguarde...", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String name = nameEditText.getText().toString().trim();
         String surname = surnameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();

@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "OwlAgenda"
 include(":app")
-include(":opencv")

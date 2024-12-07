@@ -339,6 +339,10 @@ public class TaskView extends AppCompatActivity {
                 indexNotifications = position);
 
         binding.btnSaveTask.setOnClickListener(v -> {
+            if(binding.loadingTaskView.getVisibility() == View.VISIBLE) {
+                Toast.makeText(this, "Aguarde...", Toast.LENGTH_SHORT).show();
+                return;
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && indexNotifications != 0) {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_NOTIFICATION);
