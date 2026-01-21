@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.example.owlagenda"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.owlagenda"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
