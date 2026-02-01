@@ -77,7 +77,7 @@ public class SeleneFragment extends Fragment {
                         } else if (message.getMessageType() == Message.TYPE_SELENE_MESSAGE) {
                             contentBuilder.setRole("model");
                         } else {
-                            continue; // Pular tipos de mensagem desconhecidos
+                            continue;
                         }
 
                         contentBuilder.addText(message.getText());

@@ -13,7 +13,7 @@ import com.google.ai.client.generativeai.type.SafetySetting;
 import java.util.Arrays;
 
 public class ModelChatBotSelene {
-    private static final String MODEL_ID = "gemini-1.5-flash";
+    private static final String MODEL_ID = "gemini-flash-latest";
     private static final GenerationConfig.Builder configBuilder = new GenerationConfig.Builder();
     private static final SafetySetting harassmentSafetySetting = new SafetySetting(HarmCategory.HARASSMENT,
             BlockThreshold.MEDIUM_AND_ABOVE);

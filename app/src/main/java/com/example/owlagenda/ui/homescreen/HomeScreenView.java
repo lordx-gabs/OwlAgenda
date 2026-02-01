@@ -3,20 +3,24 @@ package com.example.owlagenda.ui.homescreen;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
 import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.CustomCredential;
 import androidx.credentials.GetCredentialRequest;
 import androidx.credentials.GetCredentialResponse;
 import androidx.credentials.exceptions.GetCredentialException;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.owlagenda.BuildConfig;
+import com.example.owlagenda.R;
 import com.example.owlagenda.databinding.ActivityHomeScreenBinding;
 import com.example.owlagenda.ui.login.LoginView;
 import com.example.owlagenda.ui.register.RegisterView;
@@ -27,6 +31,7 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -39,7 +44,6 @@ import java.util.concurrent.Executors;
 public class HomeScreenView extends AppCompatActivity {
     private ActivityHomeScreenBinding binding;
     private HomeScreenViewModel viewModel;
-    private FirebaseAuth firebaseAuth;
     private CallbackManager callbackManager;
     private GetCredentialRequest request;
 
@@ -54,7 +58,7 @@ public class HomeScreenView extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(HomeScreenViewModel.class);
 
         SharedPreferencesUtil.init(this);
-        firebaseAuth = FirebaseAuth.getInstance();
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         if (firebaseAuth.getCurrentUser() != null && SharedPreferencesUtil
                 .getBoolean(SharedPreferencesUtil.KEY_USER_REMEMBER_ME, true)) {
             this.goToMainScreen();
@@ -67,15 +71,19 @@ public class HomeScreenView extends AppCompatActivity {
         binding.btnLoginHomescreen.setOnClickListener(v ->
                 startActivity(new Intent(this, LoginView.class)));
 
-        request = new GetCredentialRequest.Builder().addCredentialOption(new GetSignInWithGoogleOption
-                .Builder(BuildConfig.tokenGoogle).build()).build();
+        GetSignInWithGoogleOption googleIdOption =
+                new GetSignInWithGoogleOption.Builder(getString(R.string.default_web_client_id))
+                        .build();
+
+        request = new GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build();
 
         binding.btnGoogle.setOnClickListener(v -> loginWithGoogle());
 
         callbackManager = CallbackManager.Factory.create();
         binding.btnFacebook.setOnClickListener(v -> {
-            LoginManager.getInstance().logInWithReadPermissions(HomeScreenView.this
-                    , Arrays.asList("email", "public_profile"));
+            LoginManager.getInstance().logInWithReadPermissions(HomeScreenView.this, Arrays.asList("email", "public_profile"));
             LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<>() {
                 @Override
                 public void onSuccess(LoginResult loginResult) {
@@ -134,35 +142,56 @@ public class HomeScreenView extends AppCompatActivity {
                 new CredentialManagerCallback<>() {
                     @Override
                     public void onResult(GetCredentialResponse getCredentialResponse) {
-                        GoogleIdTokenCredential googleIdToken = GoogleIdTokenCredential.createFrom(getCredentialResponse.getCredential().getData());
-                        runOnUiThread(() ->
-                                viewModel.authUserWithGoogle(googleIdToken).observe(HomeScreenView.this, aBoolean -> {
-                                    if (aBoolean) {
-                                        Toast.makeText(HomeScreenView.this, "Bem vindo ao Owl!!!", Toast.LENGTH_SHORT).show();
-                                        SharedPreferencesUtil.saveBoolean(SharedPreferencesUtil.KEY_USER_REMEMBER_ME, true);
-                                        goToMainScreen();
-                                    } else {
-                                        Toast.makeText(HomeScreenView.this, "Falha no login. Tente novamente mais tarde.", Toast.LENGTH_SHORT).show();
-                                    }
-                                })
-                        );
+                        Credential credential = getCredentialResponse.getCredential();
+
+                        if (credential instanceof CustomCredential &&
+                                GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                                        .equals(credential.getType())) {
+
+                            GoogleIdTokenCredential googleIdToken =
+                                    GoogleIdTokenCredential.createFrom(credential.getData());
+
+                            runOnUiThread(() ->
+                                    viewModel.authUserWithGoogle(googleIdToken)
+                                            .observe(HomeScreenView.this, aBoolean -> {
+                                                if (aBoolean) {
+                                                    Toast.makeText(
+                                                            HomeScreenView.this,
+                                                            "Bem vindo ao Owl!!!",
+                                                            Toast.LENGTH_SHORT
+                                                    ).show();
+                                                    SharedPreferencesUtil.saveBoolean(
+                                                            SharedPreferencesUtil.KEY_USER_REMEMBER_ME,
+                                                            true
+                                                    );
+                                                    goToMainScreen();
+                                                } else {
+                                                    Toast.makeText(
+                                                            HomeScreenView.this,
+                                                            "Falha no login. Tente novamente.",
+                                                            Toast.LENGTH_SHORT
+                                                    ).show();
+                                                }
+                                            })
+                            );
+                        }
                     }
 
                     @Override
                     public void onError(@NonNull GetCredentialException e) {
-                        if (e.getCause() instanceof IOException) {
-                            runOnUiThread(() ->
-                                    Toast.makeText(HomeScreenView.this, "Falha de conexão. Verifique sua internet e tente novamente.", Toast.LENGTH_SHORT).show()
-                            );
-                        } else {
-                            runOnUiThread(() ->
-                                    Toast.makeText(HomeScreenView.this, "Erro ao fazer login com o Google. Tente novamente mais tarde.", Toast.LENGTH_SHORT).show()
-                            );
-                        }
+                        e.printStackTrace();
+                        runOnUiThread(() ->
+                                Toast.makeText(
+                                        HomeScreenView.this,
+                                        "Login Google cancelado ou indisponível",
+                                        Toast.LENGTH_SHORT
+                                ).show()
+                        );
                     }
                 }
         );
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
